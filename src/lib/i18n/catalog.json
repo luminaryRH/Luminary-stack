@@ -1,0 +1,2834 @@
+{
+  "Skip to content": [
+    "跳至正文",
+    "本文へスキップ"
+  ],
+  "PRIVATE BY DESIGN": [
+    "隐私融入设计",
+    "プライバシーを設計の中心に"
+  ],
+  "BUILT ON ROBINHOOD CHAIN ↗": [
+    "构建于 ROBINHOOD CHAIN ↗",
+    "ROBINHOOD CHAIN 上に構築 ↗"
+  ],
+  "ONE PRICE.": [
+    "一个价格。",
+    "ひとつの価格。"
+  ],
+  "ONE SHARED MOMENT.": [
+    "一个共同的时刻。",
+    "ともに迎える瞬間。"
+  ],
+  "PROTOCOL / 4663": [
+    "协议 / 4663",
+    "プロトコル / 4663"
+  ],
+  "SEALED CALL AUCTIONS": [
+    "密封集合竞价",
+    "封印型の板寄せオークション"
+  ],
+  "A NEW RITUAL FOR ONCHAIN MARKETS": [
+    "链上市场的新仪式",
+    "オンチェーン市場に、新たなリズムを"
+  ],
+  "Luminary": [
+    "Luminary",
+    "Luminary"
+  ],
+  "The closing auction": [
+    "收盘竞价",
+    "トークン化株式のための"
+  ],
+  "for tokenized stocks.": [
+    "为代币化股票而生。",
+    "クロージング・オークション。"
+  ],
+  "Private orders. One clearing price. A public record.": [
+    "私密订单。统一清算价。公开记录。",
+    "非公開の注文。単一の清算価格。公開される記録。"
+  ],
+  "Enter the auction": [
+    "进入竞价",
+    "オークションへ"
+  ],
+  "DISCOVER THE PROTOCOL": [
+    "探索协议",
+    "プロトコルを知る"
+  ],
+  "SEALED INTENT. SHARED CONVICTION.": [
+    "密封意向。共同信念。",
+    "意図は秘めて。確信はともに。"
+  ],
+  "EXPLORE LUMINARY": [
+    "探索 LUMINARY",
+    "LUMINARY を知る"
+  ],
+  "Every part of the story.": [
+    "故事的每个篇章。",
+    "すべての章を、ここから。"
+  ],
+  "From private intent to a public outcome.": [
+    "从私密意向到公开结果。",
+    "非公開の意図から、公開される結果へ。"
+  ],
+  "Go deeper into the mechanism, the technology and what comes next.": [
+    "深入了解机制、技术与未来方向。",
+    "仕組み、技術、そして次の展開へ。"
+  ],
+  "The protocol": [
+    "协议机制",
+    "プロトコル"
+  ],
+  "Private orders. One clearing price.": [
+    "私密订单。统一清算价。",
+    "非公開の注文。単一の清算価格。"
+  ],
+  "The technology": [
+    "技术架构",
+    "テクノロジー"
+  ],
+  "The architecture behind every call.": [
+    "每场竞价背后的架构。",
+    "すべてのオークションを支える設計。"
+  ],
+  "The rhythm": [
+    "竞价节奏",
+    "オークションのリズム"
+  ],
+  "Open. Close. Midnight.": [
+    "开盘。收盘。午夜。",
+    "寄り付き。大引け。午前零時。"
+  ],
+  "The vision": [
+    "未来愿景",
+    "ビジョン"
+  ],
+  "A foundation built to grow.": [
+    "为成长而构建的基础。",
+    "成長のための基盤。"
+  ],
+  "/ LUMINARY": [
+    "/ LUMINARY",
+    "/ LUMINARY"
+  ],
+  "Silver linework of a phoenix and dragon against a deep black sky": [
+    "深黑天空下以银色线条绘制的凤凰与龙",
+    "漆黒の空を背景に銀の線で描かれた鳳凰と龍"
+  ],
+  "PRIVATE ORDERS. PUBLIC CONVICTION.": [
+    "私密订单。公开信念。",
+    "注文は非公開に。確信は公に。"
+  ],
+  "Move with": [
+    "每一步，",
+    "意思を持って、"
+  ],
+  "intention.": [
+    "皆有意。",
+    "動く。"
+  ],
+  "From your first sealed bid to the final print.": [
+    "从第一笔密封出价到最终成交记录。",
+    "最初の封印された注文から、最後の取引記録まで。"
+  ],
+  "Experience a more deliberate market.": [
+    "体验更从容的市场。",
+    "意図を大切にする市場を体験する。"
+  ],
+  "Enter the terminal": [
+    "体验本网站",
+    "を体験する"
+  ],
+  "AN OPEN RECORD. A PRIVATE PROCESS.": [
+    "公开的记录。私密的过程。",
+    "記録は公開。過程は非公開。"
+  ],
+  "03 / A LITTLE MORE CLARITY": [
+    "03 / 更清晰的理解",
+    "03 / もう少し詳しく"
+  ],
+  "Before the call.": [
+    "竞价开始之前。",
+    "オークションの前に。"
+  ],
+  "Good markets begin with understanding.": [
+    "良好的市场始于理解。",
+    "よい市場は、理解から始まる。"
+  ],
+  "How does a sealed auction work?": [
+    "密封竞价如何运作？",
+    "封印型オークションの仕組みは？"
+  ],
+  "Buyers and sellers submit private orders ahead of a scheduled call. The clearing engine finds one price that maximizes crossed volume within a reference band. Every matched order settles at that same price.": [
+    "买卖双方在预定竞价前提交私密订单。清算引擎在参考价格区间内选择使撮合成交量最大的统一价格。所有匹配订单均以该价格结算。",
+    "売り手と買い手は、予定されたオークション前に非公開の注文を提出します。清算エンジンは参照価格帯内で約定数量を最大化する単一価格を選び、すべての約定注文を同じ価格で決済します。"
+  ],
+  "What happens to an unfilled order?": [
+    "未成交订单会怎样？",
+    "未約定の注文はどうなりますか？"
+  ],
+  "You choose. Eligible unfilled orders can roll into the next auction or cancel after the call. Your reserved collateral is released when an order is cancelled.": [
+    "由您决定。符合条件的未成交订单可以顺延至下一场竞价，也可以在本场结束后取消。取消订单时，预留抵押品将被释放。",
+    "選択できます。対象の未約定注文は次回へ繰り越すか、今回の終了後に取り消せます。取り消すと、確保された担保が解放されます。"
+  ],
+  "What is treasury settlement?": [
+    "什么是国债结算？",
+    "国債による決済とは？"
+  ],
+  "Luminary is designed to settle in tokenized treasuries. Resting collateral can accrue the underlying fund’s NAV yield while waiting. Yield is variable and is never guaranteed.": [
+    "Luminary 计划以代币化国债结算。闲置抵押品在等待期间可累积底层基金净值收益。收益会变化，且不作保证。",
+    "Luminary はトークン化国債による決済を想定しています。待機中の担保には、裏付けファンドの純資産価額（NAV）に基づく収益が反映される場合があります。収益は変動し、保証されません。"
+  ],
+  "Can I trade between auctions?": [
+    "能否在两场竞价之间交易？",
+    "オークションの合間にも取引できますか？"
+  ],
+  "RFQ enables private, two-party block trades between scheduled calls. Request a quote, review the terms, and accept before it expires. Try the complete flow in the terminal.": [
+    "RFQ 支持预定竞价之间的私密双边大宗交易。请求报价、审阅条款，并在到期前接受。可在本网站中体验完整流程。",
+    "RFQ により、予定されたオークションの間に非公開の相対ブロック取引ができます。見積もりを依頼し、条件を確認して期限内に承諾します。で一連のフローを体験できます。"
+  ],
+  "Is this connected to a live market?": [
+    "这里连接了真实市场吗？",
+    "実際の市場に接続していますか？"
+  ],
+  "This experience uses simulated prices, assets and balances. No funds move and no real securities are traded. The live protocol is intended for eligible non-US participants and will apply jurisdiction and asset restrictions.": [
+    "本体验使用价格、资产与余额，不转移资金，也不交易真实证券。正式协议面向符合条件的非美国参与者，并将实施司法辖区与资产限制。",
+    "この体験は価格、資産、残高を使用します。資金の移動や実際の証券取引はありません。正式なプロトコルは適格な米国外の参加者を対象とし、法域および資産の制限が適用される予定です。"
+  ],
+  "Main navigation": [
+    "主导航",
+    "メインナビゲーション"
+  ],
+  "Enter app": [
+    "进入应用",
+    "アプリへ"
+  ],
+  "Open navigation": [
+    "打开导航",
+    "ナビゲーションを開く"
+  ],
+  "Private orders. Public conviction.": [
+    "私密订单。公开信念。",
+    "注文は非公開に。確信は公に。"
+  ],
+  "Home": [
+    "首页",
+    "ホーム"
+  ],
+  "EXPLORE": [
+    "探索",
+    "探索する"
+  ],
+  "Auction terminal": [
+    "竞价终端",
+    "オークション端末"
+  ],
+  "LEGAL / DRAFTS": [
+    "法律 / 草案",
+    "法務 / 草案"
+  ],
+  "Terms of use": [
+    "使用条款",
+    "利用規約"
+  ],
+  "Privacy notice": [
+    "隐私声明",
+    "プライバシー通知"
+  ],
+  "Risk & eligibility": [
+    "风险与资格",
+    "リスクと参加資格"
+  ],
+  "Private before the call.": [
+    "竞价前保持私密。",
+    "オークション前は非公開。"
+  ],
+  "Verifiable after it.": [
+    "结束后可供验证。",
+    "終了後は検証可能に。"
+  ],
+  "Built on Robinhood Chain.": [
+    "构建于 Robinhood Chain。",
+    "Robinhood Chain 上に構築。"
+  ],
+  "LUMINARY": [
+    "LUMINARY",
+    "LUMINARY"
+  ],
+  "BUILT ON ROBINHOOD CHAIN": [
+    "构建于 ROBINHOOD CHAIN",
+    "ROBINHOOD CHAIN 上に構築"
+  ],
+  "No real funds": [
+    "本网站 · 无真实资金",
+    " · 実際の資金は使用しません"
+  ],
+  "Animated Realistic Lowpoly Chinese Dragon by Cassana XR": [
+    "Cassana XR 创作的动态低多边形中国龙",
+    "Cassana XR 制作のアニメーション付きローポリ中国龍"
+  ],
+  "RELOAD 3D SCENE": [
+    "重新加载 3D 场景",
+    "3D シーンを再読み込み"
+  ],
+  "LOADING 3D SCENE": [
+    "正在加载 3D 场景",
+    "3D シーンを読み込み中"
+  ],
+  "THE TECHNOLOGY / DESIGNED TO VERIFY": [
+    "技术 / 为验证而设计",
+    "テクノロジー / 検証のための設計"
+  ],
+  "A clear sequence. A verifiable outcome.": [
+    "清晰的流程。\n可验证的结果。",
+    "明確な手順。\n検証できる結果。"
+  ],
+  "From a pinned call block to a public print, Luminary’s backend specification connects private collection, deterministic clearing and treasury settlement.": [
+    "从固定竞价区块到公开成交记录，Luminary 的后端规范连接了私密收集、确定性清算与国债结算。",
+    "確定された実行ブロックから公開取引記録まで、Luminary のバックエンド仕様は非公開の注文収集、決定論的な清算、国債決済をつなぎます。"
+  ],
+  "From schedule to settlement.": [
+    "从日程到结算。",
+    "日程から決済まで。"
+  ],
+  "THE BACKEND ARCHITECTURE": [
+    "后端架构",
+    "バックエンドの構成"
+  ],
+  "Pin the moment.": [
+    "确定时刻。",
+    "実行の瞬間を定める。"
+  ],
+  "AuctionCalendar defines each collection window and its call block. The scheduler coordinates open, close and midnight sessions with the underlying market calendar.": [
+    "AuctionCalendar 定义各个订单收集窗口及其竞价区块。调度器根据标的市场日历协调开盘、收盘与午夜场次。",
+    "AuctionCalendar が注文の受付期間と実行ブロックを定義します。スケジューラーは原市場のカレンダーに合わせ、寄り付き、大引け、午前零時の各回を調整します。"
+  ],
+  "Compute the cross.": [
+    "计算撮合。",
+    "約定を計算する。"
+  ],
+  "The clearing engine chooses a uniform price inside the reference band. It maximizes crossed volume, respects limits and minimizes imbalance when prices tie.": [
+    "清算引擎在参考价格区间内选择统一价格，使撮合成交量最大化、遵守限价，并在价格并列时最小化失衡。",
+    "清算エンジンは参照価格帯内の単一価格を選びます。約定数量を最大化し、指値を守り、候補価格が同順位の場合は需給の不均衡を最小化します。"
+  ],
+  "Verify the result.": [
+    "验证结果。",
+    "結果を検証する。"
+  ],
+  "The proof orchestrator prepares the intended auction proof. AuctionPool and AuctionVerifier coordinate settlement; PrintRegistry publishes the resulting price and crossed volume.": [
+    "证明编排器准备计划中的竞价证明。AuctionPool 与 AuctionVerifier 协调结算；PrintRegistry 发布最终价格与撮合成交量。",
+    "証明オーケストレーターが想定するオークション証明を準備します。AuctionPool と AuctionVerifier が決済を調整し、PrintRegistry が価格と約定数量を公開します。"
+  ],
+  "The systems behind the scene.": [
+    "场景背后的系统。",
+    "舞台裏のシステム。"
+  ],
+  "Private collection and state": [
+    "私密收集与状态",
+    "非公開の収集と状態管理"
+  ],
+  "The specified AuctionPool tracks sealed intent and settlement state. Public proof inputs include the auction identifier, reference-price root, clearing price, crossed quantity, new state root and nullifiers.": [
+    "规范中的 AuctionPool 跟踪密封意向与结算状态。证明的公开输入包括竞价标识符、参考价格根、清算价、撮合数量、新状态根及空值标识符。",
+    "仕様上の AuctionPool は封印された意図と決済状態を追跡します。証明の公開入力にはオークション識別子、参照価格ルート、清算価格、約定数量、新しい状態ルート、ヌリファイアが含まれます。"
+  ],
+  "Proofs with a defined scope": [
+    "范围明确的证明",
+    "対象を明確にした証明"
+  ],
+  "AuctionClearProof is intended to verify reference bounds, order limits, asset conservation and the clearing volume property. A signed clearing digest may precede a full proof upgrade; this site does not generate either production assurance.": [
+    "AuctionClearProof 旨在验证参考区间、订单限价、资产守恒与清算成交量属性。全面升级证明前可能先使用签名清算摘要；本本网站不提供这两类生产级保证。",
+    "AuctionClearProof は参照価格の範囲、指値、資産保存、清算数量の性質を検証する想定です。本格的な証明の前に署名付き清算ダイジェストを用いる可能性がありますが、このはいずれの本番保証も生成しません。"
+  ],
+  "A coordinated worker layer": [
+    "协调运作的任务层",
+    "連携するワーカー層"
+  ],
+  "The backend separates auction scheduling, clearing, proof orchestration, print publishing, NAV watching and calendar events. Each worker has a defined role in moving a call from collection to a public result.": [
+    "后端将竞价调度、清算、证明编排、成交记录发布、净值监控与日历事件分别处理。每个任务组件均有明确职责，推动竞价从收集走向公开结果。",
+    "バックエンドは日程管理、清算、証明の調整、記録公開、NAV 監視、カレンダーイベントを分離します。各ワーカーが明確な役割を持ち、注文収集から結果公開までを進めます。"
+  ],
+  "Treasury settlement and RFQ": [
+    "国债结算与询价",
+    "国債決済と RFQ"
+  ],
+  "Tokenized treasury collateral supports the auction settlement path. RfqDesk provides a separate reference-anchored lane for private two-party blocks between calls.": [
+    "代币化国债抵押品支持竞价结算路径。RfqDesk 为场次之间的私密双边大宗交易提供独立的参考价格锚定通道。",
+    "トークン化国債の担保がオークション決済を支えます。RfqDesk は各回の合間に、参照価格を基準にした非公開の相対ブロック取引用経路を提供します。"
+  ],
+  "Calendar-aware operations": [
+    "感知日历的运营",
+    "カレンダーに対応した運用"
+  ],
+  "The specification accounts for daylight saving changes, market holidays, corporate actions and ex-date pauses. Cancellations are not yield-gated.": [
+    "规范考虑夏令时变化、市场假期、公司行动及除权除息日暂停。取消订单不受收益条件限制。",
+    "仕様は夏時間、市場の休場日、コーポレートアクション、権利落ち日の停止を考慮します。注文の取り消しに利回り条件は設けません。"
+  ],
+  "The intended stack": [
+    "计划采用的技术栈",
+    "想定する技術スタック"
+  ],
+  "The technical plan uses Noir for circuits, Foundry for contracts and Bun with TypeScript for workers, targeting Robinhood Chain. These are specification choices, not a claim that this site is a deployed production protocol.": [
+    "技术计划采用 Noir 构建电路、Foundry 开发合约、Bun 与 TypeScript 运行任务组件，面向 Robinhood Chain。这些是规范中的选择，并不表示本本网站已部署生产协议。",
+    "技術計画では回路に Noir、コントラクトに Foundry、ワーカーに Bun と TypeScript を使用し、Robinhood Chain を対象とします。これは仕様上の選択であり、が本番プロトコルとして稼働しているという意味ではありません。"
+  ],
+  "Understand the architecture. Experience the flow.": [
+    "理解架构。\n体验流程。",
+    "設計を知る。\n流れを体験する。"
+  ],
+  "Explore the auction terminal": [
+    "探索竞价终端",
+    "オークション端末を開く"
+  ],
+  "THE MECHANISM / PRIVATE BY DESIGN": [
+    "机制 / 隐私融入设计",
+    "仕組み / プライバシーを設計の中心に"
+  ],
+  "Your order stays private. The outcome becomes public.": [
+    "订单保持私密。\n结果成为公开记录。",
+    "注文は非公開に。\n結果は公開される。"
+  ],
+  "A scheduled, sealed call auction for tokenized stocks. One reference-bounded clearing price, settled in tokenized treasuries.": [
+    "面向代币化股票的定时密封集合竞价。在参考区间内形成统一清算价，以代币化国债结算。",
+    "トークン化株式のための、定時の封印型板寄せオークション。参照価格帯内の単一清算価格で、トークン化国債によって決済します。"
+  ],
+  "A deliberate sequence.": [
+    "有序而从容的流程。",
+    "意図のある手順。"
+  ],
+  "THE PATH FROM INTENT TO PRINT": [
+    "从意向到成交记录的路径",
+    "意図から取引記録まで"
+  ],
+  "Seal your intent.": [
+    "密封您的意向。",
+    "意図を封じる。"
+  ],
+  "Choose a limit order or an order at the auction price. Orders collect privately ahead of the scheduled call. Resting treasury collateral can accrue its underlying NAV yield.": [
+    "选择限价订单或竞价价格订单。订单在预定场次前私密收集。闲置国债抵押品可累积其底层净值收益。",
+    "指値注文またはオークション価格での注文を選びます。注文は予定された回の前に非公開で収集されます。待機中の国債担保には裏付け資産の NAV 収益が反映される場合があります。"
+  ],
+  "Meet at one price.": [
+    "以同一价格相遇。",
+    "ひとつの価格で出会う。"
+  ],
+  "The clearing engine selects a uniform price that maximizes crossed volume within the reference band. It respects order limits and breaks price ties by minimizing imbalance.": [
+    "清算引擎在参考区间内选择使撮合成交量最大的统一价格。它遵守订单限价，并在价格并列时以最小化失衡为准则。",
+    "清算エンジンは参照価格帯内で約定数量を最大化する単一価格を選びます。指値を守り、候補価格が同順位の場合は不均衡の最小化を基準にします。"
+  ],
+  "Settle. Then publish.": [
+    "结算。然后公开。",
+    "決済し、公開する。"
+  ],
+  "The specified auction proof checks reference bounds, limits and conservation. The clearing price and crossed volume become public immediately after the call; identities and individual orders remain private.": [
+    "规范中的竞价证明检查参考区间、限价与资产守恒。场次结束后立即公开清算价格与撮合成交量；身份与单笔订单仍保持私密。",
+    "仕様上の証明は参照範囲、指値、資産保存を確認します。終了直後に清算価格と約定数量を公開し、身元と個別注文は非公開のままです。"
+  ],
+  "The architecture behind the moment.": [
+    "这一刻背后的架构。",
+    "その瞬間を支える設計。"
+  ],
+  "Reference-anchored pricing": [
+    "以参考价格为锚",
+    "参照値を基準にした価格"
+  ],
+  "Stocks use a Chainlink reference multiplied by the asset’s conversion factor, bounded by a configured cap. Fund auctions anchor to NAV. The reference band constrains the clearing price; it does not guarantee execution.": [
+    "股票使用 Chainlink 参考价格乘以资产转换系数，并受配置的上限约束。基金竞价锚定净值。参考区间约束清算价格，但不保证成交。",
+    "株式では Chainlink の参照価格に資産の換算係数を掛け、設定された上限で制約します。ファンドのオークションは NAV を基準とします。参照価格帯は清算価格を制約しますが、約定を保証しません。"
+  ],
+  "One auction, one settlement": [
+    "一场竞价，一次结算",
+    "ひとつのオークション、ひとつの決済"
+  ],
+  "AuctionPool and AuctionVerifier coordinate the intended auction settlement. PrintRegistry records the clearing price, volume and timestamp. The backend specification calls for deterministic clearing that third parties can recompute.": [
+    "AuctionPool 与 AuctionVerifier 协调计划中的竞价结算。PrintRegistry 记录清算价格、成交量与时间戳。后端规范要求清算具有确定性，可由第三方重新计算。",
+    "AuctionPool と AuctionVerifier が想定する決済を調整します。PrintRegistry は清算価格、数量、時刻を記録します。バックエンド仕様は第三者が再計算できる決定論的な清算を求めます。"
+  ],
+  "Private block flow": [
+    "私密大宗交易流程",
+    "非公開のブロック取引"
+  ],
+  "The RFQ lane provides a two-party sealed cross between scheduled auctions. It is designed for size that needs a direct, reference-anchored negotiation.": [
+    "RFQ 通道在预定竞价之间提供双边密封撮合，面向需要直接、以参考价格为锚协商的大额交易。",
+    "RFQ 経路は定時オークションの間に相対の封印型クロスを提供します。参照価格を基準とした直接交渉が必要な大口取引を想定しています。"
+  ],
+  "Verification with boundaries": [
+    "有边界的验证",
+    "保証の範囲を明確に"
+  ],
+  "Solvency proofs and view keys support verification. The specification includes a signed-clearing-digest path before a full proof upgrade. This site creates illustrative records, not cryptographic attestations.": [
+    "偿付能力证明与查看密钥支持验证。规范包含在全面证明升级前使用签名清算摘要的路径。本本网站生成示例记录，而非密码学证明。",
+    "支払能力証明と閲覧鍵が検証を支えます。仕様には本格的な証明への移行前に署名付き清算ダイジェストを使う経路があります。このが作成するのは例示記録であり、暗号学的な証明ではありません。"
+  ],
+  "Understand the flow. Then make your move.": [
+    "理解流程。\n然后迈出下一步。",
+    "流れを知る。\nそして、動く。"
+  ],
+  "Explore the auction rhythm": [
+    "探索竞价节奏",
+    "オークションのリズムを知る"
+  ],
+  "THE CALENDAR / A SHARED MOMENT": [
+    "日历 / 共同的时刻",
+    "カレンダー / 共有する瞬間"
+  ],
+  "Open. Close. Midnight. A daily ritual for liquidity.": [
+    "开盘。收盘。午夜。\n流动性的每日仪式。",
+    "寄り付き。大引け。午前零時。\n流動性を集める日々のリズム。"
+  ],
+  "A published schedule turns scattered intent into a shared moment. Underlying market hours guide the opening and closing calls; 00:00 UTC adds a global checkpoint.": [
+    "公开日程将分散的意向汇集到共同的时刻。标的市场交易时间指引开盘与收盘竞价；UTC 00:00 则增加一个全球时间点。",
+    "公開された日程が分散した意図をひとつの瞬間に集めます。原市場の取引時間が寄り付きと大引けの回を導き、UTC 00:00 が世界共通の節目を加えます。"
+  ],
+  "Three moments to meet.": [
+    "三个相遇的时刻。",
+    "出会うための、三つの瞬間。"
+  ],
+  "THE DAILY AUCTION CALENDAR": [
+    "每日竞价日历",
+    "日々のオークションカレンダー"
+  ],
+  "The opening call.": [
+    "开盘竞价。",
+    "寄り付きのオークション。"
+  ],
+  "Meet the underlying market at its opening bell. Orders collect privately before a pinned call block, creating a single point of price discovery as the trading day begins.": [
+    "在标的市场开盘时相遇。订单在固定竞价区块前私密收集，在交易日开始时形成统一的价格发现时点。",
+    "原市場の開始時刻に集まります。確定した実行ブロックの前に注文を非公開で集め、取引日の始まりに価格発見の場をひとつにします。"
+  ],
+  "The closing call.": [
+    "收盘竞价。",
+    "大引けのオークション。"
+  ],
+  "Concentrate liquidity around the underlying market close. One uniform clearing price and crossed-volume print can provide a clear end-of-session record.": [
+    "在标的市场收盘附近集中流动性。统一清算价格及撮合成交量记录，可为交易时段提供清晰的结束记录。",
+    "原市場の大引けに流動性を集めます。単一の清算価格と約定数量の記録が、その取引時間の明確な締めくくりになります。"
+  ],
+  "The midnight call.": [
+    "午夜竞价。",
+    "午前零時のオークション。"
+  ],
+  "00:00 UTC gives global participants a scheduled meeting point between traditional sessions. It extends the daily rhythm without exposing the order book before the call.": [
+    "UTC 00:00 为全球参与者提供传统交易时段之间的预定集合时刻，在不提前公开订单簿的情况下延续每日节奏。",
+    "UTC 00:00 は、従来の取引時間の合間に世界の参加者が集まる予定時刻です。実行前に注文板を公開することなく、日々のリズムを広げます。"
+  ],
+  "Know what happens next.": [
+    "了解下一步。",
+    "次に起こることを知る。"
+  ],
+  "Your limit. Or the auction price.": [
+    "您的限价，或竞价价格。",
+    "指値で。あるいはオークション価格で。"
+  ],
+  "A limit order protects your selected boundary. An at-auction order accepts the uniform clearing price within the asset’s reference band. Submission alone does not guarantee a match.": [
+    "限价订单守护您设定的边界。竞价价格订单接受资产参考区间内的统一清算价格。仅提交订单并不保证撮合。",
+    "指値注文は設定した価格の境界を守ります。オークション価格注文は資産の参照価格帯内の単一清算価格を受け入れます。提出だけで約定が保証されるわけではありません。"
+  ],
+  "Unfilled intent": [
+    "未成交的意向",
+    "未約定の意図"
+  ],
+  "Unfilled orders can roll into the next eligible call or cancel. The specification says cancellations are not yield-gated; reserved collateral is released when an order is cancelled.": [
+    "未成交订单可顺延至下一场符合条件的竞价或取消。规范说明取消不受收益条件限制；本网站中取消订单会释放预留抵押品。",
+    "未約定の注文は次の対象回へ繰り越すか取り消せます。仕様では取り消しに利回り条件を設けません。では取り消し時に確保した担保を解放します。"
+  ],
+  "Calendar-aware by design": [
+    "将日历纳入设计",
+    "カレンダーを考慮した設計"
+  ],
+  "The backend schedule accounts for underlying equity calendars, daylight saving changes, holidays and corporate actions, including pauses across ex-dates. The calendar here includes DST and weekends only.": [
+    "后端日程考虑标的股票日历、夏令时、假期与公司行动，包括除权除息日期间暂停。本网站日历仅考虑夏令时与周末。",
+    "バックエンドの日程は原市場の株式カレンダー、夏時間、休場日、権利落ち日の停止を含むコーポレートアクションを考慮します。カレンダーが扱うのは夏時間と週末のみです。"
+  ],
+  "NAV and RFQ": [
+    "净值与询价",
+    "NAV と RFQ"
+  ],
+  "Issuers and funds can request NAV-anchored auctions. Between the calls, the RFQ desk supports privately negotiated two-party blocks. These complement the regular open, close and midnight sessions.": [
+    "发行方与基金可申请净值锚定竞价。在场次之间，询价台支持私下协商的双边大宗交易，与常规开盘、收盘及午夜场次互补。",
+    "発行者やファンドは NAV 基準のオークションを依頼できます。各回の間は RFQ デスクが非公開の相対ブロック交渉を支え、寄り付き、大引け、午前零時の回を補完します。"
+  ],
+  "Find your moment. Make your intent count.": [
+    "找到您的时刻。\n让意向发挥作用。",
+    "自分の瞬間を見つける。\n意図を、確かな一歩へ。"
+  ],
+  "Open the auction calendar": [
+    "打开竞价日历",
+    "オークションカレンダーを開く"
+  ],
+  "THE EXPANSION / A PLANNED HORIZON": [
+    "拓展 / 规划中的远景",
+    "拡張 / 計画する未来"
+  ],
+  "A useful daily auction. A foundation for more.": [
+    "实用的每日竞价。\n更多可能的基础。",
+    "役立つ日々のオークション。\nその先のための基盤。"
+  ],
+  "Luminary starts with the closing auction for tokenized stocks. The expansion plan builds outward from repeated use, trusted prints and a predictable calendar.": [
+    "Luminary 从代币化股票的收盘竞价起步。拓展计划围绕持续使用、可信成交记录与可预测日历逐步延伸。",
+    "Luminary はトークン化株式の大引けオークションから始まります。継続的な利用、信頼される取引記録、予測可能な日程を軸に拡張を計画しています。"
+  ],
+  "Build in sequence.": [
+    "循序构建。",
+    "順を追って、築く。"
+  ],
+  "PLANNED ROADMAP · NOT LIVE FEATURES": [
+    "规划路线图 · 非已上线功能",
+    "計画中のロードマップ · 未提供の機能"
+  ],
+  "Establish the daily call.": [
+    "建立每日竞价。",
+    "日々のオークションを確立する。"
+  ],
+  "The first roadmap stage focuses on daily auctions for leading tokenized stocks, treasury settlement and solvency. The following stage adds RFQ blocks and NAV auctions for funds and ETFs.": [
+    "路线图第一阶段聚焦主流代币化股票的每日竞价、国债结算与偿付能力。下一阶段增加大宗询价以及基金和 ETF 的净值竞价。",
+    "最初の段階は主要なトークン化株式の日次オークション、国債決済、支払能力に重点を置きます。続く段階で RFQ ブロック取引とファンド・ETF の NAV オークションを追加する計画です。"
+  ],
+  "Make the calendar useful.": [
+    "让日历发挥价值。",
+    "カレンダーを役立てる。"
+  ],
+  "A later stage proposes an auction calendar API and public print feed for terminals, bots and indices. The product overview also places the LUMI token in a later roadmap stage.": [
+    "后续阶段提出面向终端、机器人与指数的竞价日历 API 及公开成交数据流。产品概述也将 LUMI 代币安排在较后的路线图阶段。",
+    "後続段階では、端末、ボット、指数向けのカレンダー API と公開取引データ配信を提案しています。製品概要では LUMI トークンも後の段階に位置づけています。"
+  ],
+  "Grow with real usage.": [
+    "随真实使用而成长。",
+    "実際の利用とともに育つ。"
+  ],
+  "The expansion document prioritizes index rebalances, then issuer auctions, calendar and print data, an Arc lane, agent mandates and eventually derivatives settlement references.": [
+    "拓展文档优先考虑指数再平衡，其次是发行方竞价、日历与成交数据、Arc 通道、代理授权，最终是衍生品结算参考。",
+    "拡張文書は指数リバランスを優先し、発行者オークション、日程と取引データ、Arc 経路、エージェントへの委任、最終的にはデリバティブの決済参照へと進む案です。"
+  ],
+  "Six directions. One foundation.": [
+    "六个方向。一个基础。",
+    "六つの方向。ひとつの基盤。"
+  ],
+  "01 / Index rebalances": [
+    "01 / 指数再平衡",
+    "01 / 指数リバランス"
+  ],
+  "Strategy and index vaults could rebalance through the closing auction, concentrating their flow into one private, uniform-price event.": [
+    "策略与指数金库可通过收盘竞价进行再平衡，将交易流集中到一次私密、统一价格的事件中。",
+    "戦略型・指数型のボールトは、大引けオークションを通じてリバランスし、非公開かつ単一価格の場に注文を集約できる可能性があります。"
+  ],
+  "02 / Issuer auctions": [
+    "02 / 发行方竞价",
+    "02 / 発行者オークション"
+  ],
+  "Tokenized-stock and ETF issuers could use a sealed auction for a primary-market or IPO-day opening print.": [
+    "代币化股票与 ETF 发行方可利用密封竞价形成一级市场或 IPO 首日开盘成交记录。",
+    "トークン化株式や ETF の発行者は、封印型オークションを発行市場や IPO 初日の始値形成に利用できる可能性があります。"
+  ],
+  "03 / Calendar and print feed": [
+    "03 / 日历与成交数据流",
+    "03 / カレンダーと取引データ"
+  ],
+  "A proposed public calendar and data feed could give terminals, agents and indices a consistent reference close.": [
+    "拟议的公开日历与数据流，可为终端、代理与指数提供一致的参考收盘价格。",
+    "提案されている公開カレンダーとデータ配信は、端末、エージェント、指数に一貫した参照終値を提供する可能性があります。"
+  ],
+  "04 / The Arc lane": [
+    "04 / Arc 通道",
+    "04 / Arc 経路"
+  ],
+  "A proposed extension to Arc would use USYC settlement, with StableFX-anchored EURC/USDC auctions at established FX fixing times.": [
+    "拟议的 Arc 扩展将使用 USYC 结算，并在既定外汇定盘时刻举行以 StableFX 为锚的 EURC/USDC 竞价。",
+    "Arc への拡張案では USYC で決済し、既定の外国為替フィキシング時刻に StableFX を基準とする EURC/USDC オークションを行う想定です。"
+  ],
+  "05 / Agent mandates": [
+    "05 / 代理授权",
+    "05 / エージェントへの委任"
+  ],
+  "Agents could participate through bounded mandates that submit sealed orders into scheduled calls.": [
+    "代理可在明确限制的授权下，向预定竞价提交密封订单。",
+    "エージェントは範囲を定めた委任に基づき、予定された回へ封印注文を提出できる可能性があります。"
+  ],
+  "06 / Settlement references": [
+    "06 / 结算参考",
+    "06 / 決済の参照値"
+  ],
+  "If Luminary prints earn sufficient trust and use, future onchain equity derivatives could reference them for settlement. This is a long-term direction, not a current capability.": [
+    "若 Luminary 成交记录获得足够信任与采用，未来链上股票衍生品可将其作为结算参考。这是长期方向，而非当前能力。",
+    "Luminary の記録が十分な信頼と利用を得れば、将来のオンチェーン株式デリバティブが決済の参照値として使う可能性があります。現在の機能ではなく、長期的な方向性です。"
+  ],
+  "The next chapter starts with a clear price.": [
+    "下一个篇章\n始于清晰的价格。",
+    "次の章は、\n明確な価格から始まる。"
+  ],
+  "Return to the protocol": [
+    "返回协议",
+    "プロトコルに戻る"
+  ],
+  "Luminary silver-blue illustrated world": [
+    "Luminary 银蓝色插画世界",
+    "Luminary の銀青色のイラスト世界"
+  ],
+  "Enter the story": [
+    "进入篇章",
+    "物語へ進む"
+  ],
+  "LUMINARY /": [
+    "LUMINARY /",
+    "LUMINARY /"
+  ],
+  "From the Luminary product and technical documents.": [
+    "依据 Luminary 产品与技术文档。",
+    "Luminary の製品・技術文書に基づきます。"
+  ],
+  "A CLOSER LOOK": [
+    "深入了解",
+    "詳しく見る"
+  ],
+  "Assets and prices shown here are illustrative. See": [
+    "本网站为产品本网站。请参阅",
+    "このサイトは製品のです。"
+  ],
+  "for the current boundaries.": [
+    "了解当前适用范围。",
+    "で、現在の範囲をご確認ください。"
+  ],
+  "THE STORY CONTINUES": [
+    "故事继续",
+    "物語は続く"
+  ],
+  "Luminary home": [
+    "Luminary 首页",
+    "Luminary ホーム"
+  ],
+  "X community": [
+    "X 社区",
+    "X コミュニティ"
+  ],
+  "GitHub repository": [
+    "GitHub 代码仓库",
+    "GitHub リポジトリ"
+  ],
+  "Telegram community": [
+    "Telegram 社区",
+    "Telegram コミュニティ"
+  ],
+  "Coming soon": [
+    "即将推出",
+    "近日公開"
+  ],
+  "The next chapter is just ahead.": [
+    "下一个篇章即将开启。",
+    "次の章は、もうすぐです。"
+  ],
+  "Back to Luminary": [
+    "返回 Luminary",
+    "Luminary に戻る"
+  ],
+  "THE LUMINARY PROTOCOL": [
+    "LUMINARY 协议",
+    "LUMINARY プロトコル"
+  ],
+  "Private intent. Verifiable outcomes.": [
+    "私密意向。可验证结果。",
+    "非公開の意図。検証できる結果。"
+  ],
+  "From the Luminary Overview, Backend and Expansion documents.": [
+    "依据 Luminary 概述、后端与拓展文档。",
+    "Luminary の概要・バックエンド・拡張文書に基づきます。"
+  ],
+  "Sealed call auctions": [
+    "密封集合竞价",
+    "封印型の板寄せオークション"
+  ],
+  "Orders are collected privately before a scheduled call. A uniform clearing price maximizes crossed volume inside the reference-price band. Orders can specify a limit or accept the auction price.": [
+    "订单在预定场次前私密收集。统一清算价格在参考区间内最大化撮合成交量。订单可指定限价或接受竞价价格。",
+    "注文は予定された回の前に非公開で収集します。単一の清算価格が参照価格帯内で約定数量を最大化します。指値を指定するか、オークション価格を受け入れることができます。"
+  ],
+  "Treasury settlement": [
+    "国债结算",
+    "国債による決済"
+  ],
+  "Tokenized treasury collateral settles the auction. Resting collateral can earn its underlying NAV yield; returns vary and are not guaranteed.": [
+    "竞价以代币化国债抵押品结算。闲置抵押品可获得底层净值收益；回报会变化，且不作保证。",
+    "オークションはトークン化国債の担保で決済します。待機中の担保には裏付け資産の NAV 収益が反映される場合がありますが、変動し、保証されません。"
+  ],
+  "Public prints, private orders": [
+    "公开成交记录，私密订单",
+    "取引記録は公開、注文は非公開"
+  ],
+  "The clearing price and crossed volume become public. Identities and individual orders remain private. Solvency proofs and view keys support verification.": [
+    "清算价格与撮合成交量公开，身份与单笔订单保持私密。偿付能力证明与查看密钥支持验证。",
+    "清算価格と約定数量は公開され、身元と個別注文は非公開のままです。支払能力証明と閲覧鍵が検証を支えます。"
+  ],
+  "Between the calls": [
+    "场次之间",
+    "オークションの合間に"
+  ],
+  "RFQ supports privately negotiated two-party blocks. Issuer-requested auctions can use NAV as the reference.": [
+    "RFQ 支持私下协商的双边大宗交易。发行方申请的竞价可使用净值作为参考。",
+    "RFQ は非公開で交渉する相対ブロック取引を支えます。発行者が依頼するオークションでは NAV を参照値にできます。"
+  ],
+  "The live protocol is intended for eligible non-US participants, subject to jurisdiction and asset restrictions. Assets shown here are illustrative and no real settlement occurs.": [
+    "正式协议面向符合条件的非美国参与者，受司法辖区与资产限制。本网站为本网站，使用资产，不发生真实结算。",
+    "正式なプロトコルは適格な米国外の参加者を対象とし、法域と資産の制限を受けます。このサイトは資産を使用するで、実際の決済はありません。"
+  ],
+  "PRIVATE COLLECTION": [
+    "私密收集",
+    "非公開で収集"
+  ],
+  "Place a limit order or accept the auction price. Your order stays private while it waits for the call.": [
+    "提交限价订单或接受竞价价格。等待竞价期间，订单保持私密。",
+    "指値を指定するか、オークション価格を受け入れます。実行を待つ間、注文は非公開です。"
+  ],
+  "LIMIT OR AUCTION PRICE": [
+    "限价或竞价价格",
+    "指値またはオークション価格"
+  ],
+  "THE QUIET BEFORE THE CALL": [
+    "竞价前的静谧",
+    "オークション前の静けさ"
+  ],
+  "UNIFORM CLEARING": [
+    "统一清算",
+    "単一価格での清算"
+  ],
+  "At the scheduled call, one reference-bounded price maximizes crossed volume. Every matched order meets at that price.": [
+    "预定时刻到来时，参考区间内的一个价格使撮合成交量最大化。每笔匹配订单均以该价格成交。",
+    "予定の時刻に、参照価格帯内の単一価格で約定数量を最大化します。すべての約定注文がその価格で出会います。"
+  ],
+  "ONE CALL. ONE CLEARING PRICE.": [
+    "一场竞价。一个清算价格。",
+    "ひとつの回。ひとつの清算価格。"
+  ],
+  "A SHARED MOMENT OF CLARITY": [
+    "共同的清晰时刻",
+    "ともに迎える明確な瞬間"
+  ],
+  "Let the print speak.": [
+    "让成交\n记录发声。",
+    "記録が\n語り出す。"
+  ],
+  "PUBLIC OUTCOME": [
+    "公开结果",
+    "結果を公開"
+  ],
+  "The clearing price and crossed volume become public. Individual orders and identities remain private.": [
+    "清算价格与撮合成交量公开，单笔订单与身份仍保持私密。",
+    "清算価格と約定数量は公開されます。個別の注文と身元は非公開のままです。"
+  ],
+  "PRICE + VOLUME. NOTHING MORE.": [
+    "价格 + 成交量。仅此而已。",
+    "価格と数量。それだけを。"
+  ],
+  "PRIVATE INTENT. OPEN OUTCOMES.": [
+    "私密意向。公开结果。",
+    "意図は非公開。結果は公開。"
+  ],
+  "The protocol: seal, clear, publish": [
+    "协议：密封、清算、发布",
+    "プロトコル：封印、清算、公開"
+  ],
+  "02 / THE PROTOCOL": [
+    "02 / 协议",
+    "02 / プロトコル"
+  ],
+  "SEALED → CLEARED → PUBLISHED": [
+    "密封 → 清算 → 发布",
+    "封印 → 清算 → 公開"
+  ],
+  "FROM INTENT TO PRINT": [
+    "从意向到成交记录",
+    "意図から取引記録へ"
+  ],
+  "Inside the protocol": [
+    "走进协议",
+    "プロトコルの内側へ"
+  ],
+  "Open.": [
+    "开盘。",
+    "寄り付き。"
+  ],
+  "AT THE UNDERLYING MARKET OPEN": [
+    "标的市场开盘时",
+    "原市場の開始時刻に"
+  ],
+  "Start together. Gather liquidity as the underlying market begins its day.": [
+    "共同开始。在标的市场开启交易日时汇集流动性。",
+    "ともに始める。原市場の一日が始まるとき、流動性を集める。"
+  ],
+  "THE OPENING CALL": [
+    "开盘竞价",
+    "寄り付きのオークション"
+  ],
+  "Close.": [
+    "收盘。",
+    "大引け。"
+  ],
+  "AT THE UNDERLYING MARKET CLOSE": [
+    "标的市场收盘时",
+    "原市場の終了時刻に"
+  ],
+  "End with clarity. Meet at one clearing price as the trading session closes.": [
+    "清晰收尾。在交易时段结束时，以同一清算价格相遇。",
+    "明確に締めくくる。取引時間の終わりに、単一の清算価格で出会う。"
+  ],
+  "THE CLOSING CALL": [
+    "收盘竞价",
+    "大引けのオークション"
+  ],
+  "Midnight.": [
+    "午夜。",
+    "午前零時。"
+  ],
+  "00:00 UTC · A GLOBAL CHECKPOINT": [
+    "UTC 00:00 · 全球时间点",
+    "UTC 00:00 · 世界共通の節目"
+  ],
+  "A new moment between market sessions. A daily call for a world that keeps moving.": [
+    "交易时段之间的新时刻。为不断运转的世界而设的每日竞价。",
+    "取引時間の合間に、新たな瞬間を。動き続ける世界のための日次オークション。"
+  ],
+  "THE MIDNIGHT CALL": [
+    "午夜竞价",
+    "午前零時のオークション"
+  ],
+  "The rhythm: opening, closing and midnight auctions": [
+    "节奏：开盘、收盘与午夜竞价",
+    "リズム：寄り付き、大引け、午前零時のオークション"
+  ],
+  "03 / THE RHYTHM": [
+    "03 / 节奏",
+    "03 / リズム"
+  ],
+  "THREE CALLS. ONE DAILY RITUAL.": [
+    "三场竞价。每日仪式。",
+    "三つの回。日々のリズム。"
+  ],
+  "Luminary illustrated market landscape": [
+    "Luminary 市场风景插画",
+    "Luminary の市場風景イラスト"
+  ],
+  "Find your next call": [
+    "寻找您的下一场竞价",
+    "次のオークションを探す"
+  ],
+  "UNDERLYING OPEN / CLOSE / 00:00 UTC": [
+    "标的市场开盘 / 收盘 / UTC 00:00",
+    "原市場の開始 / 終了 / UTC 00:00"
+  ],
+  "Explore the rhythm": [
+    "探索节奏",
+    "リズムを知る"
+  ],
+  "THE ART OF THE AUCTION": [
+    "竞价的艺术",
+    "オークションの美学"
+  ],
+  "PRIVATE.": [
+    "私密。",
+    "非公開。"
+  ],
+  "DELIBERATE.": [
+    "审慎。",
+    "意図的。"
+  ],
+  "VERIFIABLE.": [
+    "可验证。",
+    "検証可能。"
+  ],
+  "A DIFFERENT KIND OF MARKET": [
+    "一种不同的市场",
+    "新しい市場のかたち"
+  ],
+  "Your intent.": [
+    "您的意向。",
+    "あなたの意図。"
+  ],
+  "A shared": [
+    "共同的",
+    "ともに迎える"
+  ],
+  "moment.": [
+    "时刻。",
+    "瞬間。"
+  ],
+  "01 / SEALED INTENT": [
+    "01 / 密封意向",
+    "01 / 封印された意図"
+  ],
+  "02 / A SHARED MOMENT": [
+    "02 / 共同的时刻",
+    "02 / 共有する瞬間"
+  ],
+  "03 / PUBLIC CONVICTION": [
+    "03 / 公开信念",
+    "03 / 公開される確信"
+  ],
+  "ORDERS SEALED. OUTCOMES OPEN.": [
+    "订单密封。\n结果公开。",
+    "注文は封印。\n結果は公開。"
+  ],
+  "A deliberate meeting point for tokenized stocks. Private orders become one public clearing print.": [
+    "为代币化股票精心设计的交汇点。私密订单汇成一份公开清算记录。",
+    "トークン化株式のための、意図ある出会いの場。非公開の注文が、ひとつの公開清算記録になります。"
+  ],
+  "THE PROTOCOL": [
+    "协议",
+    "プロトコル"
+  ],
+  "SEALED.": [
+    "密封。",
+    "封印。"
+  ],
+  "CALLED.": [
+    "竞价。",
+    "実行。"
+  ],
+  "SETTLED.": [
+    "结算。",
+    "決済。"
+  ],
+  "PRIVACY IN. PROOF OUT.": [
+    "隐私进入，证明呈现。",
+    "入力は非公開に。出力は証明に。"
+  ],
+  "Many orders.": [
+    "众多订单。",
+    "多くの注文。"
+  ],
+  "One clearing": [
+    "一个清算",
+    "ひとつの清算"
+  ],
+  "price.": [
+    "价格。",
+    "価格。"
+  ],
+  "01 / PRIVATE COLLECTION": [
+    "01 / 私密收集",
+    "01 / 非公開で収集"
+  ],
+  "02 / UNIFORM CLEARING": [
+    "02 / 统一清算",
+    "02 / 単一価格で清算"
+  ],
+  "03 / PUBLIC PRINT": [
+    "03 / 公开成交记录",
+    "03 / 取引記録を公開"
+  ],
+  "PRIVATE ORDERS. PUBLIC PRICE + VOLUME.": [
+    "私密订单。\n公开价格与成交量。",
+    "注文は非公開。\n価格と数量は公開。"
+  ],
+  "Submit a limit or auction-price order. At the call, eligible orders cross at one reference-bounded price. Unfilled intent rolls or cancels.": [
+    "提交限价订单或竞价价格订单。场次开始时，符合条件的订单以参考区间内的同一价格撮合。未成交意向顺延或取消。",
+    "指値またはオークション価格で注文します。実行時に対象注文を参照価格帯内の単一価格で約定し、未約定分は繰り越すか取り消します。"
+  ],
+  "THE RHYTHM": [
+    "节奏",
+    "リズム"
+  ],
+  "OPEN.": [
+    "开盘。",
+    "寄り付き。"
+  ],
+  "CLOSE.": [
+    "收盘。",
+    "大引け。"
+  ],
+  "MIDNIGHT.": [
+    "午夜。",
+    "午前零時。"
+  ],
+  "A known moment.": [
+    "确定的时刻。",
+    "決まった瞬間。"
+  ],
+  "A market": [
+    "一个市场，",
+    "市場に、"
+  ],
+  "in time.": [
+    "准时相遇。",
+    "時を刻む。"
+  ],
+  "01 / UNDERLYING OPEN": [
+    "01 / 标的市场开盘",
+    "01 / 原市場の開始"
+  ],
+  "02 / UNDERLYING CLOSE": [
+    "02 / 标的市场收盘",
+    "02 / 原市場の終了"
+  ],
+  "03 / 00:00 UTC": [
+    "03 / UTC 00:00",
+    "03 / UTC 00:00"
+  ],
+  "FOLLOW THE CALENDAR. MEET THE MOMENT.": [
+    "循着日历。\n相遇于时刻。",
+    "カレンダーに沿って。\nその瞬間に集う。"
+  ],
+  "Auctions follow the underlying market’s opening and closing bells, plus a global call at 00:00 UTC. Issuers can request NAV-anchored calls.": [
+    "竞价跟随标的市场开盘与收盘时间，并于 UTC 00:00 增加全球场次。发行方可申请净值锚定竞价。",
+    "原市場の開始・終了時刻に加え、UTC 00:00 に世界共通の回を設けます。発行者は NAV 基準のオークションを依頼できます。"
+  ],
+  "THE NEXT CHAPTER": [
+    "下一个篇章",
+    "次の章"
+  ],
+  "BUILD.": [
+    "构建。",
+    "築く。"
+  ],
+  "CONNECT.": [
+    "连接。",
+    "つなぐ。"
+  ],
+  "EXPAND.": [
+    "拓展。",
+    "広げる。"
+  ],
+  "A FOUNDATION FOR MORE": [
+    "更多可能的基础",
+    "その先のための基盤"
+  ],
+  "A trusted close.": [
+    "可信的收盘。",
+    "信頼できる終値。"
+  ],
+  "An open": [
+    "开放的",
+    "開かれた"
+  ],
+  "horizon.": [
+    "远景。",
+    "未来。"
+  ],
+  "01 / REBALANCE AUCTIONS": [
+    "01 / 再平衡竞价",
+    "01 / リバランスのオークション"
+  ],
+  "02 / ISSUER AUCTIONS": [
+    "02 / 发行方竞价",
+    "02 / 発行者オークション"
+  ],
+  "03 / CALENDAR + PRINT FEED": [
+    "03 / 日历与成交数据流",
+    "03 / 日程と取引データ"
+  ],
+  "A PLANNED ROADMAP. BUILT IN SEQUENCE.": [
+    "规划中的路线图。\n循序构建。",
+    "計画中のロードマップ。\n順を追って築く。"
+  ],
+  "Begin with a useful daily auction. Grow toward issuer launches, rebalance flows and a public calendar and print feed. Expansion follows real usage.": [
+    "从实用的每日竞价开始，逐步迈向发行方首发、再平衡交易流及公开日历与成交数据流。拓展以真实使用为基础。",
+    "役立つ日次オークションから始め、発行者のローンチ、リバランス、公開日程と取引データへと進みます。拡張は実際の利用に伴います。"
+  ],
+  "LUMINARY — PROTOCOL 4663": [
+    "LUMINARY — 协议 4663",
+    "LUMINARY — プロトコル 4663"
+  ],
+  "Luminary silver-blue illustrated landscape": [
+    "Luminary 银蓝色风景插画",
+    "Luminary の銀青色の風景画"
+  ],
+  "Luminary illustrated world": [
+    "Luminary 插画世界",
+    "Luminary のイラスト世界"
+  ],
+  "Luminary dragon and mountain artwork": [
+    "Luminary 龙与山峦画作",
+    "Luminary の龍と山々のアート"
+  ],
+  "Overview": [
+    "概览",
+    "概要"
+  ],
+  "My orders": [
+    "我的订单",
+    "注文一覧"
+  ],
+  "Auction calendar": [
+    "竞价日历",
+    "オークション日程"
+  ],
+  "Public prints": [
+    "公开成交记录",
+    "公開取引記録"
+  ],
+  "RFQ desk": [
+    "询价台",
+    "RFQ デスク"
+  ],
+  "Treasury": [
+    "国债资金",
+    "国債資金"
+  ],
+  "WORKSPACE": [
+    "工作空间",
+    "ワークスペース"
+  ],
+  "Sealed intent.": [
+    "密封意向。",
+    "意図は封印。"
+  ],
+  "Shared conviction.": [
+    "共同信念。",
+    "確信はともに。"
+  ],
+  "ROBINHOOD CHAIN": [
+    "ROBINHOOD CHAIN",
+    "ROBINHOOD CHAIN"
+  ],
+  "read_luminary_demo_portfolio": [
+    "read_luminary_demo_portfolio",
+    "read_luminary_demo_portfolio"
+  ],
+  "Read portfolio": [
+    "读取投资组合",
+    "ポートフォリオを読む"
+  ],
+  "Read the current Luminary wallet, orders and balances. No live market or real money.": [
+    "读取当前 Luminary 钱包、订单与余额。不涉及真实市场或资金。",
+    "現在の Luminary のウォレット、注文、残高を読み取ります。実際の市場や資金は使用しません。"
+  ],
+  "Portfolio unavailable": [
+    "投资组合不可用",
+    "ポートフォリオを利用できません"
+  ],
+  "stage_luminary_demo_order": [
+    "stage_luminary_demo_order",
+    "stage_luminary_demo_order"
+  ],
+  "Stage a sealed order": [
+    "准备密封订单",
+    "封印型の注文を準備する"
+  ],
+  "Populate the visible auction ticket and open review. Does not submit an order or move any real funds.": [
+    "填写可见的竞价表单并打开确认窗口。不提交订单，也不转移真实资金。",
+    "表示中の注文フォームに入力し、確認画面を開きます。注文の送信や実際の資金移動は行いません。"
+  ],
+  "Invalid market or quantity.": [
+    "市场或数量无效。",
+    "市場または数量が無効です。"
+  ],
+  "There is no data to export yet.": [
+    "暂无可导出的数据。",
+    "まだ書き出すデータがありません。"
+  ],
+  "Your export is ready.": [
+    "导出文件已准备就绪。",
+    "書き出しファイルの準備ができました。"
+  ],
+  "Calendar event downloaded.": [
+    "日历事件已下载。",
+    "カレンダーの予定をダウンロードしました。"
+  ],
+  "Asset / side": [
+    "资产 / 方向",
+    "資産 / 売買"
+  ],
+  "Quantity": [
+    "数量",
+    "数量"
+  ],
+  "Limit price": [
+    "限价",
+    "指値"
+  ],
+  "Session": [
+    "场次",
+    "セッション"
+  ],
+  "Status": [
+    "状态",
+    "状態"
+  ],
+  "Action": [
+    "操作",
+    "操作"
+  ],
+  "shares": [
+    "股",
+    "株"
+  ],
+  "Cancel": [
+    "取消",
+    "取り消す"
+  ],
+  "Your next move is private.": [
+    "您的下一步保持私密。",
+    "次の一手は、非公開に。"
+  ],
+  "Go to the auction": [
+    "前往竞价",
+    "オークションへ進む"
+  ],
+  "Asset": [
+    "资产",
+    "資産"
+  ],
+  "Clearing price": [
+    "清算价格",
+    "清算価格"
+  ],
+  "Crossed volume": [
+    "撮合成交量",
+    "約定数量"
+  ],
+  "Published UTC": [
+    "发布时间（UTC）",
+    "公開時刻（UTC）"
+  ],
+  "Record": [
+    "记录",
+    "記録"
+  ],
+  "View": [
+    "查看",
+    "表示"
+  ],
+  "No matching prints.": [
+    "没有匹配的成交记录。",
+    "一致する取引記録がありません。"
+  ],
+  "Sealed order": [
+    "密封订单",
+    "封印注文"
+  ],
+  "PRIVATE": [
+    "私密",
+    "非公開"
+  ],
+  "Buy": [
+    "买入",
+    "買い"
+  ],
+  "Sell": [
+    "卖出",
+    "売り"
+  ],
+  "Order type": [
+    "订单类型",
+    "注文の種類"
+  ],
+  "Limit order": [
+    "限价订单",
+    "指値注文"
+  ],
+  "At auction price": [
+    "竞价价格订单",
+    "オークション価格注文"
+  ],
+  "Auction": [
+    "竞价",
+    "オークション"
+  ],
+  "Opening call": [
+    "开盘竞价",
+    "寄り付きの回"
+  ],
+  "Closing call": [
+    "收盘竞价",
+    "大引けの回"
+  ],
+  "Midnight call": [
+    "午夜竞价",
+    "午前零時の回"
+  ],
+  "Order quantity": [
+    "订单数量",
+    "注文数量"
+  ],
+  "USD": [
+    "美元",
+    "米ドル"
+  ],
+  "Roll unfilled orders": [
+    "顺延未成交订单",
+    "未約定注文を繰り越す"
+  ],
+  "Keep your intent in the next call.": [
+    "让意向延续至下一场。",
+    "次の回に意図をつなぐ。"
+  ],
+  "Estimated value": [
+    "预估金额",
+    "概算金額"
+  ],
+  "Review sealed order": [
+    "检查密封订单",
+    "封印注文を確認"
+  ],
+  "Connect wallet": [
+    "连接钱包",
+    "ウォレットを接続"
+  ],
+  "Only you can see your order before the call.": [
+    "竞价前，只有您能看到自己的订单。",
+    "実行前に注文を閲覧できるのは、あなただけです。"
+  ],
+  "": [
+    "本网站",
+    ""
+  ],
+  "UTC": [
+    "UTC",
+    "UTC"
+  ],
+  "Assets, prices and balances here are illustrative. No real funds move.": [
+    "功能本网站。资产、价格与余额均为。不转移真实资金。",
+    "動作するです。資産、価格、残高はで、実際の資金は移動しません。"
+  ],
+  "Learn more": [
+    "了解更多",
+    "詳しく見る"
+  ],
+  "Retry": [
+    "重试",
+    "再試行"
+  ],
+  "THE AUCTION FLOOR": [
+    "竞价大厅",
+    "オークションフロア"
+  ],
+  "Every order has its moment.": [
+    "每笔订单都有它的时刻。",
+    "すべての注文に、その瞬間がある。"
+  ],
+  "Your intent stays private. The outcome speaks for itself.": [
+    "意向保持私密。结果自会发声。",
+    "意図は非公開に。結果がすべてを語る。"
+  ],
+  "Refresh portfolio": [
+    "刷新投资组合",
+    "ポートフォリオを更新"
+  ],
+  "Portfolio refreshed.": [
+    "投资组合已刷新。",
+    "ポートフォリオを更新しました。"
+  ],
+  "Available collateral": [
+    "可用抵押品",
+    "利用可能な担保"
+  ],
+  "Tokenized treasury · USD": [
+    "代币化国债 · 美元",
+    "トークン化国債 · 米ドル"
+  ],
+  "Sealed orders": [
+    "密封订单",
+    "封印注文"
+  ],
+  "reserved": [
+    "已预留",
+    "確保済み"
+  ],
+  "Your orders, visible only to you": [
+    "您的订单，仅您可见",
+    "注文を閲覧できるのはあなただけ"
+  ],
+  "Next auction": [
+    "下一场竞价",
+    "次のオークション"
+  ],
+  "· UTC": [
+    "· UTC",
+    "· UTC"
+  ],
+  "Silver mountains under an orange sky": [
+    "橙色天空下的银色山峦",
+    "オレンジの空の下に広がる銀の山々"
+  ],
+  "The next chapter": [
+    "下一个篇章",
+    "次の章は"
+  ],
+  "opens with you.": [
+    "由您开启。",
+    "あなたから始まる。"
+  ],
+  "Explore the auction calendar": [
+    "探索竞价日历",
+    "オークション日程を確認"
+  ],
+  "LUMINARY / 001": [
+    "LUMINARY / 001",
+    "LUMINARY / 001"
+  ],
+  "Markets": [
+    "市场",
+    "市場"
+  ],
+  "REFERENCE": [
+    "",
+    ""
+  ],
+  "4 assets": [
+    "4 种资产",
+    "4 資産"
+  ],
+  "Reference": [
+    "参考价格",
+    "参照価格"
+  ],
+  "24h change": [
+    "24 小时变动",
+    "24 時間変動"
+  ],
+  "Trend": [
+    "走势",
+    "推移"
+  ],
+  "Your orders": [
+    "您的订单",
+    "注文一覧"
+  ],
+  "View all": [
+    "查看全部",
+    "すべて表示"
+  ],
+  "New order": [
+    "新建订单",
+    "新規注文"
+  ],
+  "Export": [
+    "导出",
+    "書き出す"
+  ],
+  "See an auction through.": [
+    "体验一场完整竞价。",
+    "オークションを最後まで体験する。"
+  ],
+  "Run a call to settle eligible orders at the displayed reference price. Unmatched orders follow your roll setting.": [
+    "运行竞价，以显示的参考价格结算符合条件的订单。未匹配订单遵循您的顺延设置。",
+    "表示された参照価格で対象注文を決済するオークションを実行します。未約定注文は繰り越し設定に従います。"
+  ],
+  "Run the call": [
+    "竞价",
+    "オークション"
+  ],
+  "Add next call": [
+    "添加下一场",
+    "次回の予定を追加"
+  ],
+  "Silver dragon and phoenix illustration": [
+    "银色龙与凤凰插画",
+    "銀の龍と鳳凰のイラスト"
+  ],
+  "THE NEXT CALL": [
+    "下一场竞价",
+    "次のオークション"
+  ],
+  "HOURS": [
+    "小时",
+    "時間"
+  ],
+  "MINUTES": [
+    "分钟",
+    "分"
+  ],
+  "SECONDS": [
+    "秒",
+    "秒"
+  ],
+  "All calls": [
+    "全部场次",
+    "すべての回"
+  ],
+  "Open": [
+    "开盘",
+    "寄り付き"
+  ],
+  "Close": [
+    "收盘",
+    "大引け"
+  ],
+  "Midnight": [
+    "午夜",
+    "午前零時"
+  ],
+  "All times in UTC": [
+    "所有时间均为 UTC",
+    "すべて UTC 表記"
+  ],
+  "NVDA · AAPL · TSLA · MSFT": [
+    "NVDA · AAPL · TSLA · MSFT",
+    "NVDA · AAPL · TSLA · MSFT"
+  ],
+  "Place order": [
+    "提交订单",
+    "注文する"
+  ],
+  "Illustrative schedule with New York daylight saving adjustments. Market holidays, ex-dates and issuer pauses are not included here.": [
+    "示例日程已考虑纽约夏令时调整。本本网站未包含市场假期、除权除息日与发行方暂停安排。",
+    "ニューヨークの夏時間を反映した例示日程です。市場の休場日、権利落ち日、発行者による停止は含みません。"
+  ],
+  "Export prints": [
+    "导出成交记录",
+    "取引記録を書き出す"
+  ],
+  "Transparency at the outcome.": [
+    "让结果透明。",
+    "結果に透明性を。"
+  ],
+  "Each scheduled call publishes one uniform price. Individual orders stay private.": [
+    "每场预定竞价公布一个统一价格。单笔订单保持私密。",
+    "予定された各回で単一価格を公開します。個別注文は非公開です。"
+  ],
+  "SAMPLE RECORDS": [
+    "示例记录",
+    "サンプル記録"
+  ],
+  "All assets": [
+    "全部资产",
+    "すべての資産"
+  ],
+  "Seeded examples and your auction results. Proof records are illustrative and are not blockchain attestations.": [
+    "预设示例及您的竞价结果。证明记录仅作说明，并非区块链证明。",
+    "あらかじめ用意した例と、実行したオークションの結果です。証明記録は例示であり、ブロックチェーンの証明ではありません。"
+  ],
+  "The RFQ desk": [
+    "询价台",
+    "RFQ デスク"
+  ],
+  "Orange dragon above silver-blue waves": [
+    "银蓝色波浪上方的橙色龙",
+    "銀青色の波の上を舞うオレンジの龍"
+  ],
+  "PRIVATE. DIRECT. DELIBERATE.": [
+    "私密。直接。审慎。",
+    "非公開。直接。意図的。"
+  ],
+  "A meeting": [
+    "一场",
+    "確信が"
+  ],
+  "of": [
+    "共同",
+    "出会う"
+  ],
+  "conviction.": [
+    "信念的交汇。",
+    "場所。"
+  ],
+  "Request a private two-party block quote between scheduled auctions. Review the full terms before accepting.": [
+    "在预定竞价之间请求私密双边大宗报价。接受前请审阅全部条款。",
+    "定時オークションの合間に、非公開の相対ブロック見積もりを依頼します。承諾前にすべての条件をご確認ください。"
+  ],
+  "Request a quote": [
+    "请求报价",
+    "見積もりを依頼"
+  ],
+  "PRIVATE BLOCK": [
+    "私密大宗交易",
+    "非公開のブロック取引"
+  ],
+  "Block size": [
+    "大宗数量",
+    "ブロック数量"
+  ],
+  "RFQ quantity": [
+    "询价数量",
+    "RFQ 数量"
+  ],
+  "Minimum 10 shares.": [
+    "本网站中至少为 10 股。",
+    "では最低 10 株です。"
+  ],
+  "Reference price": [
+    "参考价格",
+    "参照価格"
+  ],
+  "Indicative value": [
+    "参考金额",
+    "参考金額"
+  ],
+  "QUOTE READY": [
+    "报价已就绪",
+    "見積もりの準備完了"
+  ],
+  "s": [
+    "秒",
+    "秒"
+  ],
+  "per share": [
+    "每股",
+    "1 株あたり"
+  ],
+  "· Total": [
+    "· 合计",
+    "· 合計"
+  ],
+  "Accept & settle quote": [
+    "接受并结算报价",
+    "見積もりを承諾して決済"
+  ],
+  "Fixed spread: 0.10%. No real counterparties.": [
+    "固定价差：0.10%。无真实交易对手。",
+    "固定のスプレッド：0.10%。実際の取引相手はいません。"
+  ],
+  "Your treasury": [
+    "您的国债资金",
+    "国債資金の残高"
+  ],
+  "Add funds": [
+    "添加资金",
+    "資金を追加"
+  ],
+  "TOTAL TREASURY COLLATERAL": [
+    "国债抵押品总额",
+    "国債担保の合計"
+  ],
+  "USD / TOKENIZED TREASURY": [
+    "美元 / 代币化国债",
+    "米ドル / トークン化国債"
+  ],
+  "Available": [
+    "可用",
+    "利用可能"
+  ],
+  "Reserved in orders": [
+    "订单预留",
+    "注文用に確保"
+  ],
+  "Withdraw funds": [
+    "提取资金",
+    "資金を出金"
+  ],
+  "Let resting collateral": [
+    "让闲置抵押品",
+    "待機中の担保を、"
+  ],
+  "work while you wait.": [
+    "在等待中发挥作用。",
+    "待つ間にも活かす。"
+  ],
+  "Luminary is designed to settle in tokenized treasuries. Their underlying NAV yield can accrue while your order waits for its call.": [
+    "Luminary 计划以代币化国债结算。在订单等待竞价时，底层净值收益可继续累积。",
+    "Luminary はトークン化国債での決済を想定しています。注文が実行を待つ間、裏付け資産の NAV 収益が反映される場合があります。"
+  ],
+  "Yield is variable, not guaranteed. No investment returns accrue here.": [
+    "收益会变化且不作保证。本本网站不累积投资回报。",
+    "収益は変動し、保証されません。このでは投資収益は発生しません。"
+  ],
+  "Understand treasury settlement": [
+    "了解国债结算",
+    "国債決済について知る"
+  ],
+  "Your holdings": [
+    "您的持仓",
+    "保有資産"
+  ],
+  "HOLDINGS": [
+    "资产",
+    "資産"
+  ],
+  "Total shares": [
+    "总股数",
+    "合計株数"
+  ],
+  "Reference value": [
+    "参考价值",
+    "参照評価額"
+  ],
+  "Trade": [
+    "交易",
+    "取引"
+  ],
+  "Recent activity": [
+    "近期活动",
+    "最近の操作"
+  ],
+  "A clean slate.": [
+    "崭新的开始。",
+    "まっさらな状態から。"
+  ],
+  "Reset portfolio": [
+    "重置投资组合",
+    "ポートフォリオをリセット"
+  ],
+  "LEGAL & DISCLOSURES ↗": [
+    "法律与披露 ↗",
+    "法務と開示事項 ↗"
+  ],
+  "Protocol information": [
+    "协议信息",
+    "プロトコル情報"
+  ],
+  "YOUR PRIVATE WORKSPACE": [
+    "您的私密工作空间",
+    "あなた専用のワークスペース"
+  ],
+  "No wallet extension. No real assets.": [
+    "无需钱包插件。无真实资产。",
+    "ウォレット拡張機能は不要。実際の資産も不要。"
+  ],
+  "Your activity is saved automatically.": [
+    "您的操作会自动保存。",
+    "での操作は自動保存されます。"
+  ],
+  "ONE LAST LOOK": [
+    "最后确认",
+    "最終確認"
+  ],
+  "Review your order before submitting. It remains private until the scheduled call.": [
+    "提交前请检查订单。预定竞价前，订单保持私密。",
+    "送信前に注文をご確認ください。予定された実行時刻まで注文は非公開です。"
+  ],
+  "· Tokenized stock": [
+    "· 代币化股票（）",
+    "· トークン化株式（）"
+  ],
+  "Price": [
+    "价格",
+    "価格"
+  ],
+  "call": [
+    "竞价",
+    "の回"
+  ],
+  "Unfilled orders": [
+    "未成交订单",
+    "未約定注文"
+  ],
+  "A 3% reference-price buffer is reserved for this auction-price order.": [
+    "本竞价价格订单将预留参考价格 3% 的缓冲。",
+    "このオークション価格注文では、参照価格の 3% を余裕分として確保します。"
+  ],
+  "TREASURY / FUNDS": [
+    "国债资金 / 资金",
+    "国債資金 / 資金"
+  ],
+  "Amount (USD)": [
+    "金额（美元）",
+    "金額（米ドル）"
+  ],
+  "Fund amount": [
+    "资金金额",
+    "資金の金額"
+  ],
+  "THE FINAL CALL": [
+    "最终竞价",
+    "最後の回をシミュレーション"
+  ],
+  "From sealed to settled.": [
+    "从密封到结算。",
+    "封印から決済へ。"
+  ],
+  "Run the call using the displayed reference prices. Eligible orders fill completely; unmatched orders roll or cancel. This is not the production clearing engine.": [
+    "使用显示的参考价格运行竞价。符合条件的订单全部成交；未匹配订单顺延或取消。这是本网站，并非生产清算引擎。",
+    "表示中の参照価格でオークションを実行します。対象注文は全量約定し、未約定分は繰り越すか取り消します。これはであり、本番の清算エンジンではありません。"
+  ],
+  "sealed orders in this session.": [
+    "笔密封订单属于本场次。",
+    "件の封印注文がこの回にあります。"
+  ],
+  "Start a new chapter?": [
+    "开启新篇章？",
+    "新しい章を始めますか？"
+  ],
+  "This clears your orders, prints, quotes and activity, and restores the starting portfolio. You will need to reconnect your wallet.": [
+    "这会清除订单、成交记录、报价与活动，并恢复初始投资组合。您需要重新连接钱包。",
+    "注文、記録、見積もり、操作履歴を消去し、初期ポートフォリオに戻します。ウォレットを再接続する必要があります。"
+  ],
+  "Keep my portfolio": [
+    "保留我的投资组合",
+    "ポートフォリオを保持"
+  ],
+  "PUBLIC AUCTION RECORD": [
+    "公开竞价记录",
+    "公開オークション記録"
+  ],
+  "Clearing record. No individual order or identity is published.": [
+    "清算记录。不会公开单笔订单或身份。",
+    "清算記録です。個別の注文や身元は公開されません。"
+  ],
+  "Published": [
+    "已发布",
+    "公開日時"
+  ],
+  "Illustrative record only. This is not a cryptographic proof or a blockchain transaction.": [
+    "仅为示例记录，并非密码学证明或区块链交易。",
+    "例示記録のみです。暗号学的証明やブロックチェーン取引ではありません。"
+  ],
+  "Record copied.": [
+    "记录已复制。",
+    "記録をコピーしました。"
+  ],
+  "Copy record": [
+    "复制记录",
+    "記録をコピー"
+  ],
+  "Search by asset": [
+    "按资产搜索",
+    "資産で検索"
+  ],
+  "Search assets…": [
+    "搜索资产…",
+    "資産を検索…"
+  ],
+  "The scope and boundaries of the Luminary website.": [
+    "Luminary 本网站的范围与边界。",
+    "Luminary 対象範囲と制限。"
+  ],
+  "About this draft": [
+    "关于本草案",
+    "この草案について"
+  ],
+  "This draft reflects the Luminary Overview, Backend and Expansion documents and the current website. It is not the final set of terms for an operating trading venue. The legal operator, registered address, contact channel, governing law and dispute terms have not been supplied and must be completed before a public live launch.": [
+    "本草案依据 Luminary 概述、后端、拓展文档及当前本网站网站编写，并非运营中交易场所的最终条款。法律运营主体、注册地址、联系渠道、适用法律与争议条款尚未提供，须在公开正式上线前补全。",
+    "この草案は Luminary の概要・バックエンド・拡張文書と現在のサイトに基づきます。稼働する取引施設の最終規約ではありません。法的運営主体、登録住所、連絡先、準拠法、紛争条項は未提示であり、一般向けの本稼働前に補完が必要です。"
+  ],
+  "Not yet a live trading service": [
+    "产品本网站，而非真实交易服务",
+    "実取引サービスではなく"
+  ],
+  "This site explains the proposed Luminary protocol and lets you explore the auction, RFQ and treasury workflows. Balances and assets shown here have no monetary value. Connecting a wallet in the interface does not connect an external wallet, deposit money or create a securities account.": [
+    "本网站介绍拟议的 Luminary 协议，并提供竞价、询价与国债资金流程。余额及资产没有货币价值。连接钱包不会连接外部钱包、存入资金或开立证券账户。",
+    "このサイトは提案段階の Luminary プロトコルを説明し、オークション、RFQ、国債資金の流れを体験できます。残高や資産に金銭的価値はありません。ウォレットの接続は外部ウォレットへの接続、入金、証券口座の開設ではありません。"
+  ],
+  "Order submission, cancellation, settlement and print records on this site do not execute a blockchain transaction or trade a real security. The clearing flow uses fixed sample reference prices and is not the production volume-maximizing clearing engine.": [
+    "本网站中的订单提交、取消、结算与成交记录不会执行区块链交易或交易真实证券。本网站清算使用固定示例参考价格，并非生产环境中最大化成交量的清算引擎。",
+    "注文送信、取り消し、決済、取引記録は、ブロックチェーン取引や実際の証券取引を実行しません。固定のサンプル参照価格を用い、本番の約定数量最大化エンジンではありません。"
+  ],
+  "Information and planned functionality": [
+    "信息与规划功能",
+    "情報と計画中の機能"
+  ],
+  "Product descriptions summarize the supplied documents. The intended protocol uses scheduled sealed auctions, reference-bounded uniform clearing, tokenized treasury settlement and public price-and-volume prints. These descriptions are design objectives rather than a representation that a live service, security audit, regulatory approval or production proof system exists.": [
+    "产品说明总结所提供的文档。拟议协议采用定时密封竞价、参考区间约束下的统一清算、代币化国债结算及公开价格与成交量记录。这些是设计目标，并不表示已有正式服务、安全审计、监管批准或生产证明系统。",
+    "製品説明は提供文書の要約です。想定するプロトコルは定時の封印型オークション、参照価格帯に制約された単一価格清算、トークン化国債決済、価格と数量の公開記録を用います。これらは設計目標であり、実サービス、安全性監査、規制当局の承認、本番証明システムの存在を表すものではありません。"
+  ],
+  "Roadmap and expansion pages describe planned work. The sequence, scope and timing may change. No launch date, token distribution, fee entitlement or return is promised by this site.": [
+    "路线图与拓展页面描述规划中的工作。顺序、范围与时间可能改变。本网站不承诺上线日期、代币分配、费用收益权或回报。",
+    "ロードマップと拡張ページは計画中の作業を説明します。順序、範囲、時期は変更される場合があります。公開日、トークン配布、手数料受領権、収益を約束するものではありません。"
+  ],
+  "Eligibility and asset boundaries": [
+    "资格与资产范围",
+    "参加資格と資産の範囲"
+  ],
+  "The product documents describe securities-form real-world assets, intended for eligible non-US participants in permitted jurisdictions. Any live service would require jurisdiction, participant and asset eligibility controls. This site does not perform those checks or establish that a visitor is eligible for a future service.": [
+    "产品文档描述证券形式的现实世界资产，面向获准司法辖区内符合条件的非美国参与者。正式服务须实施司法辖区、参与者及资产资格控制。本本网站不执行这些检查，也不确认访问者是否符合未来服务资格。",
+    "製品文書は証券形態の実物資産を説明し、許可された法域の適格な米国外参加者を対象とします。実サービスには法域、参加者、資産の適格性管理が必要です。はその確認を行わず、将来のサービスへの参加資格を証明しません。"
+  ],
+  "Do not rely on access to this website as permission to purchase, sell, hold or transfer an asset in any jurisdiction. Separate live-service terms and issuer restrictions would apply if those services launch.": [
+    "请勿将访问本网站视为在任何司法辖区购买、出售、持有或转移资产的许可。若正式服务上线，将另行适用服务条款与发行方限制。",
+    "サイトへのアクセスを、いずれかの法域で資産を購入、売却、保有、移転する許可とみなさないでください。正式に提供される場合は、別のサービス規約と発行者の制限が適用されます。"
+  ],
+  "Use of this website": [
+    "本网站的使用",
+    "利用"
+  ],
+  "Use the site for evaluating and understanding the product. Do not submit real private keys, seed phrases, identity documents or confidential account information. The interface does not request them.": [
+    "请将本网站用于评估和理解产品。不要提交真实私钥、助记词、身份证件或机密账户信息。界面不会索取这些信息。",
+    "製品の評価と理解のためにご利用ください。実際の秘密鍵、シードフレーズ、本人確認書類、機密の口座情報を送信しないでください。画面からこれらを求めることはありません。"
+  ],
+  "Do not attempt to access another visitor’s local portfolio, compromise the site, interfere with availability or misrepresent illustrative records as real transactions or cryptographic proofs. Records here can be reset and should not be relied on as a permanent financial record.": [
+    "请勿尝试访问其他访客的投资组合、侵害网站安全、干扰可用性，或将记录谎称为真实交易或密码学证明。记录可重置，不应被视为永久财务记录。",
+    "他の訪問者の資産へのアクセス、サイトへの侵害、可用性の妨害、記録を実際の取引や暗号学的証明と偽る行為をしないでください。記録はリセット可能で、恒久的な財務記録として依拠できません。"
+  ],
+  "Financial information and outcomes": [
+    "金融信息与结果",
+    "金融情報と結果"
+  ],
+  "This website is informational and does not provide personalized investment, legal or tax advice. It is not an offer or solicitation to purchase securities or a guarantee of execution, price quality, liquidity or yield.": [
+    "本网站仅供信息参考，不提供个性化投资、法律或税务建议；不构成证券购买要约或招揽，也不保证成交、价格质量、流动性或收益。",
+    "このサイトは情報提供を目的とし、個別の投資、法律、税務助言を提供しません。証券購入の申込みや勧誘ではなく、約定、価格の質、流動性、利回りを保証しません。"
+  ],
+  "Treasury yield in the product documents refers to underlying published NAV accrual. It is variable. No investment return accrues on this site. Read the Risk & Eligibility page alongside these terms.": [
+    "产品文档中的国债收益指底层公布净值的累积变化，且会变化。本网站不累积投资回报。请同时阅读风险与资格页面。",
+    "文書の国債収益は、裏付け資産の公表 NAV の増加を指し、変動します。では投資収益は発生しません。この規約とあわせて「リスクと参加資格」をお読みください。"
+  ],
+  "Artwork and third-party services": [
+    "画作与第三方服务",
+    "アートと外部サービス"
+  ],
+  "The website includes Luminary branding and supplied artwork. The animated hero model, “Animated Realistic Lowpoly Chinese Dragon,” is embedded from Sketchfab and credited to Cassana XR. Rights in third-party materials remain with their respective owners.": [
+    "网站包含 Luminary 品牌及提供的画作。首页动态模型“Animated Realistic Lowpoly Chinese Dragon”由 Sketchfab 嵌入，作者为 Cassana XR。第三方素材的权利归其各自权利人所有。",
+    "サイトには Luminary のブランドと提供されたアートを使用しています。ヒーローのモデル「Animated Realistic Lowpoly Chinese Dragon」は Sketchfab から埋め込み、制作者は Cassana XR です。第三者素材の権利は各権利者に帰属します。"
+  ],
+  "An embedded service or external link can be unavailable or operate under its own terms and privacy policy. Naming Robinhood Chain or another technology describes the proposed integration; it does not by itself establish endorsement or affiliation.": [
+    "嵌入服务或外部链接可能无法使用，也可能适用各自的条款与隐私政策。提及 Robinhood Chain 或其他技术仅用于说明拟议集成，并不自动构成认可或关联关系。",
+    "埋め込みサービスや外部リンクは利用できない場合があり、独自の規約とプライバシーポリシーに従うことがあります。Robinhood Chain 等の名称は想定する連携の説明であり、支持や提携をそれ自体で示すものではありません。"
+  ],
+  "Before live launch": [
+    "正式上线前",
+    "本稼働の前に"
+  ],
+  "These draft terms require review and completion by the responsible operator and qualified counsel. In addition to entity and jurisdiction details, live-service disclosures must address actual custody, fees, execution rules, complaints, suspension, liability and any applicable regulated-service obligations. This draft does not invent those details or represent that they have been approved.": [
+    "本条款草案须由负责的运营方与合格法律顾问审阅、补全。除主体及司法辖区信息外，正式服务披露还须涵盖实际托管、费用、执行规则、投诉、暂停、责任及适用的受监管服务义务。本草案不虚构这些细节，也不表示其已获批准。",
+    "この草案は責任を持つ運営者と適格な法律専門家による確認と補完が必要です。主体や法域に加え、実際の保管、手数料、執行ルール、苦情、停止、責任、適用される規制上の義務について開示が必要です。草案はこれらの詳細を創作せず、承認済みとも表明しません。"
+  ],
+  "What this website stores and how its visible features use data.": [
+    "本本网站存储哪些信息，以及可见功能如何使用数据。",
+    "が保存する情報と、各機能でのデータ利用。"
+  ],
+  "This notice describes the current website implementation. The supplied Luminary documents describe intended protocol privacy but do not identify the final legal controller, privacy contact or complete live-service data practices. Those details and any required jurisdiction-specific disclosures remain to be finalized before public launch.": [
+    "本声明描述当前网站实现。Luminary 文档说明拟议协议的隐私设计，但未确定最终法律数据控制者、隐私联系方或完整正式服务数据处理方式。这些信息及所需的法域专项披露须在公开上线前完成。",
+    "この通知は現在の実装を説明します。Luminary 文書は想定するプライバシー設計を示しますが、最終的な法的管理者、連絡先、実サービスの完全な取扱いは未確定です。必要な法域別の開示とともに、一般公開前に確定する必要があります。"
+  ],
+  "Portfolio information": [
+    "投资组合信息",
+    "ポートフォリオ情報"
+  ],
+  "When you open the dashboard, the site creates a random browser identifier and stores a demonstration portfolio on its server. Stored records include your simulated balances and holdings, orders, RFQ quote, auction results and recent demo activity.": [
+    "打开仪表板时，网站创建随机浏览器标识符，并在服务器保存投资组合。记录包含余额、持仓、订单、询价报价、竞价结果与近期活动。",
+    "ダッシュボードを開くと、ランダムなブラウザー識別子を作成し、サーバーに資産を保存します。残高、保有資産、注文、RFQ 見積もり、オークション結果、最近の操作が含まれます。"
+  ],
+  "The site does not ask for a name, email address, wallet address, government identification or payment details. “Connect wallet” changes the interface state; it does not access a real wallet. The hosting platform may separately handle sign-in and access to a privately published site.": [
+    "本网站不索取姓名、电子邮件、钱包地址、政府身份证明或付款信息。“连接钱包”仅改变本网站状态，不访问真实钱包。托管平台可能单独处理登录及私密发布网站的访问。",
+    "は氏名、メールアドレス、ウォレットアドレス、公的身分証、支払情報を求めません。「ウォレットを接続」は状態を変えるだけで、実際のウォレットへアクセスしません。非公開サイトの認証とアクセスは、ホスティング基盤が別途処理する場合があります。"
+  ],
+  "Browser storage": [
+    "浏览器存储",
+    "ブラウザー内の保存"
+  ],
+  "A first-party cookie named luminary_demo associates your browser with its saved demo portfolio. It is set for up to 30 days and renewed when the service sets it again. It is HttpOnly and SameSite=Strict; secure transport is required for the cookie on the hosted HTTPS site.": [
+    "名为 luminary_demo 的第一方 Cookie 将浏览器与已保存的投资组合关联。有效期最长 30 天，服务再次设置时会续期。它采用 HttpOnly 与 SameSite=Strict；在托管 HTTPS 网站上要求安全传输。",
+    "ファーストパーティー Cookie の luminary_demo がブラウザーと保存済み資産を関連付けます。有効期間は最長 30 日で、再設定時に更新されます。HttpOnly と SameSite=Strict を使用し、公開 HTTPS サイトでは安全な通信を必須とします。"
+  ],
+  "The dashboard can also remember its navigation-panel preference in a sidebar_state cookie for up to seven days. Blocking cookies may prevent demo portfolio continuity or affect navigation preferences. A first-party luminary_language preference in local storage remembers your selected language on this device. You can change it from the navigation on any page. Fonts and the supplied image assets are served with the website.": [
+    "仪表板可在 sidebar_state Cookie 中记住导航面板偏好，最长七天。阻止 Cookie 可能影响投资组合连续性或导航偏好。第一方本地存储项 luminary_language 记住本设备的语言选择，可在任意页面导航中修改。字体与提供的图片资源由网站自身提供。",
+    "ダッシュボードは sidebar_state Cookie にナビゲーションの設定を最長 7 日保存できます。Cookie の拒否は資産データの継続性や設定に影響する場合があります。本端末の言語選択はローカルストレージの luminary_language に保存し、各ページのナビゲーションから変更できます。フォントと画像はサイトから配信します。"
+  ],
+  "Why this information is stored": [
+    "为何存储这些信息",
+    "保存する目的"
+  ],
+  "The saved portfolio lets order, cancellation, RFQ and treasury actions work across page reloads. Checks use it to prevent overspending of collateral, duplicate quote acceptance and conflicting portfolio updates.": [
+    "已保存的投资组合使订单、取消、询价与国债资金操作在页面重载后继续可用。服务器利用它防止抵押品超支、重复接受报价及冲突更新。",
+    "保存したデータにより、再読み込み後も注文、取り消し、RFQ、国債資金の操作を継続できます。サーバーは担保の過剰使用、見積もりの二重承諾、更新の衝突を防ぐために使用します。"
+  ],
+  "This implementation does not add its own advertising pixels or marketing analytics. Hosting and third-party services may process technical connection information under their own policies. A private product order is not the same as anonymous website use.": [
+    "当前实现未自行添加广告像素或营销分析。托管方与第三方服务可能依据各自政策处理技术连接信息。订单私密并不等同于匿名使用网站。",
+    "この実装は独自の広告ピクセルやマーケティング分析を追加していません。ホスティングや外部サービスは各自の方針に基づき接続情報を処理する場合があります。注文が非公開であることと、サイトを匿名で使うことは同義ではありません。"
+  ],
+  "The animated Sketchfab model": [
+    "Sketchfab 动态模型",
+    "Sketchfab のアニメーションモデル"
+  ],
+  "The hero loads a Sketchfab viewer and its JavaScript to display the animated Chinese dragon. Connecting to that service can expose technical information, such as an IP address, browser details and request metadata, to the provider. The embed requests Sketchfab’s do-not-track option; that setting is not a promise that no provider data processing occurs.": [
+    "首页加载 Sketchfab 查看器及其 JavaScript 以显示动态中国龙。连接该服务可能向提供方暴露 IP 地址、浏览器详情与请求元数据等技术信息。嵌入请求了 Sketchfab 的“请勿追踪”选项，但这不代表提供方完全不处理数据。",
+    "ヒーローでは Sketchfab ビューアーと JavaScript を読み込み、動く中国龍を表示します。接続時に IP アドレス、ブラウザー情報、リクエスト情報などが提供元へ伝わる可能性があります。追跡拒否オプションを要求しますが、一切の処理が行われないという保証ではありません。"
+  ],
+  "Sketchfab operates under its own privacy policy. The external privacy link opens Sketchfab’s site. You can block third-party content using your browser, although the animated scene may then be unavailable.": [
+    "Sketchfab 适用自己的隐私政策。外部隐私链接会打开 Sketchfab 网站。您可通过浏览器阻止第三方内容，但动态场景可能无法使用。",
+    "Sketchfab は独自のプライバシーポリシーに従います。外部リンクは Sketchfab のサイトを開きます。ブラウザーで外部コンテンツを遮断できますが、アニメーションを表示できなくなる場合があります。"
+  ],
+  "Retention and your controls": [
+    "保留期限与您的控制",
+    "保存期間と操作手段"
+  ],
+  "The current demo does not have an automatic server-record deletion schedule. Cookie expiry does not itself delete the stored portfolio. The responsible operator must define retention and a request channel before launch.": [
+    "当前本网站没有自动删除服务器记录的计划。Cookie 到期本身不会删除投资组合。负责的运营方须在上线前制定保留期限与请求渠道。",
+    "現在のにはサーバー記録の自動削除予定がありません。Cookie の期限切れ自体では保存データは削除されません。運営者は本稼働前に保存期間と申請窓口を定める必要があります。"
+  ],
+  "“Reset portfolio” on the Treasury page clears the active simulated portfolio, orders, quotes and prints, and restores starting values. It does not erase hosting logs or records held by third-party providers. Disconnecting the demo wallet preserves its saved orders; deleting the browser cookie removes that browser’s access to the existing demo record.": [
+    "国债资金页的“重置投资组合”会清除当前投资组合、订单、报价与成交记录，并恢复初始值。它不会清除托管日志或第三方记录。断开钱包会保留订单；删除浏览器 Cookie 会移除该浏览器对现有本网站记录的访问。",
+    "国債資金ページのリセットは、現在の資産、注文、見積もり、記録を消去し初期値に戻します。ホスティングのログや外部提供元の記録は削除しません。接続解除後も注文は保存され、Cookie を削除すると既存の記録へそのブラウザーからアクセスできなくなります。"
+  ],
+  "Protocol privacy and its limits": [
+    "协议隐私及其限制",
+    "プロトコルのプライバシーと限界"
+  ],
+  "The Luminary specifications distinguish sealed individual orders and identities from public auction clearing prices and crossed volumes. They also refer to solvency proofs and view keys. These are intended protocol properties, not a statement that this prototype implements cryptographic privacy.": [
+    "Luminary 规范区分密封的单笔订单与身份，以及公开竞价清算价格与撮合成交量，也提及偿付能力证明与查看密钥。这些是拟议协议属性，不表示本原型已实现密码学隐私。",
+    "Luminary の仕様は、封印された個別注文と身元を、公開清算価格と約定数量から分離します。支払能力証明と閲覧鍵にも言及しています。これらは想定する性質であり、この試作が暗号技術によるプライバシーを実装済みという意味ではありません。"
+  ],
+  "This demonstration stores its simulated records in a server-side database associated with your browser identifier. No online system can promise absolute secrecy or uninterrupted security. Do not provide sensitive financial or personal information to the demo.": [
+    "本本网站将记录存于与浏览器标识符关联的服务器数据库。任何在线系统都无法承诺绝对保密或持续无间断的安全。请勿向本网站提供敏感财务或个人信息。",
+    "記録はブラウザー識別子に関連付けたサーバーのデータベースに保存します。絶対的な秘密保持や途切れることのない安全性を約束できるオンラインシステムはありません。機微な金融情報や個人情報は提供しないでください。"
+  ],
+  "Operator details and requests": [
+    "运营方信息与请求",
+    "運営者情報と申請"
+  ],
+  "A verified legal operator name, postal address, privacy contact, retention schedule and applicable rights-request process are not provided in the source documents. They must be supplied and reviewed before this draft becomes a live-service privacy notice. No contact address or jurisdiction has been invented here.": [
+    "源文档未提供经核实的法律运营主体名称、邮寄地址、隐私联系人、保留计划或适用的权利请求流程。本草案成为正式服务隐私声明前，须补充并审阅这些信息。本页面未虚构联系地址或司法辖区。",
+    "原資料には確認済みの運営主体名、住所、プライバシー連絡先、保存計画、権利行使の手順がありません。実サービスの通知とする前に提示と確認が必要です。連絡先や法域を創作したものではありません。"
+  ],
+  "Private orders do not remove the risks of markets, assets or software.": [
+    "私密订单并不消除市场、资产或软件的风险。",
+    "注文が非公開でも、市場・資産・ソフトウェアのリスクは残ります。"
+  ],
+  "Current experience": [
+    "当前体验",
+    "現在の体験"
+  ],
+  "Prices, assets, collateral, fills and proof records on this site are illustrative. There is no real custody, asset transfer, investment return or blockchain settlement. The following points describe boundaries and risks relevant to the proposed product, not an assertion that the live service is available.": [
+    "当前网站为本网站。价格、资产、抵押品、成交与证明记录均为。不存在真实托管、资产转移、投资回报或区块链结算。以下内容说明拟议产品的范围与风险，并非声称正式服务可用。",
+    "現在のサイトはです。価格、資産、担保、約定、証明記録はで、実際の保管、移転、投資収益、ブロックチェーン決済はありません。以下は提案製品の範囲とリスクであり、実サービスの提供を表すものではありません。"
+  ],
+  "Securities and jurisdiction": [
+    "证券与司法辖区",
+    "証券と法域"
+  ],
+  "The product overview expressly describes securities-form real-world assets and a non-US, jurisdiction-gated participant base. Availability would depend on participant eligibility, issuer terms, supported assets and applicable restrictions.": [
+    "产品概述明确描述证券形式的现实世界资产，以及非美国、受司法辖区限制的参与群体。可用性取决于参与资格、发行方条款、受支持资产及适用限制。",
+    "製品概要は証券形態の実物資産と、法域で制限される米国外の参加者を明示しています。提供可否は参加資格、発行者の条件、対象資産、適用される制限によります。"
+  ],
+  "The website does not determine legal eligibility. Access to this site is not authorization to transact, and references to tokenized stocks do not establish the exact ownership or shareholder rights of a future instrument. Those would need to be explained in the relevant issuer documents.": [
+    "网站不判定法律资格。访问本网站不代表获准交易；提及代币化股票也不确定未来工具的具体所有权或股东权利，这些须在相关发行方文件中说明。",
+    "サイトは法的な参加資格を判断しません。へのアクセスは取引の許可ではなく、トークン化株式への言及も将来の商品の具体的な所有権や株主権を確定しません。これらは発行者の資料で説明する必要があります。"
+  ],
+  "Price, liquidity and execution": [
+    "价格、流动性与执行",
+    "価格・流動性・執行"
+  ],
+  "An auction aims to bring eligible buyers and sellers together at one clearing price. It does not guarantee enough opposing interest, a full fill or an economically favorable outcome. A limit order may remain unfilled; an at-auction order accepts the eventual clearing price subject to the configured band.": [
+    "竞价旨在以统一清算价格汇集符合条件的买卖双方，但不保证充足对手需求、完全成交或经济上有利的结果。限价订单可能未成交；竞价价格订单在配置区间内接受最终清算价格。",
+    "オークションは適格な売り手と買い手を単一価格で結びつけることを目指しますが、十分な反対注文、全量約定、有利な結果を保証しません。指値は未約定となる場合があり、オークション価格注文は設定された帯域内の最終価格を受け入れます。"
+  ],
+  "The intended reference band constrains the auction price relative to an external stock reference or fund NAV. It cannot ensure that a reference is timely, error-free or continuously available. Market dislocations and underlying asset events can affect token prices and liquidity.": [
+    "拟议参考区间约束竞价价格相对于外部股票参考值或基金净值的范围，但不能确保参考值及时、无误或持续可用。市场失序及标的资产事件可能影响代币价格与流动性。",
+    "参照価格帯は外部株価やファンド NAV に対する価格範囲を制約しますが、参照値の適時性、正確性、継続提供を保証できません。市場の混乱や原資産の事象は価格と流動性に影響します。"
+  ],
+  "Treasury collateral and yield": [
+    "国债抵押品与收益",
+    "国債担保と利回り"
+  ],
+  "The design uses tokenized treasuries as settlement collateral. Such instruments can carry issuer, custody, redemption, liquidity, valuation and market risks. A tokenized treasury should not be assumed to be equivalent to a cash deposit or protected bank account.": [
+    "设计以代币化国债作为结算抵押品。此类工具可能承受发行方、托管、赎回、流动性、估值及市场风险。不应假定代币化国债等同于现金存款或受保护的银行账户。",
+    "設計ではトークン化国債を決済担保に用います。発行者、保管、償還、流動性、評価、市場のリスクを伴う場合があります。現金預金や保護対象の銀行口座と同等とは限りません。"
+  ],
+  "Published NAV accrual can vary, and the documents do not establish a guaranteed rate or return. This site displays balances without accruing real yield. Fees, redemption terms and issuer documentation for any live collateral asset would require separate disclosure.": [
+    "公布净值的累积变化可能波动，文档不确立任何保证利率或回报。本网站仅显示余额，不累积真实收益。正式抵押品资产的费用、赎回条款与发行方文件须另行披露。",
+    "公表 NAV の増加は変動し、文書は利率や収益を保証していません。は残高を表示するだけで、実収益は発生しません。実際の担保資産の手数料、償還条件、発行者資料には別途開示が必要です。"
+  ],
+  "Timing and corporate actions": [
+    "时间与公司行动",
+    "時刻とコーポレートアクション"
+  ],
+  "The intended schedule follows underlying-market open and close, plus 00:00 UTC. The backend specification includes daylight saving and holiday handling, NAV calls and ex-date pauses. A calendar does not eliminate outages, delayed calls or corporate-action complexity.": [
+    "拟议日程跟随标的市场开盘、收盘及 UTC 00:00。后端规范包含夏令时、假期、净值竞价与除权除息日暂停。日历不能消除停机、延迟竞价或公司行动的复杂性。",
+    "予定は原市場の開始・終了と UTC 00:00 に沿います。仕様は夏時間、休場日、NAV オークション、権利落ち日の停止を扱いますが、停止障害、実行遅延、コーポレートアクションの複雑さは解消できません。"
+  ],
+  "The displayed schedule accounts for New York daylight saving and weekends but not exchange holidays, ex-dates, issuer-specific events or production chain availability. Do not use it as a live trading schedule.": [
+    "本网站日程考虑纽约夏令时与周末，但不包含交易所假期、除权除息日、发行方特定事件或生产链可用性。请勿将其作为真实交易日程使用。",
+    "はニューヨークの夏時間と週末を考慮しますが、取引所の休日、権利落ち日、発行者固有の事象、本番チェーンの稼働状況は含みません。実取引の日程として使用しないでください。"
+  ],
+  "Technology, proofs and privacy": [
+    "技术、证明与隐私",
+    "技術・証明・プライバシー"
+  ],
+  "Smart contracts, reference feeds, clearing logic, schedulers, proof systems and chain infrastructure may fail or behave unexpectedly. The supplied specification is not a completed security audit or an assurance of production readiness.": [
+    "智能合约、参考数据源、清算逻辑、调度器、证明系统与链基础设施可能故障或出现意外行为。所提供规范并非已完成的安全审计，也不保证生产就绪。",
+    "スマートコントラクト、参照データ、清算ロジック、スケジューラー、証明系、チェーン基盤は故障や想定外の動作を起こす可能性があります。仕様は完了済みの安全性監査や本番対応の保証ではありません。"
+  ],
+  "The documents describe a possible signed clearing digest before a full proof upgrade. A signature and a cryptographic auction proof provide different assurances. The proof records shown here are illustrative only.": [
+    "文档描述了全面证明升级前可能使用签名清算摘要。签名与密码学竞价证明提供不同程度的保证。本网站证明记录仅用于说明。",
+    "文書は本格的な証明への移行前に署名付き清算ダイジェストを使う可能性を示しています。署名と暗号学的なオークション証明の保証は異なります。記録は例示に限られます。"
+  ],
+  "Private orders and public prints are distinct design goals. Privacy can still be affected by implementation flaws, metadata, compromised devices or authorized view-key access. Do not assume anonymity from a sealed-order label.": [
+    "私密订单与公开成交记录是不同的设计目标。实现缺陷、元数据、设备受损或授权查看密钥访问仍可能影响隐私。请勿因“密封订单”标签而假定匿名性。",
+    "非公開の注文と公開取引記録は別の設計目標です。実装の欠陥、メタデータ、端末の侵害、許可された閲覧鍵でのアクセスがプライバシーに影響し得ます。「封印注文」という表示だけで匿名性を想定しないでください。"
+  ],
+  "RFQ and expansion": [
+    "询价与拓展",
+    "RFQ と拡張"
+  ],
+  "RFQ blocks depend on counterparties, valid quotes and execution conditions. This site uses a fixed spread and a quote expiry, not live counterparties or market-making liquidity.": [
+    "大宗询价依赖交易对手、有效报价与执行条件。本网站使用固定价差与报价期限，而非真实交易对手或做市流动性。",
+    "RFQ ブロック取引には相手方、有効な見積もり、執行条件が必要です。は固定のスプレッドと有効期限を用い、実際の相手方やマーケットメイクの流動性はありません。"
+  ],
+  "Issuer launches, index rebalances, Arc and FX auctions, calendar data products, agent mandates and derivative settlement references are planned directions. They may change, be deferred or not launch. Nothing on the roadmap guarantees adoption or economic returns.": [
+    "发行方首发、指数再平衡、Arc 与外汇竞价、日历数据产品、代理授权及衍生品结算参考均为规划方向，可能变更、推迟或不推出。路线图不保证采用程度或经济回报。",
+    "発行者のローンチ、指数リバランス、Arc・FX オークション、日程データ、エージェント委任、デリバティブ決済参照は計画段階です。変更、延期、未提供となる場合があり、採用や収益を保証しません。"
+  ],
+  "Review before any live use": [
+    "正式使用前的审阅",
+    "実際に利用する前の確認"
+  ],
+  "A live service would need finalized legal and issuer disclosures, eligibility procedures, security information, fees, execution rules and support channels. This draft should be reviewed by the responsible operator and qualified legal counsel before launch. It does not certify compliance or replace those materials.": [
+    "正式服务需要最终法律与发行方披露、资格程序、安全信息、费用、执行规则及支持渠道。本草案须在上线前由负责运营方与合格法律顾问审阅，不认证合规性，也不替代这些资料。",
+    "実サービスには確定した法務・発行者の開示、適格性手続き、安全性情報、手数料、執行ルール、サポート窓口が必要です。草案は運営者と適格な法律専門家が公開前に確認すべきもので、適法性の認証や資料の代替ではありません。"
+  ],
+  "LUMINARY / LEGAL": [
+    "LUMINARY / 法律",
+    "LUMINARY / 法務"
+  ],
+  "DRAFT FOR REVIEW": [
+    "待审阅草案",
+    "確認用の草案"
+  ],
+  "Prepared 21 September 2026": [
+    "编写于 2026 年 9 月 21 日",
+    "2026 年 9 月 21 日作成"
+  ],
+  "ON THIS PAGE": [
+    "本页内容",
+    "このページの内容"
+  ],
+  "These pages distinguish the current website from the planned protocol. Entity, jurisdiction and contact details require completion before live launch.": [
+    "这些页面区分当前本网站与规划中的协议。正式上线前须补全主体、司法辖区与联系信息。",
+    "これらのページは現在のと計画中のプロトコルを区別します。本稼働前に主体、法域、連絡先の補完が必要です。"
+  ],
+  "Sketchfab privacy policy": [
+    "Sketchfab 隐私政策",
+    "Sketchfab プライバシーポリシー"
+  ],
+  "Source basis: Luminary Overview, Luminary Backend and Luminary Expansion; plus the current website’s implemented data and behavior.": [
+    "资料依据：Luminary 概述、后端与拓展文档，以及当前网站实际实现的数据处理与本网站行为。",
+    "出典：Luminary の概要・バックエンド・拡張文書、および現在のサイトで実装されたデータ処理と動作。"
+  ],
+  "NVIDIA": [
+    "英伟达",
+    "NVIDIA"
+  ],
+  "Apple": [
+    "苹果",
+    "Apple"
+  ],
+  "Tesla": [
+    "特斯拉",
+    "Tesla"
+  ],
+  "Microsoft": [
+    "微软",
+    "Microsoft"
+  ],
+  "Choose a supported market.": [
+    "请选择受支持的市场。",
+    "対応する市場を選択してください。"
+  ],
+  "Choose buy or sell.": [
+    "请选择买入或卖出。",
+    "買いまたは売りを選択してください。"
+  ],
+  "Connect your wallet first.": [
+    "请先连接钱包。",
+    "先にウォレットを接続してください。"
+  ],
+  "Not enough available collateral. Add funds or reduce the order.": [
+    "可用抵押品不足。请添加资金或减少订单金额。",
+    "担保が不足しています。資金を追加するか注文を減らしてください。"
+  ],
+  "Not enough available shares for this sell order.": [
+    "此卖单的可用股数不足。",
+    "この売り注文に利用できる株数が不足しています。"
+  ],
+  "Your wallet connected.": [
+    "钱包已连接。",
+    "ウォレットを接続しました。"
+  ],
+  "Wallet disconnected. Your orders are saved.": [
+    "钱包已断开。订单已保存。",
+    "ウォレットを切断しました。注文は保存されています。"
+  ],
+  "Balance limit reached.": [
+    "已达到余额上限。",
+    "残高の上限に達しました。"
+  ],
+  "This amount is reserved or unavailable.": [
+    "该金额已被预留或不可用。",
+    "その金額は確保済みか、利用できません。"
+  ],
+  "Use a whole number of shares.": [
+    "请输入整数股数。",
+    "株数は整数で入力してください。"
+  ],
+  "Choose a valid order type.": [
+    "请选择有效的订单类型。",
+    "有効な注文種別を選択してください。"
+  ],
+  "Choose an auction session.": [
+    "请选择竞价场次。",
+    "オークションの回を選択してください。"
+  ],
+  "This terminal supports up to 30 open orders.": [
+    "本网站最多支持 30 笔未完成订单。",
+    "は未約定注文を最大 30 件まで扱えます。"
+  ],
+  "Order sealed. Your intent is private until the call.": [
+    "订单已密封。竞价前您的意向保持私密。",
+    "注文を封印しました。実行まで意図は非公開です。"
+  ],
+  "This order is no longer available to cancel.": [
+    "此订单已无法取消。",
+    "この注文は取り消せません。"
+  ],
+  "Order cancelled. Reserved collateral released.": [
+    "订单已取消。预留抵押品已释放。",
+    "注文を取り消し、確保された担保を解放しました。"
+  ],
+  "RFQ blocks require 10–10,000 whole shares.": [
+    "大宗询价要求 10 至 10,000 股，且须为整数。",
+    "RFQ は 10～10,000 株の整数で指定してください。"
+  ],
+  "A private quote is ready for review.": [
+    "私密报价已准备好供您审阅。",
+    "非公開の見積もりを確認できます。"
+  ],
+  "This quote has expired. Request a new quote.": [
+    "此报价已到期。请重新请求。",
+    "見積もりの期限が切れました。新たに依頼してください。"
+  ],
+  "RFQ accepted. The block has settled.": [
+    "询价已接受。大宗交易已结算。",
+    "RFQ を承諾し、ブロック取引を決済しました。"
+  ],
+  "Portfolio reset. Start fresh.": [
+    "本网站已重置。以新的投资组合重新开始。",
+    "をリセットしました。新しいポートフォリオで始められます。"
+  ],
+  "This action is not supported.": [
+    "不支持此操作。",
+    "この操作には対応していません。"
+  ],
+  "Your portfolio could not load. Please try again shortly.": [
+    "无法加载本网站。请稍后重试。",
+    "を読み込めません。しばらくして再試行してください。"
+  ],
+  "This request is not allowed.": [
+    "不允许此请求。",
+    "このリクエストは許可されていません。"
+  ],
+  "Expected JSON.": [
+    "请求须使用 JSON 格式。",
+    "JSON 形式のリクエストが必要です。"
+  ],
+  "Request too large.": [
+    "请求内容过大。",
+    "リクエストが大きすぎます。"
+  ],
+  "Invalid request.": [
+    "请求无效。",
+    "無効なリクエストです。"
+  ],
+  "Your portfolio changed in another window. Refresh and try again.": [
+    "您的投资组合已在另一窗口更改。请刷新后重试。",
+    "別のウィンドウでポートフォリオが変更されました。更新して再試行してください。"
+  ],
+  "We could not save this action. Please try again.": [
+    "无法保存此操作。请重试。",
+    "操作を保存できませんでした。再試行してください。"
+  ],
+  "Language": [
+    "语言",
+    "言語"
+  ],
+  "Dismiss": [
+    "关闭",
+    "閉じる"
+  ],
+  "Toggle navigation": [
+    "切换导航",
+    "ナビゲーションを切り替え"
+  ],
+  "Notifications": [
+    "通知",
+    "通知"
+  ],
+  "Dismiss notification": [
+    "关闭通知",
+    "通知を閉じる"
+  ],
+  "all": [
+    "全部",
+    "すべて"
+  ],
+  "sealed": [
+    "已密封",
+    "封印済み"
+  ],
+  "filled": [
+    "已成交",
+    "約定済み"
+  ],
+  "cancelled": [
+    "已取消",
+    "取消済み"
+  ],
+  "open": [
+    "开盘",
+    "寄り付き"
+  ],
+  "close": [
+    "收盘",
+    "大引け"
+  ],
+  "midnight": [
+    "午夜",
+    "午前零時"
+  ],
+  "rfq": [
+    "询价",
+    "RFQ"
+  ],
+  "buy": [
+    "买入",
+    "買い"
+  ],
+  "sell": [
+    "卖出",
+    "売り"
+  ],
+  "At auction": [
+    "竞价价格",
+    "オークション価格"
+  ],
+  "Available shares": [
+    "可用股数",
+    "利用可能な株数"
+  ],
+  "Your wallet": [
+    "钱包",
+    "ウォレット"
+  ],
+  "Finding the next call": [
+    "正在寻找下一场竞价",
+    "次の回を検索中"
+  ],
+  "Request private quote": [
+    "请求私密报价",
+    "非公開の見積もりを依頼"
+  ],
+  "Enter the auction.": [
+    "进入竞价。",
+    "オークションへ。"
+  ],
+  "Your portfolio is saved in this browser. Disconnecting keeps your orders intact.": [
+    "投资组合已保存在此浏览器中。断开连接会保留订单。",
+    "ポートフォリオはこのブラウザーに保存されます。切断しても注文は保持されます。"
+  ],
+  "Explore every step with $100,000 in treasury collateral and 100 shares in each market.": [
+    "使用 100,000 美元国债抵押品，以及各市场 100 股持仓，体验每一步。",
+    "10 万米ドルの国債担保と各市場 100 株の資産で、すべての手順を体験できます。"
+  ],
+  "Disconnect wallet": [
+    "断开钱包",
+    "ウォレットを切断"
+  ],
+  "Uniform auction price": [
+    "统一竞价价格",
+    "単一オークション価格"
+  ],
+  "Roll to next call": [
+    "顺延至下一场",
+    "次回へ繰り越す"
+  ],
+  "Cancel after call": [
+    "竞价后取消",
+    "実行後に取り消す"
+  ],
+  "Collateral reserved": [
+    "预留抵押品",
+    "確保する担保"
+  ],
+  "Shares reserved": [
+    "预留股数",
+    "確保する株数"
+  ],
+  "Seal order": [
+    "密封订单",
+    "注文を封印"
+  ],
+  "Room for your next move.": [
+    "为下一步留出空间。",
+    "次の一手のために。"
+  ],
+  "Withdraw funds.": [
+    "提取资金。",
+    "資金を出金。"
+  ],
+  "Add collateral to explore the auction. No real deposit is made.": [
+    "添加抵押品以体验竞价。不会发生真实入金。",
+    "担保を追加してオークションを体験します。実際の入金は行われません。"
+  ],
+  "Play dragon animation": [
+    "播放龙动画",
+    "龍のアニメーションを再生"
+  ],
+  "Pause dragon animation": [
+    "暂停龙动画",
+    "龍のアニメーションを一時停止"
+  ],
+  "PAUSE SCENE": [
+    "暂停场景",
+    "シーンを一時停止"
+  ],
+  "PLAY SCENE": [
+    "播放场景",
+    "シーンを再生"
+  ],
+  "All expansion features are planned.": [
+    "所有拓展功能均处于规划阶段。",
+    "拡張機能はすべて計画段階です。"
+  ],
+  "Explore the complete flow in the terminal.": [
+    "在交互本网站中体验完整流程。",
+    "インタラクティブなで一連の流れを体験できます。"
+  ],
+  "Luminary — Private orders. Public conviction.": [
+    "Luminary — 私密订单。公开信念。",
+    "Luminary — 注文は非公開に。確信は公に。"
+  ],
+  "The protocol — Luminary": [
+    "协议机制 — Luminary",
+    "プロトコル — Luminary"
+  ],
+  "The technology — Luminary": [
+    "技术架构 — Luminary",
+    "テクノロジー — Luminary"
+  ],
+  "The rhythm — Luminary": [
+    "竞价节奏 — Luminary",
+    "オークションのリズム — Luminary"
+  ],
+  "The vision — Luminary": [
+    "未来愿景 — Luminary",
+    "ビジョン — Luminary"
+  ],
+  "Auction terminal — Luminary": [
+    "竞价终端 — Luminary",
+    "オークション端末 — Luminary"
+  ],
+  "Terms of use — Luminary": [
+    "使用条款 — Luminary",
+    "利用規約 — Luminary"
+  ],
+  "Privacy notice — Luminary": [
+    "隐私声明 — Luminary",
+    "プライバシー通知 — Luminary"
+  ],
+  "Risk & eligibility — Luminary": [
+    "风险与资格 — Luminary",
+    "リスクと参加資格 — Luminary"
+  ],
+  "AUCTION TERMINAL / 01": [
+    "竞价终端 / 01",
+    "オークション端末 / 01"
+  ],
+  "Sealed orders will appear here after you submit your first bid.": [
+    "提交第一笔出价后，密封订单将显示在这里。",
+    "最初の注文を提出すると、封印注文がここに表示されます。"
+  ],
+  "Try another market or clear the search.": [
+    "请尝试其他市场或清除搜索。",
+    "別の市場を選ぶか、検索を解除してください。"
+  ],
+  "Order asset": [
+    "订单资产",
+    "注文する資産"
+  ],
+  "Auction session": [
+    "竞价场次",
+    "オークションの回"
+  ],
+  "YOUR PRIVATE INTENT": [
+    "您的私密意向",
+    "あなたの非公開の意図"
+  ],
+  "Track each order from submission to the final call.": [
+    "跟踪每笔订单，从提交到最终竞价。",
+    "提出から最後の実行まで、各注文を追跡します。"
+  ],
+  "A SHARED RHYTHM": [
+    "共同的节奏",
+    "共有するリズム"
+  ],
+  "Open. Close. Midnight. Know your next moment.": [
+    "开盘。收盘。午夜。了解您的下一个时刻。",
+    "寄り付き。大引け。午前零時。次の瞬間を知る。"
+  ],
+  "AN OPEN RECORD": [
+    "公开的记录",
+    "公開される記録"
+  ],
+  "A clearing price and crossed volume. Nothing about your identity.": [
+    "一个清算价格与撮合成交量。不涉及您的身份。",
+    "清算価格と約定数量。身元の情報は公開しません。"
+  ],
+  "BETWEEN THE CALLS": [
+    "场次之间",
+    "オークションの合間に"
+  ],
+  "Negotiate a private block. Settle on your terms.": [
+    "协商私密大宗交易。按您的条款结算。",
+    "非公開のブロック取引を交渉し、合意した条件で決済する。"
+  ],
+  "RFQ asset": [
+    "询价资产",
+    "RFQ の資産"
+  ],
+  "THE FOUNDATION": [
+    "基础",
+    "基盤"
+  ],
+  "A balance with purpose. Collateral for your next moment.": [
+    "有目的的余额。为下一个时刻准备抵押品。",
+    "次の瞬間の担保に。目的のある残高。"
+  ],
+  "Your activity will appear here.": [
+    "您的活动将显示在这里。",
+    "での操作がここに表示されます。"
+  ],
+  "04 / THE NEXT CHAPTER": [
+    "04 / 下一个篇章",
+    "04 / 次の章"
+  ],
+  "Build.": [
+    "构建。",
+    "築く。"
+  ],
+  "Expand.": [
+    "拓展。",
+    "広げる。"
+  ],
+  "PLANNED": [
+    "规划中",
+    "計画中"
+  ],
+  "Index rebalances": [
+    "指数再平衡",
+    "指数リバランス"
+  ],
+  "Liquidity": [
+    "流动性",
+    "流動性"
+  ],
+  "Concentrate rebalance flow into one private closing auction.": [
+    "将再平衡交易流汇集至一场私密收盘竞价。",
+    "リバランスの注文を、非公開の大引けオークションに集める。"
+  ],
+  "Issuer auctions": [
+    "发行方竞价",
+    "発行者オークション"
+  ],
+  "Launches": [
+    "首发",
+    "ローンチ"
+  ],
+  "A sealed opening print for tokenized-stock and ETF issuers.": [
+    "为代币化股票与 ETF 发行方提供密封开盘成交记录。",
+    "トークン化株式や ETF の発行者に、封印型の始値形成を。"
+  ],
+  "Calendar + prints": [
+    "日历与成交记录",
+    "日程と取引記録"
+  ],
+  "Data": [
+    "数据",
+    "データ"
+  ],
+  "A shared reference close for terminals, agents and indices.": [
+    "为终端、代理与指数提供共同参考收盘价。",
+    "端末、エージェント、指数に共通の参照終値を。"
+  ],
+  "Settlement": [
+    "结算",
+    "決済"
+  ],
+  "A planned USYC settlement lane and StableFX-anchored FX calls.": [
+    "规划中的 USYC 结算通道与 StableFX 锚定外汇竞价。",
+    "USYC 決済経路と、StableFX を基準とする FX オークションの計画。"
+  ],
+  "Agent mandates": [
+    "代理授权",
+    "エージェントへの委任"
+  ],
+  "Automation": [
+    "自动化",
+    "自動化"
+  ],
+  "Bounded mandates that bring sealed intent to scheduled calls.": [
+    "以明确边界的授权，将密封意向带入预定竞价。",
+    "範囲を定めた委任で、封印された意図を定時オークションへ。"
+  ],
+  "Settlement references": [
+    "结算参考",
+    "決済の参照値"
+  ],
+  "The horizon": [
+    "远景",
+    "未来"
+  ],
+  "Trusted prints could support future onchain equity derivatives.": [
+    "可信成交记录或可支持未来链上股票衍生品。",
+    "信頼される記録が、将来のオンチェーン株式デリバティブを支える可能性。"
+  ],
+  "Explore again": [
+    "重新探索",
+    "もう一度見る"
+  ],
+  "Explore the next chapter": [
+    "探索下一篇章",
+    "次の章を見る"
+  ],
+  "Read the full roadmap": [
+    "阅读完整路线图",
+    "ロードマップを詳しく読む"
+  ],
+  "Roadmap chapters": [
+    "路线图篇章",
+    "ロードマップの各章"
+  ],
+  "Unable to load your portfolio.": [
+    "无法加载您的本网站。",
+    "を読み込めません。"
+  ],
+  "Please try again.": [
+    "请重试。",
+    "再試行してください。"
+  ],
+  "Check your input.": [
+    "请检查输入内容。",
+    "入力内容をご確認ください。"
+  ],
+  "Call completed. Unmatched orders were rolled or cancelled according to your settings.": [
+    "竞价已完成。未匹配订单已根据您的设置顺延或取消。",
+    "実行が完了しました。未約定注文は設定に従って繰り越し、または取り消されました。"
+  ],
+  "protocol": [
+    "协议",
+    "プロトコル"
+  ],
+  "technology": [
+    "技术",
+    "テクノロジー"
+  ],
+  "auctions": [
+    "竞价",
+    "オークション"
+  ],
+  "vision": [
+    "愿景",
+    "ビジョン"
+  ],
+  "id": [
+    "标识符",
+    "識別子"
+  ],
+  "symbol": [
+    "资产代码",
+    "銘柄コード"
+  ],
+  "side": [
+    "方向",
+    "売買"
+  ],
+  "qty": [
+    "数量",
+    "数量"
+  ],
+  "kind": [
+    "类型",
+    "種類"
+  ],
+  "limit": [
+    "限价",
+    "指値"
+  ],
+  "reserve": [
+    "预留金额",
+    "確保額"
+  ],
+  "roll": [
+    "顺延",
+    "繰り越し"
+  ],
+  "session": [
+    "场次",
+    "セッション"
+  ],
+  "status": [
+    "状态",
+    "状態"
+  ],
+  "created": [
+    "创建时间",
+    "作成日時"
+  ],
+  "filledPrice": [
+    "成交价格",
+    "約定価格"
+  ],
+  "price": [
+    "价格",
+    "価格"
+  ],
+  "proof": [
+    "证明",
+    "証明"
+  ],
+  "true": [
+    "是",
+    "はい"
+  ],
+  "false": [
+    "否",
+    "いいえ"
+  ],
+  "auction": [
+    "竞价",
+    "オークション"
+  ],
+  "time": [
+    "时间",
+    "時刻"
+  ],
+  "Illustrative auction time. Holidays and issuer schedules may differ.": [
+    "示例竞价时间。假期与发行方日程可能不同。",
+    "例示の実行時刻です。休場日や発行者の日程により異なる場合があります。"
+  ],
+  "The Arc lane": [
+    "Arc 通道",
+    "Arc 経路"
+  ],
+  "Luminary animated dragon": [
+    "Luminary 动态龙",
+    "Luminary の龍のアニメーション"
+  ],
+  "rhythm.": [
+    "节奏。",
+    "リズム。"
+  ],
+  "Auction sessions. Drag horizontally or use the left and right arrow keys.": [
+    "竞价场次。水平拖动，或使用键盘左右方向键。",
+    "オークションの各回。左右にドラッグするか、左右の矢印キーで移動します。"
+  ],
+  "Previous auction session": [
+    "上一竞价场次",
+    "前のオークション"
+  ],
+  "Next auction session": [
+    "下一竞价场次",
+    "次のオークション"
+  ],
+  "Resume card motion": [
+    "继续卡片动画",
+    "カードの動きを再開"
+  ],
+  "Pause card motion": [
+    "暂停卡片动画",
+    "カードの動きを一時停止"
+  ],
+  "Drag to explore": [
+    "拖动探索",
+    "ドラッグして見る"
+  ],
+  "Opening": [
+    "正在打开",
+    "開いています"
+  ],
+  "This site stores balances, holdings, orders, RFQ quotes, auction results and recent activity in this browser and device. Portfolio records are not sent to a server.": [
+    "此便携本网站将余额、持仓、订单、RFQ 报价、竞价结果和近期活动保存在当前浏览器与设备中，不会将投资组合记录发送至服务器。",
+    "このポータブルは、残高、保有資産、注文、RFQ見積もり、オークション結果、最近の履歴を、このブラウザと端末に保存します。ポートフォリオ記録をサーバーへ送信しません。"
+  ],
+  "The sidebar_state cookie remembers navigation preferences for up to seven days. The luminary_language local storage preference remembers your language on this device. Blocking browser storage may prevent portfolio persistence. Fonts and artwork are served with the website.": [
+    "sidebar_state Cookie 保存导航偏好，最长七天。luminary_language 本地存储记住此设备的语言设置。阻止浏览器存储可能导致投资组合无法持久保存。字体和插图由网站提供。",
+    "sidebar_state Cookie はナビゲーション設定を最長7日間保存します。luminary_language はこの端末の言語設定をローカルストレージに保存します。ブラウザの保存機能をブロックすると、ポートフォリオを保持できない場合があります。フォントと画像はサイトから配信されます。"
+  ],
+  "Local portfolio records remain until you reset the portfolio or clear site data in your browser. This edition has no server portfolio records or automatic retention schedule.": [
+    "本地投资组合记录会保留至您重置本网站或清除浏览器中的站点数据。便携版本没有服务器端投资组合记录，也没有自动保留期限。",
+    "ローカルのポートフォリオ記録は、リセットまたはブラウザのサイトデータ消去まで残ります。ポータブル版にはサーバー上のポートフォリオ記録や自動保存期限はありません。"
+  ],
+  "Resetting clears active orders, quotes and prints and restores the starting portfolio. Disconnecting the wallet preserves local orders. Clearing site data deletes the local portfolio. These actions do not erase hosting logs or third-party records.": [
+    "重置本网站会清除当前订单、报价和成交记录，并恢复初始投资组合。断开钱包会保留本地订单。清除站点数据会删除本地投资组合。这些操作不会删除托管日志或第三方记录。",
+    "リセットは、注文、見積もり、約定記録を消去し、初期ポートフォリオに戻します。ウォレットを切断してもローカル注文は残ります。サイトデータを消去するとローカルのポートフォリオが削除されます。ホスティングログや第三者の記録は消去されません。"
+  ],
+  "This edition stores its records in browser IndexedDB. Anyone with access to this browser profile may access those records. Do not provide sensitive financial or personal information here.": [
+    "此便携本网站将记录保存在浏览器 IndexedDB 中。能够访问此浏览器配置文件的人可能访问这些记录。请勿向本网站提供敏感财务或个人信息。",
+    "このポータブルは記録をブラウザのIndexedDBに保存します。このブラウザプロファイルにアクセスできる人は、その記録を閲覧できる場合があります。機密性の高い金融情報や個人情報をに入力しないでください。"
+  ],
+  "The site uses the IndexedDB database luminary-portfolio. Records remain on this site and device until reset or until you clear site data. They do not synchronize across devices.": [
+    "本网站使用 IndexedDB 数据库 luminary-portfolio。记录保留在当前站点与设备上，直到重置或清除站点数据；不同设备之间不会同步。",
+    "はIndexedDBデータベース luminary-portfolio を使用します。リセットまたはサイトデータの消去まで、このサイトと端末に記録が残ります。端末間では同期されません。"
+  ]
+}
