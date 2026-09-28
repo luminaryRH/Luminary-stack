@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "check": "node scripts/check-naming.mjs"
+    "check": "node scripts/check-naming.mjs && bun src/server/luminary/engine/clearing.check.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"

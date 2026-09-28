@@ -40,3 +40,7 @@ contracts/lib
 contracts/out
 contracts/cache
 contracts/broadcast
+
+# Noir
+circuits/target
+circuits/*/Prover.toml
