@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "check": "node scripts/check-naming.mjs && bun src/server/luminary/engine/clearing.check.ts"
+    "check": "node scripts/check-naming.mjs && bun src/server/luminary/engine/clearing.check.ts && bun src/server/luminary/calendar.check.ts && bun supabase/checks/pool.check.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -19,6 +19,7 @@
     "@aztec/bb.js": "5.0.0-nightly.20260522",
     "@base-ui/react": "^1.8.0",
     "@hookform/resolvers": "^5.2.2",
+    "@noble/curves": "1.2.0",
     "@noir-lang/noir_js": "1.0.0-beta.22",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
