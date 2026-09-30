@@ -609,7 +609,7 @@ export default function Dashboard() {
         <label>{t("Asset")}<Pick value={symbol} onChange={selectMarket} label="Order asset" options={STOCKS.map((s) => ({ value: s, label: `${s} · ${NAMES[s]}` }))} /></label>
         <div className="form-row">
           <label>{t("Order type")}<Pick value={kind} onChange={setKind} label="Order type" options={[{ value: "limit", label: "Limit order" }, { value: "auction", label: "At auction price" }]} /></label>
-          <label>{t("Auction")}<Pick value={chosen ? String(chosen.id) : ""} onChange={setAuctionId} label="Auction" options={ticketAuctions.map((a) => ({ value: String(a.id), label: `${KIND_LABEL[a.kind]} · ${utc(a.callTime)}` }))} /></label>
+          <label>{t("Auction")}<Pick value={chosen ? String(chosen.id) : ""} onChange={setAuctionId} label="Auction" options={ticketAuctions.map((a) => ({ value: String(a.id), label: `${KIND_LABEL[a.kind]} · ${utc(a.callTime).slice(5)} UTC` }))} /></label>
         </div>
         <div className="form-row">
           <label>{t("Quantity")}<div className="input-unit"><Input type="number" min="0.001" step="0.001" value={qty} onChange={(e) => setQty(e.target.value)} aria-label={t("Order quantity")} /><span>{t("shares")}</span></div></label>
