@@ -12,8 +12,9 @@ export default defineConfig({
   nitro: {
     // The provers load WASM (and bb.js worker threads) from files next to their modules, so they ship as traced
     // node_modules in the server function instead of being bundled; scripts/ship-provers.mjs copies in the files bb.js
-    // loads by path. (traceDeps is forwarded to nitro but missing from the wrapper's narrow option type.)
-    traceDeps: ["@aztec/bb.js", "@noir-lang/noir_js", "@noir-lang/acvm_js", "@noir-lang/noirc_abi"],
+    // loads by path. postgres.js is traced too: bundled, its type parsers break. (traceDeps is forwarded to nitro but
+    // missing from the wrapper's narrow option type.)
+    traceDeps: ["@aztec/bb.js", "@noir-lang/noir_js", "@noir-lang/acvm_js", "@noir-lang/noirc_abi", "postgres"],
     // The tick can prove a tree batch and an auction in one run (~30 s each on one thread); 300 s is the Hobby maximum.
     vercel: { functions: { maxDuration: 300 } },
     // Cross-origin isolation, so bb.js can prove with threads (SharedArrayBuffer) in the browser. Site-wide, because

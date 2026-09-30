@@ -23,10 +23,13 @@ const signatures = new Map<string, Promise<{ types: Map<string, string>; ret: st
 function signature(fn: string) {
   let s = signatures.get(fn);
   if (!s) {
-    s = sql()`select coalesce(proargnames, '{}') as names, string_to_array(oidvectortypes(proargtypes), ', ') as types, prorettype::regtype::text as ret
+    // one JSON text column: the result never depends on the driver's array or type parsing
+    s = sql()`select json_build_object('names', coalesce(proargnames, '{}'), 'types', string_to_array(oidvectortypes(proargtypes), ', '),
+                                       'ret', prorettype::regtype::text)::text as sig
               from pg_proc where proname = ${fn} and pronamespace = 'public'::regnamespace`.then(([row]) => {
       if (!row) throw new DbError(`no function ${fn}`, undefined);
-      return { types: new Map((row.names as string[]).map((n, i) => [n, (row.types as string[])[i]!])), ret: row.ret as string };
+      const sig = JSON.parse(row.sig as string) as { names: string[]; types: string[]; ret: string };
+      return { types: new Map(sig.names.map((n, i) => [n, sig.types[i]!])), ret: sig.ret };
     });
     s.catch(() => signatures.delete(fn));
     signatures.set(fn, s);
@@ -41,10 +44,21 @@ function signature(fn: string) {
 export async function rpc<T = unknown>(fn: string, args: Record<string, unknown>): Promise<T> {
   const { types, ret } = await signature(fn);
   const names = Object.keys(args);
-  const call = `${fn}(${names.map((n, i) => `${n} => $${i + 1}::${types.get(n) ?? "text"}`).join(", ")})`;
+  // every argument travels as text (JSON for jsonb and arrays) and is cast in SQL, independent of driver type inference
+  const param = (n: string, i: number) => {
+    const type = types.get(n) ?? "text";
+    if (type.endsWith("[]")) return `${n} => array(select jsonb_array_elements_text($${i + 1}::text::jsonb))::${type}`;
+    return `${n} => $${i + 1}::text::${type}`;
+  };
+  const value = (n: string) => {
+    const v = args[n];
+    if (v === null || v === undefined) return null;
+    return types.get(n) === "jsonb" || types.get(n)?.endsWith("[]") ? JSON.stringify(v) : String(v);
+  };
+  const call = `${fn}(${names.map(param).join(", ")})`;
   try {
-    const rows = await sql().unsafe(ret === "void" ? `select ${call}` : `select to_jsonb(${call}) as r`, names.map((n) => args[n] ?? null) as never[]);
-    return (ret === "void" ? null : rows[0]!.r) as T;
+    const rows = await sql().unsafe(ret === "void" ? `select ${call}` : `select to_jsonb(${call})::text as r`, names.map(value) as never[]);
+    return (ret === "void" ? null : JSON.parse(rows[0]!.r as string)) as T;
   } catch (e) {
     const err = e as { message?: string; code?: string };
     throw new DbError(err.message ?? String(e), err.code);
