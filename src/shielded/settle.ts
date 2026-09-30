@@ -143,4 +143,81 @@ export function settleAuction(a: PinnedAuction, slots: (OrderOpening | null)[], 
   };
 }
 
+const ceilDiv = (a: bigint, b: bigint) => (a + b - 1n) / b;
+
+/**
+ * An RFQ auction's settlement (circuits/rfq_cross): its two orders cross whole at the pinned reference when they carry
+ * the same block commitment on opposite sides with the same size, inside both limits and fully funded; otherwise both
+ * are refunded. Mirrors the circuit line for line. `slots` in slot order (at most 2), null for an empty or cancelled slot.
+ */
+export function settleRfq(a: PinnedAuction, slots: (OrderOpening | null)[], feeBlinding: bigint) {
+  if (slots.length > 2) throw new Error(`RFQ auction holds ${slots.length} slots`);
+  const [x, y] = [slots[0] ?? null, slots[1] ?? null];
+  const empty = { buy: false, qty: 0n, lock: 0n, hasLimit: false, limitUsd: 0n, terms: PLAIN } as const;
+  const [first, second] = [x ?? empty, y ?? empty];
+  const [buyer, seller] = first.buy ? [first, second] : [second, first];
+  const q = buyer.qty;
+  const pay = ceilDiv(q * a.refUsd, a.quoteUsd);
+  const buyFee = ceilDiv(pay * a.feeBps, 10_000n);
+  const proceeds = (q * a.refUsd) / a.quoteUsd;
+  const sellFee = ceilDiv(proceeds * a.feeBps, 10_000n);
+  const plainBlock = (o: { terms: typeof PLAIN }) => o.terms.rfq !== 0n && o.terms.minQty === 0n && o.terms.display === 0n && o.terms.peg === 0n;
+  const inLimit = (o: { buy: boolean; hasLimit: boolean; limitUsd: bigint }) => !o.hasLimit || (o.buy ? a.refUsd <= o.limitUsd : a.refUsd >= o.limitUsd);
+  const cross =
+    x !== null && y !== null && plainBlock(x) && plainBlock(y) && x.terms.rfq === y.terms.rfq && x.buy !== y.buy && x.qty === y.qty &&
+    inLimit(x) && inLimit(y) && buyer.lock >= pay + buyFee && seller.lock >= q;
+
+  const results: OrderResult[] = [];
+  const fills = [0n, 0n];
+  const residuals = [0n, 0n];
+  [x, y].forEach((o, slot) => {
+    if (!o) return;
+    const filled = cross ? q : 0n;
+    const quote = cross ? (o.buy ? pay : proceeds) : 0n;
+    const fee = cross ? (o.buy ? buyFee : sellFee) : 0n;
+    const left = cross ? (o.buy ? o.lock - pay - buyFee : o.lock - q) : o.lock;
+    fills[slot] = o.buy
+      ? note(o.owner, a.asset, filled * a.unit, blind(o.salt, 0n), o.label)
+      : note(o.owner, a.quote, (cross ? proceeds - sellFee : 0n) * a.quoteUnit, blind(o.salt, 0n), o.label);
+    residuals[slot] = o.buy ? note(o.owner, a.quote, left * a.quoteUnit, blind(o.salt, 1n), o.label) : note(o.owner, a.asset, left * a.unit, blind(o.salt, 1n), o.label);
+    results.push({ slot, qty: filled, quote, fee, left, rolls: false, fill: fills[slot]!, residual: residuals[slot]! });
+  });
+  const fees = cross ? buyFee + sellFee + pay - proceeds : 0n;
+  const feeNote = note(a.feeOwner, a.quote, fees * a.quoteUnit, feeBlinding, FEE_LABEL);
+  const commitments = [x ? commitmentOf(a.asset, x) : 0n, y ? commitmentOf(a.asset, y) : 0n];
+  const orderInput = (o: OrderOpening | null) =>
+    o
+      ? {
+          owner: o.owner, salt: o.salt, buy: o.buy, qty: o.qty, has_limit: o.hasLimit, limit_usd: o.limitUsd, roll: o.roll,
+          rolls_left: BigInt(o.rollsLeft), lock: o.lock, label: o.label, min_qty: o.terms.minQty, display: o.terms.display,
+          peg: o.terms.peg, rfq: o.terms.rfq,
+        }
+      : EMPTY;
+
+  return {
+    crossedQty: cross ? q : 0n,
+    fees,
+    results,
+    /** circuits/rfq_cross inputs */
+    inputs: {
+      orders: [orderInput(x), orderInput(y)],
+      fee_blinding: feeBlinding,
+      asset: a.asset,
+      unit: a.unit,
+      quote_token: a.quote,
+      quote_unit: a.quoteUnit,
+      ref_usd: a.refUsd,
+      quote_usd: a.quoteUsd,
+      fee_bps: a.feeBps,
+      crossed_qty: cross ? q : 0n,
+      commitments,
+      fills,
+      residuals,
+      fee_owner: a.feeOwner,
+      fee_note: feeNote,
+    },
+    onchain: { fills, residuals, feeNote },
+  };
+}
+
 export { PLAIN };

@@ -1,6 +1,6 @@
-// Public network and contract configuration, shared by the browser and the server. Addresses come from the deployment
-// file Deploy.s.sol writes (contracts/deployments/46630.json), bundled at build time; before a deployment exists the app
-// still builds and the live views say so.
+// Public network and contract configuration, shared by the browser, the server and scripts. Addresses come from the
+// deployment file Deploy.s.sol writes (contracts/deployments/46630.json).
+import deployment from "../../contracts/deployments/46630.json";
 
 export interface Deployment {
   chainId: number;
@@ -20,11 +20,7 @@ export interface Deployment {
 export const CHAIN_ID = 46630;
 export const CHAIN_HEX = "0xb626";
 
-// Vite replaces the glob at build time; plain Bun / Node scripts (the .check.ts files) see no deployment.
-const files: Record<string, { default: Deployment }> =
-  typeof import.meta.glob === "function" ? import.meta.glob("../../contracts/deployments/*.json", { eager: true }) : {};
-
-export const DEPLOYMENT: Deployment | null = Object.values(files).find((f) => f.default.chainId === CHAIN_ID)?.default ?? null;
+export const DEPLOYMENT: Deployment | null = deployment.chainId === CHAIN_ID ? (deployment as Deployment) : null;
 
 export const CONFIG = {
   chainId: CHAIN_ID,

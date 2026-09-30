@@ -6,19 +6,20 @@
 //             AuctionClearProof and send settleAuction with every owner's result sealed to their viewing key
 // Clearing and proving run in one step, so the plaintext orders never reach the database. The chain is the state:
 // every step recomputes from it (and from the indexed events), and a send still in flight is skipped by its key.
-import { hexlify, toUtf8Bytes } from "ethers";
+import { hexlify, toBeHex, toUtf8Bytes } from "ethers";
 import auctionClear from "@/shielded/circuits/auction_clear.json";
+import rfqCross from "@/shielded/circuits/rfq_cross.json";
 import { seal } from "@/shielded/crypto";
 import { hex, ready } from "@/shielded/protocol";
 import { prove } from "@/shielded/prove";
-import { commitmentOf, feeBlindingOf, openingFromJson, openingToJson, settleAuction, type OrderOpening, type SettledOrder } from "@/shielded/settle";
+import { commitmentOf, feeBlindingOf, openingFromJson, openingToJson, settleAuction, settleRfq, type OrderOpening, type PinnedAuction, type SettledOrder } from "@/shielded/settle";
 import { planAuctions, type CorporateAction, type MarketDay } from "../calendar";
 import { provider } from "../chain";
 import { rpc } from "../db";
 import { env } from "../env";
 import { openOrder, orderCiphertexts, sealingPublicKey, type OpenAuction } from "./committee";
-import { deployment, pool } from "./contract";
-import { inFlightKeys, sendPool } from "./sends";
+import { DESK_ABI, deployment, pool } from "./contract";
+import { inFlightKeys, sendOperator, sendPool } from "./sends";
 
 export const KINDS = ["OPEN", "CLOSE", "MIDNIGHT", "NAV", "RFQ"] as const;
 const PLAN_DAYS = 7;
@@ -88,7 +89,7 @@ export async function scheduleAuctions() {
 export async function pinAuctions() {
   const open = await rpc<OpenAuction[]>("lum_pool_open_auctions", {});
   const now = (await provider().getBlock("latest"))!.timestamp;
-  const due = open.filter((a) => !a.pinned && a.kind !== 4 && a.callTime <= now);
+  const due = open.filter((a) => !a.pinned && a.callTime <= now);
   if (due.length === 0) return { idle: true };
   const [c, busy] = [pool(), await inFlightKeys()];
   const sent: string[] = [];
@@ -152,7 +153,9 @@ async function settleOne(a: OpenAuction) {
     feeBps: BigInt(s.feeBps),
     feeOwner: BigInt(feeOwner),
   };
-  const r = settleAuction(pinned, slots, feeBlindingOf(BigInt(env("FEE_SECRET")), BigInt(a.id)));
+  const feeBlinding = feeBlindingOf(BigInt(env("FEE_SECRET")), BigInt(a.id));
+  if (a.kind === KINDS.indexOf("RFQ")) return settleBlock(a, pinned, slots, list, feeBlinding);
+  const r = settleAuction(pinned, slots, feeBlinding);
 
   let rollInto = 0;
   const rolls = r.results.filter((x) => x.rolled);
@@ -198,9 +201,39 @@ async function settleOne(a: OpenAuction) {
     : { waiting: "an operator transaction is still pending" };
 }
 
+/** An RFQ auction: both orders cross whole at the reference or are refunded (rfq_cross), settled through RfqDesk. */
+async function settleBlock(a: OpenAuction, pinned: PinnedAuction, slots: (OrderOpening | null)[], list: string[], feeBlinding: bigint) {
+  const r = settleRfq(pinned, slots, feeBlinding);
+  const notes = await Promise.all(
+    slots.map((o, slot) => {
+      const x = r.results.find((y) => y.slot === slot);
+      if (!o || !x) return "";
+      const result: SettledOrder = {
+        auctionId: a.id,
+        slot,
+        commitment: list[slot]!.toLowerCase(),
+        pStar: String(pinned.refUsd),
+        qty: String(x.qty),
+        quote: String(x.quote),
+        fee: String(x.fee),
+        left: String(x.left),
+        rolls: false,
+      };
+      return seal(o.viewPub, JSON.stringify(result)).catch(() => "");
+    }),
+  );
+  if (r.fees > 0n) {
+    await rpc("lum_pool_put_fee_note", { p_commitment: hex(r.onchain.feeNote), p_quote: toBeHex(pinned.quote, 20), p_auction_id: a.id, p_amount: String(r.fees * pinned.quoteUnit) });
+  }
+  const { proof } = await prove(rfqCross as never, r.inputs, 4);
+  const data = DESK_ABI.encodeFunctionData("settle", [a.id, r.onchain.fills.map(hex), r.onchain.residuals.map(hex), hex(r.onchain.feeNote), r.crossedQty, proof, hexlify(toUtf8Bytes(JSON.stringify(notes)))]);
+  const tx = await sendOperator(deployment().RfqDesk, data, `settle:${a.id}`);
+  return tx ? { settled: true, rfq: true, crossedQty: String(r.crossedQty), tx } : { waiting: "an operator transaction is still pending" };
+}
+
 /** Settles pinned auctions, oldest first, within a time budget. */
 export async function settleAuctions() {
-  const open = (await rpc<OpenAuction[]>("lum_pool_open_auctions", {})).filter((a) => a.pinned && a.kind !== 4);
+  const open = (await rpc<OpenAuction[]>("lum_pool_open_auctions", {})).filter((a) => a.pinned);
   if (open.length === 0) return { idle: true };
   const busy = await inFlightKeys();
   const started = Date.now();

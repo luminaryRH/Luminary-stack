@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "check": "node scripts/check-naming.mjs && bun src/server/luminary/engine/clearing.check.ts && bun src/server/luminary/calendar.check.ts && bun supabase/checks/pool.check.ts"
+    "check": "node scripts/check-naming.mjs && bun src/server/luminary/engine/clearing.check.ts && bun src/server/luminary/calendar.check.ts && bun supabase/checks/pool.check.ts && bun src/shielded/ledger.check.ts && bun src/shielded/rfq-settle.check.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"

@@ -150,7 +150,8 @@ declare
 begin
   insert into lum_auctions (key, symbol, kind, call_time)
   select r->>'key', r->>'symbol', r->>'kind', (r->>'callTime')::timestamptz from jsonb_array_elements(p_rows) r
-  on conflict (key) do nothing;
+  on conflict (key) do update set status = 'scheduled', updated_at = now()
+   where lum_auctions.status = 'void' and lum_auctions.chain_id is null; -- a plan voided earlier (a removed Ex-Date) returns
   get diagnostics v_inserted = row_count;
   -- a planned auction the calendar no longer produces (a holiday or Ex-Date entered later) never goes on chain
   update lum_auctions a set status = 'void', updated_at = now()

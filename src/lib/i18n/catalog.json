@@ -2830,5 +2830,469 @@
   "The site uses the IndexedDB database luminary-portfolio. Records remain on this site and device until reset or until you clear site data. They do not synchronize across devices.": [
     "本网站使用 IndexedDB 数据库 luminary-portfolio。记录保留在当前站点与设备上，直到重置或清除站点数据；不同设备之间不会同步。",
     "はIndexedDBデータベース luminary-portfolio を使用します。リセットまたはサイトデータの消去まで、このサイトと端末に記録が残ります。端末間では同期されません。"
+  ],
+  "None available": [
+    "暂无可选",
+    "選択肢なし"
+  ],
+  "TESTNET": [
+    "测试网",
+    "テストネット"
+  ],
+  "Working…": [
+    "处理中…",
+    "処理中…"
+  ],
+  "No browser wallet found. Install MetaMask or another EIP-1193 wallet, then reload.": [
+    "未检测到浏览器钱包。请安装 MetaMask 或其他 EIP-1193 钱包后刷新页面。",
+    "ブラウザウォレットが見つかりません。MetaMask などの EIP-1193 ウォレットをインストールして再読み込みしてください。"
+  ],
+  "Sign the key message in your wallet. It is free and sends no transaction.": [
+    "请在钱包中签署密钥消息。免费，且不会发送任何交易。",
+    "ウォレットで鍵メッセージに署名してください。無料で、トランザクションは送信されません。"
+  ],
+  "Switch your wallet to Robinhood Chain testnet (46630) before sending transactions.": [
+    "发送交易前，请将钱包切换到 Robinhood Chain 测试网（46630）。",
+    "トランザクションを送る前に、ウォレットを Robinhood Chain テストネット（46630）に切り替えてください。"
+  ],
+  "Wallet connected. Your shielded account is loaded.": [
+    "钱包已连接，隐私账户已加载。",
+    "ウォレットを接続しました。シールドアカウントを読み込みました。"
+  ],
+  "Preparing your sealed order…": [
+    "正在准备您的密封订单…",
+    "封印注文を準備しています…"
+  ],
+  "Enter your counterparty's RFQ key (0x02… or 0x03…).": [
+    "请输入对手方的 RFQ 密钥（0x02… 或 0x03…）。",
+    "相手方の RFQ キー（0x02… または 0x03…）を入力してください。"
+  ],
+  "Enter a block size of at least 0.001.": [
+    "请输入至少 0.001 的大宗数量。",
+    "ブロックサイズは 0.001 以上を入力してください。"
+  ],
+  "This request names an asset the pool does not list.": [
+    "该请求指定的资产不在资金池列表中。",
+    "このリクエストの資産はプールに上場されていません。"
+  ],
+  "rolled": [
+    "已顺延",
+    "繰越済み"
+  ],
+  "Relay privately": [
+    "隐私中继提交",
+    "プライベートにリレー"
+  ],
+  "The relayer submits it, so your wallet is not linked to the order.": [
+    "由中继提交，您的钱包不会与订单关联。",
+    "リレイヤーが送信するため、ウォレットと注文は結び付きません。"
+  ],
+  "Locked for this buy (TQ)": [
+    "本次买入锁定（TQ）",
+    "この買いでロック（TQ）"
+  ],
+  "No auction of this asset is taking orders right now. The next ones go on chain up to 36 hours ahead.": [
+    "该资产当前没有接受订单的竞价。后续竞价最多提前 36 小时上链。",
+    "この資産で注文受付中のオークションは現在ありません。次回分は最大 36 時間前にオンチェーン化されます。"
+  ],
+  "Robinhood Chain testnet. Test tokens only, with no real value. Reference prices are mirrored from mainnet.": [
+    "Robinhood Chain 测试网。仅限测试代币，无真实价值。参考价格镜像自主网。",
+    "Robinhood Chain テストネット。テストトークンのみで実際の価値はありません。参照価格はメインネットから反映しています。"
+  ],
+  "Testnet faucet": [
+    "测试网水龙头",
+    "テストネット・フォーセット"
+  ],
+  "Refresh": [
+    "刷新",
+    "更新"
+  ],
+  "Shielded collateral": [
+    "隐私抵押品",
+    "シールド担保"
+  ],
+  "Treasury quote (TQ) · NAV": [
+    "国债报价（TQ）· 净值",
+    "トレジャリー・クオート（TQ）· NAV"
+  ],
+  "assets": [
+    "个资产",
+    "資産"
+  ],
+  "Source": [
+    "来源",
+    "ソース"
+  ],
+  "Updated": [
+    "更新时间",
+    "更新"
+  ],
+  "Orders are cleared by the operator at each call: one uniform price, proven on chain. A pinned auction nobody settles within an hour can be abandoned, and every lock can then be reclaimed.": [
+    "每次竞价由运营方清算：统一价格，链上证明。已锁定的竞价若一小时内无人结算，可被放弃，所有锁定资金随后均可取回。",
+    "各コールでオペレーターが清算します：単一価格をオンチェーンで証明。固定後 1 時間以内に決済されないオークションは放棄でき、ロックはすべて回収できます。"
+  ],
+  "New York trading days with daylight saving handled. NYSE holidays and early closes are skipped, and an asset pauses on its Ex-Date.": [
+    "按纽约交易日计算并处理夏令时。跳过纽交所假日和提前收盘，资产在除权日暂停。",
+    "ニューヨークの取引日に基づき夏時間に対応。NYSE の休場日と短縮取引は除外し、資産は権利落ち日に停止します。"
+  ],
+  "Each settled call publishes one uniform price, in the same transaction that verifies its clearing proof. Individual orders stay private.": [
+    "每次结算的竞价会在验证其清算证明的同一笔交易中公布统一价格。个人订单保持私密。",
+    "決済された各コールは、清算証明を検証するのと同じトランザクションで単一価格を公開します。個々の注文は非公開のままです。"
+  ],
+  "ON CHAIN": [
+    "链上",
+    "オンチェーン"
+  ],
+  "Request a block": [
+    "申请大宗交易",
+    "ブロックを依頼"
+  ],
+  "Your RFQ key": [
+    "您的 RFQ 密钥",
+    "あなたの RFQ キー"
+  ],
+  "Create a key to start": [
+    "创建密钥以开始",
+    "キーを作成して開始"
+  ],
+  "Key copied. Share it with your counterparty.": [
+    "密钥已复制，请分享给对手方。",
+    "キーをコピーしました。相手方と共有してください。"
+  ],
+  "Share it with your counterparty. Messages are sealed to these keys; the server only sees ciphertext.": [
+    "请分享给对手方。消息使用这些密钥加密封装，服务器只能看到密文。",
+    "相手方と共有してください。メッセージはこれらのキーで封印され、サーバーには暗号文しか見えません。"
+  ],
+  "Counterparty key": [
+    "对手方密钥",
+    "相手方のキー"
+  ],
+  "Limit (optional)": [
+    "限价（可选）",
+    "指値（任意）"
+  ],
+  "RFQ limit": [
+    "RFQ 限价",
+    "RFQ 指値"
+  ],
+  "Negotiations": [
+    "协商",
+    "交渉"
+  ],
+  "At the reference": [
+    "按参考价",
+    "参照価格で"
+  ],
+  "Accept and seal my side": [
+    "接受并密封我方订单",
+    "承諾して自分の側を封印"
+  ],
+  "Seal my side of the block": [
+    "密封我方的大宗订单",
+    "ブロックの自分の側を封印"
+  ],
+  "An RFQ block crosses whole at the pinned reference, or both sides are refunded. It never rolls.": [
+    "RFQ 大宗交易按锁定的参考价整笔成交，否则双方退款，不会顺延。",
+    "RFQ ブロックは固定された参照価格で全量約定するか、双方に返金されます。繰り越されることはありません。"
+  ],
+  "SHIELDED TREASURY COLLATERAL": [
+    "隐私国债抵押品",
+    "シールド国債担保"
+  ],
+  "TREASURY QUOTE (TQ) · NAV": [
+    "国债报价（TQ）· 净值",
+    "トレジャリー・クオート（TQ）· NAV"
+  ],
+  "Spendable": [
+    "可用",
+    "利用可能"
+  ],
+  "Buys lock TreasuryQuote shares. Their NAV accrues while your order waits for its call, so resting collateral earns.": [
+    "买单锁定 TreasuryQuote 份额。订单等待竞价期间净值持续累积，闲置抵押品也能产生收益。",
+    "買い注文は TreasuryQuote の持分をロックします。コールを待つ間も NAV が積み上がるため、待機中の担保も収益を生みます。"
+  ],
+  "Testnet: MockUSDG backs TQ and NAV accrues at a fixed 4.5% APY.": [
+    "测试网：TQ 由 MockUSDG 支持，净值按固定 4.5% 年化累积。",
+    "テストネット：TQ は MockUSDG で裏付けられ、NAV は年率 4.5% 固定で積み上がります。"
+  ],
+  "Balances": [
+    "余额",
+    "残高"
+  ],
+  "WALLET / SHIELDED": [
+    "钱包 / 隐私",
+    "ウォレット / シールド"
+  ],
+  "Wallet": [
+    "钱包",
+    "ウォレット"
+  ],
+  "Shielded": [
+    "隐私余额",
+    "シールド"
+  ],
+  "Joining the pool": [
+    "正在加入资金池",
+    "プールに追加中"
+  ],
+  "In orders": [
+    "订单中",
+    "注文中"
+  ],
+  "Shield": [
+    "存入隐私池",
+    "シールド"
+  ],
+  "block": [
+    "区块",
+    "ブロック"
+  ],
+  "AUCTION POOL ↗": [
+    "竞价池 ↗",
+    "オークションプール ↗"
+  ],
+  "Shielded address": [
+    "隐私地址",
+    "シールドアドレス"
+  ],
+  "Copied.": [
+    "已复制。",
+    "コピーしました。"
+  ],
+  "Relayer fee per order": [
+    "每笔订单中继费",
+    "注文ごとのリレー手数料"
+  ],
+  "Test tokens only. Get ETH and stock tokens from the Robinhood testnet faucet; mint USDG here.": [
+    "仅限测试代币。ETH 和股票代币请从 Robinhood 测试网水龙头领取；USDG 可在此铸造。",
+    "テストトークンのみ。ETH と株式トークンは Robinhood テストネットのフォーセットから、USDG はここでミントできます。"
+  ],
+  "Robinhood testnet faucet": [
+    "Robinhood 测试网水龙头",
+    "Robinhood テストネット・フォーセット"
+  ],
+  "Your browser proves the order and seals it to the clearing committee. It stays private until the call.": [
+    "您的浏览器为订单生成证明并将其密封给清算委员会，竞价前始终保持私密。",
+    "ブラウザが注文を証明し、清算委員会に向けて封印します。コールまで非公開のままです。"
+  ],
+  "Submitted by": [
+    "提交方",
+    "送信者"
+  ],
+  "An at-auction buy locks 5% over the reference; whatever it does not spend comes back to you.": [
+    "竞价价买单会按参考价上浮 5% 锁定，未使用部分将退回给您。",
+    "成行の買いは参照価格の 5% 上乗せでロックし、使わなかった分は返却されます。"
+  ],
+  "RELAYER FEE": [
+    "中继费",
+    "リレー手数料"
+  ],
+  "A fee note keeps the relay private.": [
+    "手续费票据让中继保持私密。",
+    "手数料ノートでリレーを非公開に保ちます。"
+  ],
+  "A relayed order pays its ETH fee from a separate shielded ETH note, so nothing links the fee to your order. Prepare one from your shielded ETH, or submit this order from your wallet instead.": [
+    "中继订单从单独的隐私 ETH 票据支付 ETH 手续费，因此手续费不会与您的订单关联。请用隐私 ETH 准备一张，或改为从钱包提交此订单。",
+    "リレー注文は別のシールド ETH ノートから ETH 手数料を支払うため、手数料と注文は結び付きません。シールド ETH から用意するか、ウォレットから直接送信してください。"
+  ],
+  "Prepare a fee note": [
+    "准备手续费票据",
+    "手数料ノートを用意"
+  ],
+  "Submit from my wallet instead": [
+    "改为从我的钱包提交",
+    "ウォレットから送信する"
+  ],
+  "Move funds.": [
+    "转移资金。",
+    "資金を移動。"
+  ],
+  "Mint test USDG, turn it into treasury quote (TQ), and shield it into the pool as buy collateral. Stock tokens and ETH come from the testnet faucet.": [
+    "铸造测试 USDG，兑换为国债报价（TQ），再存入隐私池作为买入抵押品。股票代币和 ETH 请从测试网水龙头领取。",
+    "テスト用 USDG をミントしてトレジャリー・クオート（TQ）に換え、買い担保としてプールにシールドします。株式トークンと ETH はテストネットのフォーセットから。"
+  ],
+  "Amount": [
+    "金额",
+    "金額"
+  ],
+  "Token withdrawals are sent from your wallet; ETH withdrawals go through the relayer.": [
+    "代币提取从您的钱包发送；ETH 提取通过中继完成。",
+    "トークンの出金はウォレットから、ETH の出金はリレイヤー経由で行います。"
+  ],
+  "Continue": [
+    "继续",
+    "続行"
+  ],
+  "Printed in the settlement transaction that verified the auction's clearing proof. No individual order or identity is published.": [
+    "在验证该竞价清算证明的结算交易中公布。不公开任何个人订单或身份。",
+    "オークションの清算証明を検証した決済トランザクションで記録。個々の注文や身元は公開されません。"
+  ],
+  "Reference at the call": [
+    "竞价时参考价",
+    "コール時の参照価格"
+  ],
+  "Block": [
+    "区块",
+    "ブロック"
+  ],
+  "Read account": [
+    "读取账户",
+    "アカウントを読む"
+  ],
+  "Read the connected Luminary testnet account: shielded balances and sealed orders. Read only.": [
+    "读取已连接的 Luminary 测试网账户：隐私余额和密封订单。只读。",
+    "接続中の Luminary テストネットアカウント（シールド残高と封印注文）を読み取ります。読み取り専用。"
+  ],
+  "Fill the visible order ticket and open review. Does not submit anything.": [
+    "填写可见的订单票据并打开确认。不会提交任何内容。",
+    "表示中の注文チケットに入力して確認を開きます。何も送信しません。"
+  ],
+  "No prints yet.": [
+    "暂无成交记录。",
+    "まだ約定記録はありません。"
+  ],
+  "Each settled auction publishes its clearing price and crossed volume here.": [
+    "每次结算的竞价都会在此公布清算价格和成交量。",
+    "決済された各オークションの清算価格と約定数量がここに公開されます。"
+  ],
+  "No upcoming calls yet.": [
+    "暂无即将到来的竞价。",
+    "予定されたコールはまだありません。"
+  ],
+  "The scheduler plans a week ahead and puts auctions on chain up to 36 hours before their call.": [
+    "调度器提前一周规划，并在竞价前最多 36 小时将其上链。",
+    "スケジューラーは 1 週間先まで計画し、コールの最大 36 時間前にオークションをオンチェーン化します。"
+  ],
+  "Negotiate a private block. It settles whole at the reference price.": [
+    "协商私密大宗交易，按参考价整笔结算。",
+    "プライベートなブロックを交渉。参照価格で全量決済されます。"
+  ],
+  "No negotiations yet.": [
+    "暂无协商。",
+    "まだ交渉はありません。"
+  ],
+  "Requests sealed to your RFQ key appear here.": [
+    "发送给您 RFQ 密钥的密封请求会显示在这里。",
+    "あなたの RFQ キー宛てに封印されたリクエストがここに表示されます。"
+  ],
+  "Mint test USDG (faucet)": [
+    "铸造测试 USDG（水龙头）",
+    "テスト用 USDG をミント（フォーセット）"
+  ],
+  "USDG → TQ (treasury quote)": [
+    "USDG → TQ（国债报价）",
+    "USDG → TQ（トレジャリー・クオート）"
+  ],
+  "Shield into the pool": [
+    "存入隐私池",
+    "プールにシールド"
+  ],
+  "Withdraw to my wallet": [
+    "提取到我的钱包",
+    "ウォレットへ出金"
+  ],
+  "Prepare a relayer fee note (ETH)": [
+    "准备中继手续费票据（ETH）",
+    "リレー手数料ノートを用意（ETH）"
+  ],
+  "View the settlement and its proof": [
+    "查看结算及其证明",
+    "決済とその証明を見る"
+  ],
+  "Deposited. Your note joins the pool tree within a minute or two.": [
+    "已存入。您的票据将在一两分钟内加入资金池树。",
+    "入金しました。ノートは 1〜2 分でプールのツリーに追加されます。"
+  ],
+  "Done.": [
+    "完成。",
+    "完了しました。"
+  ],
+  "Connect your wallet to load your shielded orders.": [
+    "连接钱包以加载您的隐私订单。",
+    "ウォレットを接続してシールド注文を読み込んでください。"
+  ],
+  "Order cancelled. Your lock is back in a new note.": [
+    "订单已取消，锁定资金已退回新票据。",
+    "注文を取り消しました。ロック分は新しいノートに戻りました。"
+  ],
+  "Lock reclaimed.": [
+    "锁定资金已取回。",
+    "ロックを回収しました。"
+  ],
+  "Reclaim": [
+    "取回",
+    "回収"
+  ],
+  "Chainlink (mainnet)": [
+    "Chainlink（主网）",
+    "Chainlink（メインネット）"
+  ],
+  "Robinhood quote": [
+    "Robinhood 报价",
+    "Robinhood 気配値"
+  ],
+  "Send sealed request": [
+    "发送密封请求",
+    "封印リクエストを送信"
+  ],
+  "ACCEPTED": [
+    "已接受",
+    "承諾済み"
+  ],
+  "RECEIVED": [
+    "已收到",
+    "受信"
+  ],
+  "SENT": [
+    "已发送",
+    "送信済み"
+  ],
+  "Mock USDG": [
+    "模拟 USDG",
+    "モック USDG"
+  ],
+  "Ether": [
+    "以太币",
+    "イーサ"
+  ],
+  "Your shielded account is derived from one signature and rebuilt from public chain data on any device.": [
+    "您的隐私账户由一次签名派生，可在任何设备上根据公开链上数据重建。",
+    "シールドアカウントは 1 回の署名から導出され、どのデバイスでも公開チェーンデータから再構築できます。"
+  ],
+  "Connect a wallet on Robinhood Chain testnet. You sign one message to derive your private keys; no transaction is sent.": [
+    "连接 Robinhood Chain 测试网钱包。只需签署一条消息来派生私钥，不会发送交易。",
+    "Robinhood Chain テストネットのウォレットを接続します。メッセージに 1 回署名して秘密鍵を導出し、トランザクションは送信しません。"
+  ],
+  "Refund after call": [
+    "竞价后退款",
+    "コール後に返金"
+  ],
+  "Collateral locked": [
+    "锁定抵押品",
+    "ロック担保"
+  ],
+  "Shares locked": [
+    "锁定股份",
+    "ロック株数"
+  ],
+  "The relayer (private)": [
+    "中继（私密）",
+    "リレイヤー（非公開）"
+  ],
+  "Treasury NAV call": [
+    "国债净值竞价",
+    "国債 NAV コール"
+  ],
+  "RFQ block": [
+    "RFQ 大宗",
+    "RFQ ブロック"
+  ],
+  "Shielded collateral (TQ)": [
+    "隐私抵押品（TQ）",
+    "シールド担保（TQ）"
+  ],
+  "planned": [
+    "已规划",
+    "計画済み"
   ]
 }
