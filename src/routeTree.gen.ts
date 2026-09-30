@@ -15,9 +15,23 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ProtocolRouteImport } from './routes/protocol'
 import { Route as TechnologyRouteImport } from './routes/technology'
 import { Route as VisionRouteImport } from './routes/vision'
+import { Route as ApiAuctionsRouteImport } from './routes/api/auctions'
+import { Route as ApiCalendarRouteImport } from './routes/api/calendar'
+import { Route as ApiMarksRouteImport } from './routes/api/marks'
+import { Route as ApiPoolRouteImport } from './routes/api/pool'
+import { Route as ApiPrintsRouteImport } from './routes/api/prints'
+import { Route as ApiRfqRouteImport } from './routes/api/rfq'
+import { Route as ApiStatusRouteImport } from './routes/api/status'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalRisksRouteImport } from './routes/legal/risks'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
+import { Route as ApiCronCalendarRouteImport } from './routes/api/cron/calendar'
+import { Route as ApiCronNavRouteImport } from './routes/api/cron/nav'
+import { Route as ApiCronTickRouteImport } from './routes/api/cron/tick'
+import { Route as ApiPoolAssociationRouteImport } from './routes/api/pool_.association'
+import { Route as ApiPoolEventsRouteImport } from './routes/api/pool_.events'
+import { Route as ApiPoolLeavesRouteImport } from './routes/api/pool_.leaves'
+import { Route as ApiPoolRelayRouteImport } from './routes/api/pool_.relay'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -49,6 +63,41 @@ const VisionRoute = VisionRouteImport.update({
   path: '/vision',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuctionsRoute = ApiAuctionsRouteImport.update({
+  id: '/api/auctions',
+  path: '/api/auctions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCalendarRoute = ApiCalendarRouteImport.update({
+  id: '/api/calendar',
+  path: '/api/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMarksRoute = ApiMarksRouteImport.update({
+  id: '/api/marks',
+  path: '/api/marks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPoolRoute = ApiPoolRouteImport.update({
+  id: '/api/pool',
+  path: '/api/pool',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPrintsRoute = ApiPrintsRouteImport.update({
+  id: '/api/prints',
+  path: '/api/prints',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRfqRoute = ApiRfqRouteImport.update({
+  id: '/api/rfq',
+  path: '/api/rfq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStatusRoute = ApiStatusRouteImport.update({
+  id: '/api/status',
+  path: '/api/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
   id: '/legal/privacy',
   path: '/legal/privacy',
@@ -64,6 +113,41 @@ const LegalTermsRoute = LegalTermsRouteImport.update({
   path: '/legal/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronCalendarRoute = ApiCronCalendarRouteImport.update({
+  id: '/api/cron/calendar',
+  path: '/api/cron/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronNavRoute = ApiCronNavRouteImport.update({
+  id: '/api/cron/nav',
+  path: '/api/cron/nav',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronTickRoute = ApiCronTickRouteImport.update({
+  id: '/api/cron/tick',
+  path: '/api/cron/tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPoolAssociationRoute = ApiPoolAssociationRouteImport.update({
+  id: '/api/pool_/association',
+  path: '/api/pool/association',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPoolEventsRoute = ApiPoolEventsRouteImport.update({
+  id: '/api/pool_/events',
+  path: '/api/pool/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPoolLeavesRoute = ApiPoolLeavesRouteImport.update({
+  id: '/api/pool_/leaves',
+  path: '/api/pool/leaves',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPoolRelayRoute = ApiPoolRelayRouteImport.update({
+  id: '/api/pool_/relay',
+  path: '/api/pool/relay',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -72,9 +156,23 @@ export interface FileRoutesByFullPath {
   '/protocol': typeof ProtocolRoute
   '/technology': typeof TechnologyRoute
   '/vision': typeof VisionRoute
+  '/api/auctions': typeof ApiAuctionsRoute
+  '/api/calendar': typeof ApiCalendarRoute
+  '/api/marks': typeof ApiMarksRoute
+  '/api/pool': typeof ApiPoolRoute
+  '/api/prints': typeof ApiPrintsRoute
+  '/api/rfq': typeof ApiRfqRoute
+  '/api/status': typeof ApiStatusRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/risks': typeof LegalRisksRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/api/cron/calendar': typeof ApiCronCalendarRoute
+  '/api/cron/nav': typeof ApiCronNavRoute
+  '/api/cron/tick': typeof ApiCronTickRoute
+  '/api/pool/association': typeof ApiPoolAssociationRoute
+  '/api/pool/events': typeof ApiPoolEventsRoute
+  '/api/pool/leaves': typeof ApiPoolLeavesRoute
+  '/api/pool/relay': typeof ApiPoolRelayRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,9 +181,23 @@ export interface FileRoutesByTo {
   '/protocol': typeof ProtocolRoute
   '/technology': typeof TechnologyRoute
   '/vision': typeof VisionRoute
+  '/api/auctions': typeof ApiAuctionsRoute
+  '/api/calendar': typeof ApiCalendarRoute
+  '/api/marks': typeof ApiMarksRoute
+  '/api/pool': typeof ApiPoolRoute
+  '/api/prints': typeof ApiPrintsRoute
+  '/api/rfq': typeof ApiRfqRoute
+  '/api/status': typeof ApiStatusRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/risks': typeof LegalRisksRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/api/cron/calendar': typeof ApiCronCalendarRoute
+  '/api/cron/nav': typeof ApiCronNavRoute
+  '/api/cron/tick': typeof ApiCronTickRoute
+  '/api/pool/association': typeof ApiPoolAssociationRoute
+  '/api/pool/events': typeof ApiPoolEventsRoute
+  '/api/pool/leaves': typeof ApiPoolLeavesRoute
+  '/api/pool/relay': typeof ApiPoolRelayRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,9 +207,23 @@ export interface FileRoutesById {
   '/protocol': typeof ProtocolRoute
   '/technology': typeof TechnologyRoute
   '/vision': typeof VisionRoute
+  '/api/auctions': typeof ApiAuctionsRoute
+  '/api/calendar': typeof ApiCalendarRoute
+  '/api/marks': typeof ApiMarksRoute
+  '/api/pool': typeof ApiPoolRoute
+  '/api/prints': typeof ApiPrintsRoute
+  '/api/rfq': typeof ApiRfqRoute
+  '/api/status': typeof ApiStatusRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/risks': typeof LegalRisksRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/api/cron/calendar': typeof ApiCronCalendarRoute
+  '/api/cron/nav': typeof ApiCronNavRoute
+  '/api/cron/tick': typeof ApiCronTickRoute
+  '/api/pool_/association': typeof ApiPoolAssociationRoute
+  '/api/pool_/events': typeof ApiPoolEventsRoute
+  '/api/pool_/leaves': typeof ApiPoolLeavesRoute
+  '/api/pool_/relay': typeof ApiPoolRelayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,9 +234,23 @@ export interface FileRouteTypes {
     | '/protocol'
     | '/technology'
     | '/vision'
+    | '/api/auctions'
+    | '/api/calendar'
+    | '/api/marks'
+    | '/api/pool'
+    | '/api/prints'
+    | '/api/rfq'
+    | '/api/status'
     | '/legal/privacy'
     | '/legal/risks'
     | '/legal/terms'
+    | '/api/cron/calendar'
+    | '/api/cron/nav'
+    | '/api/cron/tick'
+    | '/api/pool/association'
+    | '/api/pool/events'
+    | '/api/pool/leaves'
+    | '/api/pool/relay'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,9 +259,23 @@ export interface FileRouteTypes {
     | '/protocol'
     | '/technology'
     | '/vision'
+    | '/api/auctions'
+    | '/api/calendar'
+    | '/api/marks'
+    | '/api/pool'
+    | '/api/prints'
+    | '/api/rfq'
+    | '/api/status'
     | '/legal/privacy'
     | '/legal/risks'
     | '/legal/terms'
+    | '/api/cron/calendar'
+    | '/api/cron/nav'
+    | '/api/cron/tick'
+    | '/api/pool/association'
+    | '/api/pool/events'
+    | '/api/pool/leaves'
+    | '/api/pool/relay'
   id:
     | '__root__'
     | '/'
@@ -130,9 +284,23 @@ export interface FileRouteTypes {
     | '/protocol'
     | '/technology'
     | '/vision'
+    | '/api/auctions'
+    | '/api/calendar'
+    | '/api/marks'
+    | '/api/pool'
+    | '/api/prints'
+    | '/api/rfq'
+    | '/api/status'
     | '/legal/privacy'
     | '/legal/risks'
     | '/legal/terms'
+    | '/api/cron/calendar'
+    | '/api/cron/nav'
+    | '/api/cron/tick'
+    | '/api/pool_/association'
+    | '/api/pool_/events'
+    | '/api/pool_/leaves'
+    | '/api/pool_/relay'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -142,9 +310,23 @@ export interface RootRouteChildren {
   ProtocolRoute: typeof ProtocolRoute
   TechnologyRoute: typeof TechnologyRoute
   VisionRoute: typeof VisionRoute
+  ApiAuctionsRoute: typeof ApiAuctionsRoute
+  ApiCalendarRoute: typeof ApiCalendarRoute
+  ApiMarksRoute: typeof ApiMarksRoute
+  ApiPoolRoute: typeof ApiPoolRoute
+  ApiPrintsRoute: typeof ApiPrintsRoute
+  ApiRfqRoute: typeof ApiRfqRoute
+  ApiStatusRoute: typeof ApiStatusRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalRisksRoute: typeof LegalRisksRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  ApiCronCalendarRoute: typeof ApiCronCalendarRoute
+  ApiCronNavRoute: typeof ApiCronNavRoute
+  ApiCronTickRoute: typeof ApiCronTickRoute
+  ApiPoolAssociationRoute: typeof ApiPoolAssociationRoute
+  ApiPoolEventsRoute: typeof ApiPoolEventsRoute
+  ApiPoolLeavesRoute: typeof ApiPoolLeavesRoute
+  ApiPoolRelayRoute: typeof ApiPoolRelayRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -191,6 +373,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VisionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auctions': {
+      id: '/api/auctions'
+      path: '/api/auctions'
+      fullPath: '/api/auctions'
+      preLoaderRoute: typeof ApiAuctionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/calendar': {
+      id: '/api/calendar'
+      path: '/api/calendar'
+      fullPath: '/api/calendar'
+      preLoaderRoute: typeof ApiCalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/marks': {
+      id: '/api/marks'
+      path: '/api/marks'
+      fullPath: '/api/marks'
+      preLoaderRoute: typeof ApiMarksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pool': {
+      id: '/api/pool'
+      path: '/api/pool'
+      fullPath: '/api/pool'
+      preLoaderRoute: typeof ApiPoolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/prints': {
+      id: '/api/prints'
+      path: '/api/prints'
+      fullPath: '/api/prints'
+      preLoaderRoute: typeof ApiPrintsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/rfq': {
+      id: '/api/rfq'
+      path: '/api/rfq'
+      fullPath: '/api/rfq'
+      preLoaderRoute: typeof ApiRfqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/status': {
+      id: '/api/status'
+      path: '/api/status'
+      fullPath: '/api/status'
+      preLoaderRoute: typeof ApiStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal/privacy': {
       id: '/legal/privacy'
       path: '/legal/privacy'
@@ -212,6 +443,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/calendar': {
+      id: '/api/cron/calendar'
+      path: '/api/cron/calendar'
+      fullPath: '/api/cron/calendar'
+      preLoaderRoute: typeof ApiCronCalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/nav': {
+      id: '/api/cron/nav'
+      path: '/api/cron/nav'
+      fullPath: '/api/cron/nav'
+      preLoaderRoute: typeof ApiCronNavRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/tick': {
+      id: '/api/cron/tick'
+      path: '/api/cron/tick'
+      fullPath: '/api/cron/tick'
+      preLoaderRoute: typeof ApiCronTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pool_/association': {
+      id: '/api/pool_/association'
+      path: '/api/pool/association'
+      fullPath: '/api/pool/association'
+      preLoaderRoute: typeof ApiPoolAssociationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pool_/events': {
+      id: '/api/pool_/events'
+      path: '/api/pool/events'
+      fullPath: '/api/pool/events'
+      preLoaderRoute: typeof ApiPoolEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pool_/leaves': {
+      id: '/api/pool_/leaves'
+      path: '/api/pool/leaves'
+      fullPath: '/api/pool/leaves'
+      preLoaderRoute: typeof ApiPoolLeavesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pool_/relay': {
+      id: '/api/pool_/relay'
+      path: '/api/pool/relay'
+      fullPath: '/api/pool/relay'
+      preLoaderRoute: typeof ApiPoolRelayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -222,9 +502,23 @@ const rootRouteChildren: RootRouteChildren = {
   ProtocolRoute: ProtocolRoute,
   TechnologyRoute: TechnologyRoute,
   VisionRoute: VisionRoute,
+  ApiAuctionsRoute: ApiAuctionsRoute,
+  ApiCalendarRoute: ApiCalendarRoute,
+  ApiMarksRoute: ApiMarksRoute,
+  ApiPoolRoute: ApiPoolRoute,
+  ApiPrintsRoute: ApiPrintsRoute,
+  ApiRfqRoute: ApiRfqRoute,
+  ApiStatusRoute: ApiStatusRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalRisksRoute: LegalRisksRoute,
   LegalTermsRoute: LegalTermsRoute,
+  ApiCronCalendarRoute: ApiCronCalendarRoute,
+  ApiCronNavRoute: ApiCronNavRoute,
+  ApiCronTickRoute: ApiCronTickRoute,
+  ApiPoolAssociationRoute: ApiPoolAssociationRoute,
+  ApiPoolEventsRoute: ApiPoolEventsRoute,
+  ApiPoolLeavesRoute: ApiPoolLeavesRoute,
+  ApiPoolRelayRoute: ApiPoolRelayRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
