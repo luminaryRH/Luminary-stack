@@ -61,7 +61,10 @@ function check(name: string, ok: boolean, detail: string) {
 }
 
 async function api<T>(path: string): Promise<T> {
-  const body = (await (await nativeFetch(BASE + path)).json()) as {
+  // a fresh query string each call, past the CDN's 10 s cache
+  const body = (await (
+    await nativeFetch(`${BASE}${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`)
+  ).json()) as {
     ok: boolean;
     data: T;
     error?: string;
@@ -155,9 +158,11 @@ async function fund(to: string, ethWanted: bigint, tsla: bigint) {
   }
   const token = new Contract(d.tokens.TSLA, ERC20, operator);
   if (tsla > 0n && (await token.getFunction("balanceOf")(to)) < tsla) {
-    await (
-      await token.getFunction("transfer")(to, tsla, { type: 0, gasPrice: await gasPrice() })
-    ).wait();
+    // best effort: the operator's faucet TSLA runs out, and users keep what they already shielded
+    await token
+      .getFunction("transfer")(to, tsla, { type: 0, gasPrice: await gasPrice() })
+      .then((tx: { wait: () => Promise<unknown> }) => tx.wait())
+      .catch((e: Error) => log("TSLA top-up skipped:", e.message.slice(0, 80)));
   }
 }
 
@@ -229,30 +234,36 @@ async function main() {
     Number((await api<{ prices: Record<string, { usd: string }> }>("/api/marks")).prices[s]!.usd) /
     1e6;
 
-  // ---- funding: USDG faucet → TQ → shielded; ETH for relayer fees; stock tokens --------------------------------
-  const bTq = Number(B.view().balances.find((b) => b.symbol === "TQ")?.spendable ?? 0);
-  if (bTq < 500) {
-    await B.mintUsdg("2000", (s) => log("B", s));
-    await B.toTreasury("2000", (s) => log("B", s));
-    await B.deposit("TQ", "1500", (s) => log("B", s));
-    await B.deposit("ETH", "0.0006", (s) => log("B", s));
+  if (FROM <= 4) {
+    // ---- funding: USDG faucet → TQ → shielded; ETH for relayer fees; stock tokens --------------------------------
+    const bTq = Number(B.view().balances.find((b) => b.symbol === "TQ")?.spendable ?? 0);
+    if (bTq < 500) {
+      await B.mintUsdg("2000", (s) => log("B", s));
+      await B.toTreasury("2000", (s) => log("B", s));
+      await B.deposit("TQ", "1500", (s) => log("B", s));
+      await B.deposit("ETH", "0.0006", (s) => log("B", s));
+    }
+    if (Number(S.view().balances.find((b) => b.symbol === "TSLA")?.spendable ?? 0) < 1.5) {
+      await S.deposit("TSLA", "2", (s) => log("S", s));
+      await S.mintUsdg("500", (s) => log("S", s));
+      await S.deposit("USDG", "300", (s) => log("S", s));
+    }
+    // relayer fees come out of shielded ETH; earlier runs spend it down
+    if (Number(B.view().balances.find((b) => b.symbol === "ETH")?.spendable ?? 0) < 0.0004) {
+      await B.deposit("ETH", "0.0004", (s) => log("B", s));
+    }
+    await until(
+      "deposits spendable",
+      async () =>
+        (await spendable(B, "TQ", 500)()) &&
+        (await spendable(B, "ETH", 0.0001)()) &&
+        (await spendable(S, "TSLA", 1.5)()) &&
+        (await spendable(S, "USDG", 200)()),
+    );
+    log("deposits are in the tree");
+    if (B.notes.filter((n) => !n.spent && n.asset === 0n && n.amount > 0n).length < 2)
+      await B.prepareFeeNote((s) => log("B", s));
   }
-  if (Number(S.view().balances.find((b) => b.symbol === "TSLA")?.spendable ?? 0) < 1.5) {
-    await S.deposit("TSLA", "2", (s) => log("S", s));
-    await S.mintUsdg("500", (s) => log("S", s));
-    await S.deposit("USDG", "300", (s) => log("S", s));
-  }
-  await until(
-    "deposits spendable",
-    async () =>
-      (await spendable(B, "TQ", 500)()) &&
-      (await spendable(B, "ETH", 0.0001)()) &&
-      (await spendable(S, "TSLA", 1.5)()) &&
-      (await spendable(S, "USDG", 200)()),
-  );
-  log("deposits are in the tree");
-  if (B.notes.filter((n) => !n.spent && n.asset === 0n && n.amount > 0n).length < 2)
-    await B.prepareFeeNote((s) => log("B", s));
 
   if (FROM <= 2) {
     // ---- 1. TSLA CLOSE auction clears every crossable order at one p* inside the band, with one proof -------------
@@ -550,6 +561,9 @@ async function main() {
   );
 
   // ---- withdraw: the bought TSLA out of the pool to the buyer's wallet ----------------------------------------
+  // (runs when check 1 bought TSLA this run; a resumed run may have nothing left to withdraw)
+  if (FROM > 2 && !(await spendable(B, "TSLA", 1)()))
+    return log("withdraw skipped: no shielded TSLA to withdraw");
   await until("bought TSLA spendable", spendable(B, "TSLA", 1));
   const before = await new Contract(d.tokens.TSLA, ERC20, chain).getFunction("balanceOf")(
     bw.address,
