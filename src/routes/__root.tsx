@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
@@ -110,11 +111,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  // the dashboard is cross-origin isolated (threaded proving), which blocks the Sketchfab viewer; it has no hero anyway
+  const dashboard = useRouterState({ select: (s) => s.location.pathname.startsWith("/dashboard") });
   return (
     <html lang="en">
       <head>
         <HeadContent />
-        <script data-luminary-sketchfab src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js" async />
+        {!dashboard && <script data-luminary-sketchfab src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js" async />}
       </head>
       <body>
         {children}

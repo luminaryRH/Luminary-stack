@@ -14,7 +14,15 @@ let client: postgres.Sql | undefined;
 
 /** DATABASE_URL, moved to Supabase's transaction pooler (6543), which suits short serverless invocations. */
 function sql(): postgres.Sql {
-  client ??= postgres(env("DATABASE_URL").replace(/:5432\//, ":6543/"), { ssl: "require", prepare: false, max: 3, onnotice: () => {} });
+  // idle connections close after 20 s: the pooler can drop them silently, and a reused function instance would then hang
+  client ??= postgres(env("DATABASE_URL").replace(/:5432\//, ":6543/"), {
+    ssl: "require",
+    prepare: false,
+    max: 3,
+    idle_timeout: 20,
+    connect_timeout: 10,
+    onnotice: () => {},
+  });
   return client;
 }
 

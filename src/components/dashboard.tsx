@@ -444,7 +444,11 @@ export default function Dashboard() {
   }, [session]);
 
   useEffect(() => {
-    if (view !== "rfq" || !session) return;
+    if (view !== "rfq") return;
+    if (!session) {
+      rfqSession(); // a key from the first visit, so there is always one to share; this effect reruns with it
+      return;
+    }
     void checkInbox();
     const poll = setInterval(() => void checkInbox(), 10_000);
     return () => clearInterval(poll);
@@ -765,9 +769,8 @@ export default function Dashboard() {
                   <div className="panel-title"><div><Handshake size={18} /><h2>{t("Request a block")}</h2></div><span className="tiny-label">{t("PRIVATE BLOCK")}</span></div>
                   <div className="ticket-fields">
                     <label>{t("Your RFQ key")}
-                      <div className="input-unit"><Input readOnly value={session?.pub ?? ""} placeholder={t("Create a key to start")} aria-label={t("Your RFQ key")} />
-                        <span><button onClick={() => { const s = rfqSession(); void navigator.clipboard.writeText(s.pub).then(() => toast.success(t("Key copied. Share it with your counterparty."))); }}><Copy size={14} /></button></span>
-                      </div>
+                      <div className="input-unit"><Input readOnly value={session?.pub ?? ""} placeholder={t("Create a key to start")} aria-label={t("Your RFQ key")} /></div>
+                      <button type="button" className="small-link" onClick={() => { const s = rfqSession(); void navigator.clipboard.writeText(s.pub).then(() => toast.success(t("Key copied. Share it with your counterparty.")), () => toast.info(t("Select the key above and copy it."))); }}><Copy size={13} />{t(" Copy key")}</button>
                       <small>{t("Share it with your counterparty. Messages are sealed to these keys; the server only sees ciphertext.")}</small>
                     </label>
                     <label>{t("Counterparty key")}<Input value={peer} onChange={(e) => setPeer(e.target.value)} placeholder="0x02…" aria-label={t("Counterparty key")} /></label>

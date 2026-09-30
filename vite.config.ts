@@ -17,10 +17,12 @@ export default defineConfig({
     traceDeps: ["@aztec/bb.js", "@noir-lang/noir_js", "@noir-lang/acvm_js", "@noir-lang/noirc_abi", "postgres"],
     // The tick can prove a tree batch and an auction in one run (~30 s each on one thread); 300 s is the Hobby maximum.
     vercel: { functions: { maxDuration: 300 } },
-    // Cross-origin isolation, so bb.js can prove with threads (SharedArrayBuffer) in the browser. Site-wide, because
-    // isolation is fixed when a document loads. nitro's own /assets rule ends routing there, so it carries them too.
+    // Cross-origin isolation, so bb.js can prove with threads (SharedArrayBuffer) in the browser. Only the dashboard
+    // (every link to it is a full page load): elsewhere it would block the Sketchfab hero viewer. nitro's own /assets
+    // rule ends routing there, so it carries the headers too (the proving worker needs COEP on its own script).
     routeRules: {
-      "/**": { headers: ISOLATED },
+      "/dashboard": { headers: ISOLATED },
+      "/dashboard/**": { headers: ISOLATED },
       "/assets/**": { headers: { ...ISOLATED, "cache-control": "public, max-age=31536000, immutable" } },
     },
   } as { preset?: string },
