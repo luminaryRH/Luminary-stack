@@ -1,11 +1,14 @@
 // nav-watcher (every 5 minutes): mirrors real prices into the testnet MockAggregators and accrues TreasuryQuote's NAV.
 // Prices come from Chainlink on Robinhood Chain mainnet (4663); it has no NFLX feed, so NFLX is Robinhood's public
-// quote midpoint. A feed is pushed when the price moved or its last round is getting old (AuctionPool.MAX_STALENESS is
-// 1 hour). NAV per share follows a fixed APY from the deployment block.
+// quote midpoint. Only AuctionPool.pin reads the feeds, so a feed is pushed only while an auction on it calls within
+// NEEDED_SEC, when the price moved or its last round is getting old (MAX_STALENESS is 1 hour); pinAuctions refreshes
+// it once more at the call if needed. NAV per share follows a fixed APY from the deployment block, raised in NAV_STEP
+// increments. The dashboard's marks come from the database, every 5 minutes, whatever is pushed.
 import { Contract } from "ethers";
 import { mainnetProvider, provider } from "./chain";
 import { rpc } from "./db";
 import { FEED_ABI, TQ_ABI, deployment } from "./pool/contract";
+import type { OpenAuction } from "./pool/committee";
 import { inFlightKeys, sendOperator } from "./pool/sends";
 
 const MAINNET_FEEDS: Record<string, string> = {
@@ -18,7 +21,9 @@ const MAINNET_FEEDS: Record<string, string> = {
 };
 const MOVE_BPS = 10n; // push on a 0.1% move
 const REFRESH_SEC = 30 * 60; // or when the round is this old
+const NEEDED_SEC = 15 * 60; // feeds of auctions calling this soon are kept current (three watcher runs)
 const APY_BPS = 450n; // TreasuryQuote's accrual
+const NAV_STEP = 5n; // micro-USD per share, ~1 hour of accrual at 4.5% APY
 const YEAR_SEC = 365n * 86_400n;
 
 /** Robinhood's quote midpoint in 8 decimals. */
@@ -37,24 +42,42 @@ async function sourcePrice(symbol: string): Promise<{ answer: bigint; source: st
   return { answer, source: "chainlink-4663" };
 }
 
+/** Feed symbols (asset and quote) of the unpinned auctions calling before `until`. */
+export function feedsOf(open: OpenAuction[], until: number) {
+  const feeds: Record<string, string> = deployment().feeds;
+  const symbolOf = new Map(Object.entries(deployment().tokens).map(([symbol, token]) => [token.toLowerCase(), symbol] as const));
+  const symbols = open.filter((a) => !a.pinned && a.callTime <= until).flatMap((a) => [symbolOf.get(a.asset), symbolOf.get(a.quote)]);
+  return new Set(symbols.filter((s): s is string => s !== undefined && s in feeds));
+}
+
+/**
+ * Pushes `symbol`'s source price when it moved or the feed's round is older than `maxAge` (`answer` when already
+ * fetched). "current" when nothing was needed, "pending" when a push is in flight or was just sent.
+ */
+export async function refreshFeed(symbol: string, now: bigint, busy: Set<string>, maxAge = REFRESH_SEC, answer?: bigint) {
+  if (busy.has(`push:${symbol}`)) return "pending";
+  const address = (deployment().feeds as Record<string, string>)[symbol]!;
+  const [, current, , updatedAt] = (await new Contract(address, FEED_ABI, provider()).getFunction("latestRoundData")()) as [bigint, bigint, bigint, bigint];
+  answer ??= (await sourcePrice(symbol)).answer;
+  const moved = (answer > current ? answer - current : current - answer) * 10_000n >= current * MOVE_BPS;
+  if (!moved && now - updatedAt < BigInt(maxAge)) return "current";
+  return (await sendOperator(address, FEED_ABI.encodeFunctionData("push", [answer]), `push:${symbol}`)) ? "pending" : "current";
+}
+
 export async function watchPrices() {
   const d = deployment();
   const p = provider();
   const now = BigInt((await p.getBlock("latest"))!.timestamp);
   const busy = await inFlightKeys();
+  const needed = feedsOf(await rpc<OpenAuction[]>("lum_pool_open_auctions", {}), Number(now) + NEEDED_SEC);
   const marks: { symbol: string; usd: string; source: string }[] = [];
   const pushed: string[] = [];
   const errors: string[] = [];
-  for (const [symbol, address] of Object.entries(d.feeds)) {
+  for (const symbol of Object.keys(d.feeds)) {
     try {
       const { answer, source } = await sourcePrice(symbol);
       marks.push({ symbol, usd: String(answer / 100n), source }); // 8 dp → micro-USD
-      const [, current, , updatedAt] = (await new Contract(address, FEED_ABI, p).getFunction("latestRoundData")()) as [bigint, bigint, bigint, bigint];
-      const moved = (answer > current ? answer - current : current - answer) * 10_000n >= current * MOVE_BPS;
-      if (!moved && now - updatedAt < REFRESH_SEC) continue;
-      if (busy.has(`push:${symbol}`)) continue;
-      const tx = await sendOperator(address, FEED_ABI.encodeFunctionData("push", [answer]), `push:${symbol}`);
-      if (tx) pushed.push(symbol);
+      if (needed.has(symbol) && !busy.has(`push:${symbol}`) && (await refreshFeed(symbol, now, busy, REFRESH_SEC, answer)) === "pending") pushed.push(symbol);
     } catch (e) {
       errors.push(`${symbol}: ${String((e as Error)?.message ?? e).slice(0, 120)}`);
     }
@@ -66,7 +89,7 @@ export async function watchPrices() {
   const t0 = BigInt((await p.getBlock(d.deployBlock))!.timestamp);
   const target = 1_000_000n + (1_000_000n * APY_BPS * (now - t0)) / (10_000n * YEAR_SEC);
   let navTx: string | null = null;
-  if (target > nav && !busy.has("nav")) {
+  if (target >= nav + NAV_STEP && !busy.has("nav")) {
     const next = target < (nav * 10_100n) / 10_000n ? target : (nav * 10_100n) / 10_000n;
     navTx = await sendOperator(d.tokens.TQ, TQ_ABI.encodeFunctionData("raiseNav", [next]), "nav").catch((e) => {
       errors.push(`nav: ${String((e as Error)?.message ?? e).slice(0, 120)}`);

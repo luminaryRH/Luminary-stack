@@ -17,6 +17,7 @@ import { planAuctions, type CorporateAction, type MarketDay } from "../calendar"
 import { provider } from "../chain";
 import { rpc } from "../db";
 import { env } from "../env";
+import { feedsOf, refreshFeed } from "../nav";
 import { openOrder, orderCiphertexts, sealingPublicKey, type OpenAuction } from "./committee";
 import { DESK_ABI, deployment, pool } from "./contract";
 import { inFlightKeys, sendOperator, sendPool } from "./sends";
@@ -85,7 +86,10 @@ export async function scheduleAuctions() {
   return { due: due.length, sent: sent.length, ...(due.length > MAX_SCHEDULE_SENDS ? { left: due.length - MAX_SCHEDULE_SENDS } : {}) };
 }
 
-/** Pins every indexed auction whose call time has passed. */
+/**
+ * Pins every indexed auction whose call time has passed. A feed it reads that is near MAX_STALENESS (an RFQ opened at
+ * short notice, between price-watcher runs) or off the source price is pushed first, and the pin waits a tick for it.
+ */
 export async function pinAuctions() {
   const open = await rpc<OpenAuction[]>("lum_pool_open_auctions", {});
   const now = (await provider().getBlock("latest"))!.timestamp;
@@ -95,6 +99,9 @@ export async function pinAuctions() {
   const sent: string[] = [];
   for (const a of due) {
     if (busy.has(`pin:${a.id}`)) continue;
+    const feeds = [...feedsOf([a], now)];
+    const states = await Promise.all(feeds.map((s) => refreshFeed(s, BigInt(now), busy, 50 * 60)));
+    if (states.includes("pending")) continue;
     const s = await c.getFunction("auctions")(a.id);
     if (s.callBlock !== 0n || s.voided || s.settled) continue; // the indexer has not caught up
     const tx = await sendPool("pin", [a.id], `pin:${a.id}`);
