@@ -3,7 +3,9 @@ export type Language='en'|'zh-CN'|'ja';
 export const languages:Language[]=['en','zh-CN','ja'];
 export function isLanguage(value:unknown):value is Language{return languages.includes(value as Language)}
 const entries=catalog as Record<string,string[]>;
-const normalized=new Map(Object.entries(entries).map(([k,v])=>[k.trim().toLowerCase(),v]));
+// keys match ignoring case and line breaks: a two-line heading finds its one-line catalog entry
+const key=(s:string)=>s.trim().replace(/\s+/g,' ').toLowerCase();
+const normalized=new Map(Object.entries(entries).map(([k,v])=>[key(k),v]));
 const patterns:[RegExp,string,string][]=[
  [/^Enter a number greater than 0 and no more than (.+)\.$/,'请输入大于 0 且不超过 $1 的数字。','0 より大きく、$1 以下の数値を入力してください。'],
  [/^(.+) added to your treasury balance\.$/,'已向模拟国债余额添加 $1。','デモの国債残高に $1 を追加しました。'],
@@ -16,7 +18,7 @@ const patterns:[RegExp,string,string][]=[
 export function translateText(text:string,language:Language):string{
  if(language==='en'||!text.trim())return text;
  const core=text.trim(),index=language==='zh-CN'?0:1;
- const found=entries[core]||normalized.get(core.toLowerCase());
+ const found=entries[core]||normalized.get(key(core));
  let result=found?.[index];
  if(!result){for(const [regex,zh,ja]of patterns){if(regex.test(core)){result=core.replace(regex,index===0?zh:ja);break}}}
  if(!result)return text;

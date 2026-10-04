@@ -18,6 +18,8 @@ import {
 } from "ethers";
 import { CONFIG, DEPLOYMENT } from "@/lib/luminary-config";
 import { rpc as db } from "@/server/luminary/db";
+import { open } from "@/shielded/crypto";
+import { rebuild, type Grant } from "@/shielded/ledger";
 import { POOL_ABI } from "@/server/luminary/pool/contract";
 import { sendPool } from "@/server/luminary/pool/sends";
 import {
@@ -536,47 +538,144 @@ async function main() {
     );
   }
 
-  // ---- 5. the schedule skips an asset's auctions on a seeded Ex-Date ------------------------------------------
-  const day = new Date(Date.now() + 5 * 86_400_000);
-  while (day.getUTCDay() === 0 || day.getUTCDay() === 6) day.setUTCDate(day.getUTCDate() + 1);
-  const iso = day.toISOString().slice(0, 10);
-  const window = `/api/auctions?from=${iso}T12:00:00Z&to=${iso}T23:59:00Z`;
-  const actionId = await db<number>("lum_corporate_action_put", {
-    p_symbol: "PLTR",
-    p_ex_date: iso,
-    p_kind: "dividend",
-    p_note: "acceptance test",
-  });
-  await cron("calendar");
-  const paused = (await api<{ auctions: { symbol: string }[] }>(window)).auctions;
-  await db("lum_corporate_action_delete", { p_id: actionId });
-  await cron("calendar");
-  const resumed = (await api<{ auctions: { symbol: string }[] }>(window)).auctions;
-  check(
-    "5 Ex-Date pauses the asset",
-    !paused.some((a) => a.symbol === "PLTR") &&
-      paused.some((a) => a.symbol === "TSLA") &&
-      resumed.some((a) => a.symbol === "PLTR"),
-    `${iso}: PLTR ${paused.filter((a) => a.symbol === "PLTR").length} calls with the Ex-Date, ${resumed.filter((a) => a.symbol === "PLTR").length} after removing it`,
-  );
+  if (FROM <= 5) {
+    // ---- 5. the schedule skips an asset's auctions on a seeded Ex-Date ------------------------------------------
+    const day = new Date(Date.now() + 5 * 86_400_000);
+    while (day.getUTCDay() === 0 || day.getUTCDay() === 6) day.setUTCDate(day.getUTCDate() + 1);
+    const iso = day.toISOString().slice(0, 10);
+    const window = `/api/auctions?from=${iso}T12:00:00Z&to=${iso}T23:59:00Z`;
+    const actionId = await db<number>("lum_corporate_action_put", {
+      p_symbol: "PLTR",
+      p_ex_date: iso,
+      p_kind: "dividend",
+      p_note: "acceptance test",
+    });
+    await cron("calendar");
+    const paused = (await api<{ auctions: { symbol: string }[] }>(window)).auctions;
+    await db("lum_corporate_action_delete", { p_id: actionId });
+    await cron("calendar");
+    const resumed = (await api<{ auctions: { symbol: string }[] }>(window)).auctions;
+    check(
+      "5 Ex-Date pauses the asset",
+      !paused.some((a) => a.symbol === "PLTR") &&
+        paused.some((a) => a.symbol === "TSLA") &&
+        resumed.some((a) => a.symbol === "PLTR"),
+      `${iso}: PLTR ${paused.filter((a) => a.symbol === "PLTR").length} calls with the Ex-Date, ${resumed.filter((a) => a.symbol === "PLTR").length} after removing it`,
+    );
 
-  // ---- withdraw: the bought TSLA out of the pool to the buyer's wallet ----------------------------------------
-  // (runs when check 1 bought TSLA this run; a resumed run may have nothing left to withdraw)
-  if (FROM > 2 && !(await spendable(B, "TSLA", 1)()))
-    return log("withdraw skipped: no shielded TSLA to withdraw");
-  await until("bought TSLA spendable", spendable(B, "TSLA", 1));
-  const before = await new Contract(d.tokens.TSLA, ERC20, chain).getFunction("balanceOf")(
-    bw.address,
-  );
-  await B.withdraw("TSLA", "1", bw.address, true, (s) => log("B", s));
-  const after = await new Contract(d.tokens.TSLA, ERC20, chain).getFunction("balanceOf")(
-    bw.address,
-  );
-  check(
-    "withdraw to the wallet",
-    after - before === parseUnits("1", 18),
-    `wallet TSLA +${Number(after - before) / 1e18}`,
-  );
+    // ---- withdraw: the bought TSLA out of the pool to the buyer's wallet ----------------------------------------
+    // (runs when check 1 bought TSLA this run; a resumed run may have nothing left to withdraw)
+    if (FROM > 2 && !(await spendable(B, "TSLA", 1)()))
+      log("withdraw skipped: no shielded TSLA to withdraw");
+    else {
+      await until("bought TSLA spendable", spendable(B, "TSLA", 1));
+      const before = await new Contract(d.tokens.TSLA, ERC20, chain).getFunction("balanceOf")(
+        bw.address,
+      );
+      await B.withdraw("TSLA", "1", bw.address, true, (s) => log("B", s));
+      const after = await new Contract(d.tokens.TSLA, ERC20, chain).getFunction("balanceOf")(
+        bw.address,
+      );
+      check(
+        "withdraw to the wallet",
+        after - before === parseUnits("1", 18),
+        `wallet TSLA +${Number(after - before) / 1e18}`,
+      );
+    }
+  }
+
+  if (FROM <= 6) {
+    // ---- 6. shielded split, private transfer and merge (TQ: a token, so always self-submitted) -------------------
+    await until("buyer TQ spendable", spendable(B, "TQ", 20));
+    const tq = BigInt(d.tokens.TQ);
+    const notesOf = (acc: ShieldedAccount) =>
+      acc.notes.filter(
+        (n) => !n.spent && n.amount > 0n && n.asset === tq && n.index < acc.config.tree.size,
+      );
+    const total = (acc: ShieldedAccount) => notesOf(acc).reduce((s, n) => s + n.amount, 0n);
+    const settled = (acc: ShieldedAccount, ok: () => boolean) => async () => (
+      await acc.sync(),
+      ok()
+    );
+    await S.sync();
+    const [b0, s0, n0] = [total(B), total(S), notesOf(B).length];
+
+    await B.split("TQ", "10", true, (s) => log("B", s));
+    await until(
+      "split in the tree",
+      settled(B, () => notesOf(B).length === n0 + 1),
+    );
+    check(
+      "6 split one note in two",
+      total(B) === b0 && notesOf(B).some((n) => n.amount === 10_000_000n),
+      `${n0} → ${notesOf(B).length} TQ notes, total unchanged at ${Number(b0) / 1e6}`,
+    );
+
+    await B.transfer("TQ", "5", S.shieldedAddress(), true, (s) => log("B", s));
+    await until(
+      "transfer received",
+      settled(S, () => total(S) === s0 + 5_000_000n),
+    );
+    await until(
+      "sender change in the tree",
+      settled(B, () => total(B) === b0 - 5_000_000n),
+    );
+    check(
+      "6 private transfer to a shielded address",
+      true,
+      `B ${Number(b0) / 1e6} → ${Number(total(B)) / 1e6} TQ, S ${Number(s0) / 1e6} → ${Number(total(S)) / 1e6} TQ`,
+    );
+
+    const n1 = notesOf(B).length;
+    await B.merge("TQ", true, (s) => log("B", s));
+    await until(
+      "merge in the tree",
+      settled(B, () => notesOf(B).length === n1 - 1),
+    );
+    check(
+      "6 merge two notes into one",
+      total(B) === b0 - 5_000_000n,
+      `${n1} → ${notesOf(B).length} TQ notes, total ${Number(total(B)) / 1e6}`,
+    );
+  }
+
+  if (FROM <= 7) {
+    // ---- 7. disclosure: an auditor opens the grant and rebuilds the account without its spending secret ---------
+    const auditor = Wallet.createRandom();
+    const auditorPub = auditor.signingKey.compressedPublicKey;
+    const hash = await B.disclose(auditorPub, (s) => log("B", s));
+    await chain.waitForTransaction(hash as string, 1, 120_000);
+    const grantEvent = await until("grant indexed", async () =>
+      (
+        await api<{ events: { args: { auditor: string; from: string; grant: string } }[] }>(
+          `/api/pool/events?names=Disclosed&after=${d.deployBlock}`,
+        )
+      ).events.find((e) => e.args.auditor === keccak256(auditorPub)),
+    );
+    const grant = JSON.parse((await open(auditor.privateKey, grantEvent.args.grant))!) as Grant;
+    await B.sync();
+    const seen = await rebuild(
+      { owner: BigInt(grant.owner), viewPriv: grant.viewPriv, blindKey: BigInt(grant.blindKey) },
+      grant.wallet,
+      B.leaves,
+      B.events,
+      B.unit,
+    );
+    const unspent = (ns: { spent: boolean; amount: bigint; commitment: bigint }[]) =>
+      ns
+        .filter((n) => !n.spent && n.amount > 0n)
+        .map((n) => String(n.commitment))
+        .sort()
+        .join();
+    check(
+      "7 auditor rebuilds the account from the grant",
+      grantEvent.args.from.toLowerCase() === bw.address.toLowerCase() &&
+        !("secret" in grant) &&
+        unspent(seen.notes) === unspent(B.notes) &&
+        seen.orders.length === B.orders.length,
+      `${seen.notes.filter((n) => !n.spent).length} unspent notes and ${seen.orders.length} orders, same as the owner's`,
+    );
+  }
 }
 
 main()
