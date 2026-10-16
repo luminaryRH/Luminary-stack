@@ -103,7 +103,7 @@ export function allocate(qty: bigint[], buy: boolean[], targets: [bigint, bigint
   const cutIdx: [number, number] = [0, 0];
   for (const side of [0, 1] as const) {
     const [total, target] = [totals[side], targets[side]];
-    if (target > total) throw new Error(`allocate: target ${target} above total ${total}`);
+    if (target > total) throw new Error("allocate: target above total"); // no order values in errors: worker errors are public
     const idx = [...Array(n).keys()].filter((i) => (buy[i] ? 0 : 1) === side);
     let sum = 0n;
     for (const i of idx) {

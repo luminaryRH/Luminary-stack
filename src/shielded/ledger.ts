@@ -172,9 +172,9 @@ export async function loadEvents(get: <T>(path: string) => Promise<T>, names: st
   const events: PoolEvent[] = [];
   // the cursor is the last row's (block, log_index), so a page that cuts inside a block resumes inside it
   for (let block = from, log = LAST_LOG; ; ) {
-    const page = await get<{ events: PoolEvent[] }>(`/api/pool/events?names=${names.join(",")}&after=${block}&afterLog=${log}`);
+    const page = await get<{ events: PoolEvent[]; more?: boolean }>(`/api/pool/events?names=${names.join(",")}&after=${block}&afterLog=${log}`);
     events.push(...page.events);
-    if (page.events.length < PAGE) break;
+    if (!(page.more ?? page.events.length >= PAGE) || page.events.length === 0) break;
     ({ block, log_index: log } = page.events[page.events.length - 1]!);
   }
   return events.sort((a, b) => a.block - b.block || a.log_index - b.log_index);

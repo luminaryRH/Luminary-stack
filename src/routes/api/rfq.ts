@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isHexString } from "ethers";
+import { SigningKey, isHexString } from "ethers";
+import { postDigest } from "@/shielded/rfq";
 import { rpc } from "@/server/luminary/db";
 import { fail, handle, ok } from "@/server/luminary/http";
 
 const MAX_CIPHERTEXT_BYTES = 8_192;
+const MAX_SKEW_SEC = 300;
 
 // Sealed RFQ intent mailbox. POST { to, from, ciphertext, ttlSeconds }: `to` is keccak256 of
 // the recipient's session key, `from` the sender's compressed session key, `ciphertext` sealed to the recipient
@@ -22,13 +24,24 @@ export const Route = createFileRoute("/api/rfq")({
         }),
       POST: ({ request }) =>
         handle(async () => {
-          const body = (await request.json().catch(() => null)) as { to?: unknown; from?: unknown; ciphertext?: unknown; ttlSeconds?: unknown } | null;
+          const body = (await request.json().catch(() => null)) as { to?: unknown; from?: unknown; ciphertext?: unknown; ttlSeconds?: unknown; ts?: unknown; sig?: unknown } | null;
           if (!body || !isHexString(body.to, 32)) return fail("to must be a 32-byte key hash", 400);
           if (!isHexString(body.from, 33) || !/^0x0[23]/.test(String(body.from))) return fail("from must be a compressed session public key", 400);
           if (!isHexString(body.ciphertext) || (body.ciphertext as string).length > 2 + 2 * MAX_CIPHERTEXT_BYTES) return fail(`ciphertext must be hex, at most ${MAX_CIPHERTEXT_BYTES} bytes`, 400);
           const ttl = Number(body.ttlSeconds ?? 3600);
-          const id = await rpc<number | null>("lum_rfq_post", { p_to_key: body.to, p_from_pub: body.from, p_ciphertext: body.ciphertext, p_ttl_seconds: Number.isFinite(ttl) ? Math.trunc(ttl) : 3600 });
-          if (id === null) return fail("too many messages from this key; wait a minute", 429);
+          // the sender proves it holds the `from` key, so nobody can post as somebody else's session
+          const ts = Number(body.ts);
+          if (!Number.isSafeInteger(ts) || Math.abs(ts - Date.now() / 1000) > MAX_SKEW_SEC) return fail("ts must be the current unix time", 400);
+          if (!Number.isSafeInteger(ttl) || !isHexString(body.sig, 65)) return fail("sig must be a 65-byte signature by the from key", 400);
+          let signer: string;
+          try {
+            signer = SigningKey.recoverPublicKey(postDigest(body.to as string, body.ciphertext as string, ttl, ts), body.sig as string);
+          } catch {
+            return fail("bad signature", 400);
+          }
+          if (SigningKey.computePublicKey(signer, true).toLowerCase() !== String(body.from).toLowerCase()) return fail("signature does not match from", 400);
+          const id = await rpc<number | null>("lum_rfq_post", { p_to_key: body.to, p_from_pub: body.from, p_ciphertext: body.ciphertext, p_ttl_seconds: ttl });
+          if (id === null) return fail("the mailbox is busy for this key or inbox; wait a minute", 429);
           return ok({ id });
         }),
     },

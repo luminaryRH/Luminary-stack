@@ -32,6 +32,16 @@ export interface Market {
   feed: string | null;
 }
 
+const BPS = 10_000n;
+const MIN_QUOTE_USD = 990_000n; // micro-USD: the lowest quote-token price a default buy lock still covers
+
+const ceilDiv = (a: bigint, b: bigint) => (a + b - 1n) / b;
+
+/** The smallest lock (quote micro-units) that lets a buy of `qty` trade at `limit` after the fee, for a quote ≥ $0.99. */
+export function buyLockFor(qty: bigint, limit: bigint, feeBps: bigint) {
+  return ceilDiv(ceilDiv(qty * limit, MIN_QUOTE_USD) * (BPS + feeBps), BPS);
+}
+
 export interface PoolConfig {
   chainId: number;
   pool: string;
@@ -675,8 +685,9 @@ export class ShieldedAccount {
     if (buy) {
       const typed = t.lockText?.trim() ? toUnits(t.lockText, this.market(quote).decimals) : undefined;
       if (typed !== undefined) lock = typed === null ? null : typed / quoteUnit;
-      // ponytail: assumes 1 quote token ≈ $1 (USDG; old TQ auctions: NAV starts at 1 and only rises), so qty × limit covers the buy; an at-auction buy names its lock
-      else lock = limit ? (qty * limit * (10_000n + BigInt(this.config.feeBps))) / 10_000n / 1_000_000n + 1n : null;
+      // auction_clear lets a buy trade at its limit only when floor(lock·BPS/(BPS+fee))·quoteUsd/qty reaches the limit, so
+      // round up at each step and allow the quote token to be pinned up to 1% under $1. An at-auction buy names its lock.
+      else lock = limit ? buyLockFor(qty, limit, BigInt(this.config.feeBps)) : null;
       if (!lock || lock <= 0n) throw Error(`Enter the most ${this.symbol(quote)} this buy may spend.`);
     }
     if (lock >= 1n << 64n) throw Error("That lock is too large.");

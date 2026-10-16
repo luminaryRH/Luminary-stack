@@ -147,7 +147,7 @@ export async function openWithPartials(committee: Committee, sealed: string, par
     const b = getBytes(sealed);
     const key = await globalThis.crypto.subtle.importKey("raw", new Uint8Array(getBytes(sha256(hexlify(bytesOf(shared, false))))), "AES-GCM", false, ["decrypt"]);
     const plain = await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(b.slice(33, 45)) }, key, new Uint8Array(b.slice(45)));
-    return toUtf8String(new Uint8Array(plain));
+    return toUtf8String(new Uint8Array(plain)).trimEnd(); // seal pads with spaces (crypto.ts)
   } catch {
     return null;
   }

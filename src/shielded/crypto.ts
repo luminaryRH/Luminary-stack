@@ -59,12 +59,22 @@ const buf = (b: Uint8Array) => new Uint8Array(b);
 const aesKey = async (shared: string, usage: KeyUsage) =>
   globalThis.crypto.subtle.importKey("raw", buf(getBytes(sha256(shared))), "AES-GCM", false, [usage]);
 
+// Plaintexts are padded with spaces to a multiple of PAD bytes, so a ciphertext's length does not tell an order's type or
+// size, or which settlement results filled. Every sealed payload is JSON, which ignores the trailing spaces; open trims them.
+const PAD = 512;
+const padded = (plain: string) => {
+  const bytes = toUtf8Bytes(plain);
+  const out = new Uint8Array(Math.ceil((bytes.length + 1) / PAD) * PAD).fill(0x20);
+  out.set(bytes);
+  return out;
+};
+
 /** Encrypts `plain` to a secp256k1 public key: ephemeral key (33 B) ‖ iv (12 B) ‖ AES-GCM ciphertext. */
 export async function seal(toPub: string, plain: string): Promise<string> {
   const eph = new SigningKey(hexlify(randomBytes(32)));
   const iv = buf(randomBytes(12));
   const key = await aesKey(eph.computeSharedSecret(toPub), "encrypt");
-  const ct = new Uint8Array(await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, buf(toUtf8Bytes(plain))));
+  const ct = new Uint8Array(await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, padded(plain)));
   return hexlify(concat([eph.compressedPublicKey, iv, ct]));
 }
 
@@ -73,7 +83,7 @@ export async function open(priv: string, sealed: string): Promise<string | null>
   try {
     const b = getBytes(sealed);
     const key = await aesKey(new SigningKey(priv).computeSharedSecret(hexlify(b.slice(0, 33))), "decrypt");
-    return toUtf8String(new Uint8Array(await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv: buf(b.slice(33, 45)) }, key, buf(b.slice(45)))));
+    return toUtf8String(new Uint8Array(await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv: buf(b.slice(33, 45)) }, key, buf(b.slice(45))))).trimEnd();
   } catch {
     return null;
   }

@@ -2,7 +2,7 @@
 // /api/rfq. When they agree, one opens an RFQ auction on RfqDesk and both place orders into it carrying the same rfq
 // commitment; the desk crosses them whole at the pinned reference (circuits/rfq_cross) or refunds both. Session keys
 // are fresh per negotiation, not wallet keys.
-import { SigningKey, hexlify, keccak256, randomBytes } from "ethers";
+import { AbiCoder, SigningKey, hexlify, keccak256, randomBytes } from "ethers";
 import { open, seal } from "./crypto";
 import { H } from "./protocol";
 
@@ -42,13 +42,20 @@ async function call<T>(base: string, path: string, init?: RequestInit): Promise<
   return body.data;
 }
 
-/** Seals `intent` to the counterparty's session key and posts it. */
+/** What the sender signs so the mailbox knows the message really comes from `from` (src/routes/api/rfq.ts checks it). */
+export const postDigest = (to: string, ciphertext: string, ttlSeconds: number, ts: number) =>
+  keccak256(AbiCoder.defaultAbiCoder().encode(["string", "bytes32", "bytes", "uint256", "uint256"], ["luminary-rfq-v1", to, ciphertext, ttlSeconds, ts]));
+
+/** Seals `intent` to the counterparty's session key, signs it with this session's key, and posts it. */
 export async function sendIntent(me: RfqSession, toPub: string, intent: RfqIntent, ttlSeconds = 3600, base = "") {
   const ciphertext = await seal(toPub, JSON.stringify(intent));
+  const to = inboxOf(toPub);
+  const ts = Math.floor(Date.now() / 1000);
+  const sig = new SigningKey(me.priv).sign(postDigest(to, ciphertext, ttlSeconds, ts)).serialized;
   return call<{ id: number }>(base, "/api/rfq", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ to: inboxOf(toPub), from: me.pub, ciphertext, ttlSeconds }),
+    body: JSON.stringify({ to, from: me.pub, ciphertext, ttlSeconds, ts, sig }),
   });
 }
 

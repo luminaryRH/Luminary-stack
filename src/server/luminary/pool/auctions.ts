@@ -97,18 +97,25 @@ export async function pinAuctions() {
   if (due.length === 0) return { idle: true };
   const [c, busy] = [pool(), await inFlightKeys()];
   const sent: string[] = [];
+  const errors: string[] = [];
   for (const a of due) {
     if (busy.has(`pin:${a.id}`)) continue;
-    const feeds = [...feedsOf([a], now)];
-    const states = await Promise.all(feeds.map((s) => refreshFeed(s, BigInt(now), busy, 50 * 60)));
-    if (states.includes("pending")) continue;
-    const s = await c.getFunction("auctions")(a.id);
-    if (s.callBlock !== 0n || s.voided || s.settled) continue; // the indexer has not caught up
-    const tx = await sendPool("pin", [a.id], `pin:${a.id}`);
-    if (!tx) break;
-    sent.push(tx);
+    try {
+      // a feed whose source fails is not refreshed; the pin still runs and voids the auction if the feed is too old
+      const feeds = [...feedsOf([a], now)];
+      const states = await Promise.all(feeds.map((s) => refreshFeed(s, BigInt(now), busy, 50 * 60).catch(() => "stale" as const)));
+      if (states.includes("pending")) continue;
+      const s = await c.getFunction("auctions")(a.id);
+      if (s.callBlock !== 0n || s.voided || s.settled) continue; // the indexer has not caught up
+      const tx = await sendPool("pin", [a.id], `pin:${a.id}`);
+      if (!tx) break;
+      sent.push(tx);
+    } catch (e) {
+      // one auction's failure never holds back the others
+      errors.push(`${a.id}: ${String((e as Error)?.message ?? e).slice(0, 80)}`);
+    }
   }
-  return { due: due.length, sent: sent.length };
+  return { due: due.length, sent: sent.length, ...(errors.length ? { error: errors.join("; ") } : {}) };
 }
 
 async function settleOne(a: OpenAuction) {

@@ -1,12 +1,12 @@
 // Relayer: submits users' shielded transactions and orders from the operator wallet, so neither a withdrawal's recipient
 // nor an order is linked to the wallet that deposited. Every proof binds its relayer and fee, so the relayer can only
 // forward it. Fees are ETH: transactions of ETH notes, and orders (fee from a separate ETH note).
-import { Interface, ZeroAddress, getAddress, isHexString } from "ethers";
+import { Interface, ZeroAddress, getAddress, isHexString, keccak256, solidityPacked } from "ethers";
 import { provider } from "../chain";
 import { rpc } from "../db";
 import { UserError } from "../http";
 import { operator } from "./contract";
-import { sendPool } from "./sends";
+import { GasCapError, sendPool } from "./sends";
 
 // Gas each relayed call uses, Orbit L1 data included (measured on the forge flow: placeOrder ~3.8M, transact ~3.7M).
 const RELAY_GAS = { transact: 4_000_000n, order: 4_200_000n } as const;
@@ -142,33 +142,43 @@ export async function relayStatus(idParam: unknown) {
   return { status: r.status, tx: r.hashes.at(-1) ?? r.tx };
 }
 
-async function submit(kind: RelayKind, fee: bigint, fn: string, args: unknown[], id: string | null) {
-  if (id) {
-    // two requests with one id race here; the loser gets the winner's tx, or null while the winner is still sending
-    const claim = await rpc<{ claimed: boolean; tx?: string | null }>("lum_relay_claim", { p_client_id: id, p_kind: kind, p_fee: String(fee) });
-    if (!claim.claimed) return { tx: claim.tx ?? null };
+/** One claim per spent note: the same nullifiers relayed twice (in parallel, or again after an on-chain revert) send once. */
+const noteKey = (nullifiers: string[]) => keccak256(solidityPacked(["bytes32[]"], [[...nullifiers].sort()])).slice(2, 34);
+
+async function submit(kind: RelayKind, fee: bigint, fn: string, args: unknown[], id: string | null, nullifiers: string[]) {
+  const keys = [noteKey(nullifiers), ...(id ? [id] : [])];
+  const claimed: string[] = [];
+  // nothing reached the chain on any path that throws below, so the claims are freed for an honest retry
+  const release = () => Promise.all(claimed.map((k) => rpc("lum_relay_release", { p_client_id: k }).catch((e) => console.error("relay release failed", String(e)))));
+  for (const k of keys) {
+    // two requests with one key race here; the loser gets the winner's tx, or null while the winner is still sending
+    const claim = await rpc<{ claimed: boolean; tx?: string | null }>("lum_relay_claim", { p_client_id: k, p_kind: kind, p_fee: String(fee) });
+    if (!claim.claimed) {
+      await release();
+      return { tx: claim.tx ?? null };
+    }
+    claimed.push(k);
   }
-  // nothing reached the chain on any path that throws below, so the id is freed for an honest retry
-  const release = () => (id ? rpc("lum_relay_release", { p_client_id: id }).catch((e) => console.error("relay release failed", String(e))) : null);
   let tx: string | null;
   try {
-    tx = await sendPool(fn, args);
+    tx = await sendPool(fn, args, null, RELAY_GAS[kind]);
   } catch (e) {
     await release();
+    if (e instanceof GasCapError) throw new UserError("This call needs more gas than the relayer fee covers. Submit it from your wallet.");
     if (outOfGas(e)) {
       console.error("relayer out of gas", operator().address);
       throw new UserError("The relayer is temporarily out of gas, so nothing was sent and your notes are untouched. Try again later, or submit from your wallet.");
     }
     const rejected = rejection(e);
     if (rejected) throw rejected;
-    const reason = (e as { shortMessage?: string; message?: string }).shortMessage ?? String(e);
-    throw new UserError(`the pool rejects this ${fn === "transact" ? "transaction" : "order"}: ${reason.slice(0, 160)}`);
+    console.error("relay send failed", fn, String((e as { shortMessage?: string; message?: string }).shortMessage ?? e).slice(0, 300));
+    throw new UserError(`The pool rejected this ${fn === "transact" ? "transaction" : "order"}. Refresh the page and try again.`);
   }
   if (!tx) {
     await release();
     throw new UserError("the relayer has too many transactions in flight; try again in a minute");
   }
-  if (id) await rpc("lum_relay_sent", { p_client_id: id, p_tx: tx }).catch((e) => console.error("relay record failed", String(e)));
+  for (const k of claimed) await rpc("lum_relay_sent", { p_client_id: k, p_tx: tx }).catch((e) => console.error("relay record failed", String(e)));
   return { tx };
 }
 
@@ -203,8 +213,12 @@ export async function relay(body: Record<string, unknown>) {
       relayer: address(t["relayer"], "relayer"),
     };
     if (transaction.asset !== ZeroAddress) throw new UserError("the relayer takes ETH transactions only (its fee is paid in the note's asset)");
+    // the pool forwards all gas to `to`; a contract there could burn the relayer's gas, so relayed payouts go to plain accounts
+    if (transaction.released !== 0n && (await provider().getCode(transaction.to)) !== "0x") {
+      throw new UserError("The relayer pays out only to a plain account (no contract code). Withdraw to another address, or submit from your wallet.");
+    }
     await checkFee("transact", transaction.relayer, transaction.fee);
-    return submit("transact", transaction.fee, "transact", [Object.values(transaction), proof, hexBytes(body["memo"] ?? "0x", "memo", 8_192)], id);
+    return submit("transact", transaction.fee, "transact", [Object.values(transaction), proof, hexBytes(body["memo"] ?? "0x", "memo", 8_192)], id, transaction.nullifiers);
   }
 
   if (body["kind"] === "order") {
@@ -221,7 +235,7 @@ export async function relay(body: Record<string, unknown>) {
     };
     await checkFee("order", placement.relayer, placement.fee);
     const auctionId = uint(String(body["auctionId"] ?? ""), "auctionId");
-    return submit("order", placement.fee, "placeOrder", [auctionId, Object.values(placement), proof, hexBytes(body["sealedOrder"], "sealedOrder", 16_384)], id);
+    return submit("order", placement.fee, "placeOrder", [auctionId, Object.values(placement), proof, hexBytes(body["sealedOrder"], "sealedOrder", 4_096)], id, [placement.nullifier, placement.feeNullifier]);
   }
 
   throw new UserError('kind must be "transact" or "order"');

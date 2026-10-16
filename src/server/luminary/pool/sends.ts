@@ -56,10 +56,11 @@ const alreadyKnown = (e: unknown) => /already known|known transaction/i.test(Str
  * in flight (a cron step recomputes from the chain next run) or the queue is full. A simulated revert throws, and so
  * does a broadcast the node refuses, whose nonce is then freed.
  */
-export async function sendOperator(to: string, data: string, key: string | null = null): Promise<string | null> {
+export async function sendOperator(to: string, data: string, key: string | null = null, maxGas: bigint | null = null): Promise<string | null> {
   const p = provider();
   const op = operator();
-  await p.call({ from: op.address, to, data });
+  // simulate at a real gas price, so a callee that behaves differently when tx.gasprice is 0 shows it here
+  await p.call({ from: op.address, to, data, gasPrice: priceOf(await p.getBlock("latest")) });
   const [estimate, block, latest, pending] = await Promise.all([
     p.estimateGas({ from: op.address, to, data }),
     p.getBlock("latest"),
@@ -76,7 +77,13 @@ export async function sendOperator(to: string, data: string, key: string | null 
     p_max: MAX_IN_FLIGHT,
   });
   if (nonce === null) return null;
-  const { raw, hash } = await sign(op, { to, data, nonce: Number(nonce), gasLimit: (estimate * 6n) / 5n, gasPrice: priceOf(block) });
+  // a relayed call is priced for maxGas: refuse one that needs more, and never let it burn more than it paid for
+  if (maxGas !== null && estimate > maxGas) {
+    await rpc("lum_operator_send_failed", { p_wallet: op.address, p_nonce: nonce, p_error: `estimate ${estimate} above ${maxGas}` });
+    throw new GasCapError(estimate, maxGas);
+  }
+  const limit = maxGas !== null && (estimate * 6n) / 5n > maxGas ? maxGas : (estimate * 6n) / 5n;
+  const { raw, hash } = await sign(op, { to, data, nonce: Number(nonce), gasLimit: limit, gasPrice: priceOf(block) });
   try {
     await p.broadcastTransaction(raw);
   } catch (e) {
@@ -88,7 +95,18 @@ export async function sendOperator(to: string, data: string, key: string | null 
   return hash;
 }
 
-export const sendPool = (fn: string, args: unknown[], key: string | null = null) => sendOperator(poolAddress(), POOL_ABI.encodeFunctionData(fn, args), key);
+export const sendPool = (fn: string, args: unknown[], key: string | null = null, maxGas: bigint | null = null) =>
+  sendOperator(poolAddress(), POOL_ABI.encodeFunctionData(fn, args), key, maxGas);
+
+/** A relayed call that needs more gas than its fee pays for. */
+export class GasCapError extends Error {
+  constructor(
+    readonly estimate: bigint,
+    readonly cap: bigint,
+  ) {
+    super(`gas estimate ${estimate} above the relayed cap ${cap}`);
+  }
+}
 
 /** Keys of the operator sends still in flight, so a step can skip work (and its proof) whose send is already out. */
 export async function inFlightKeys() {
