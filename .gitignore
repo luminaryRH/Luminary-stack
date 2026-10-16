@@ -44,3 +44,10 @@ contracts/broadcast
 # Noir
 circuits/target
 circuits/*/Prover.toml
+
+# env template (names only)
+!.env.example
+
+# audit-grade raw tool output and the solidity-auditor ledger (local)
+.audit-grade/runs/
+.solidity-auditor/

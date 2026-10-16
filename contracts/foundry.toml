@@ -1,4 +1,4 @@
-# Luminary contracts. Dependencies (not committed): git clone --depth 1 https://github.com/foundry-rs/forge-std lib/forge-std
+# Luminary contracts. Dependencies (not committed, test-only): git clone --depth 1 --branch v1.16.2 https://github.com/foundry-rs/forge-std lib/forge-std
 [profile.default]
 src = "src"
 test = "test"
@@ -9,7 +9,10 @@ solc_version = "0.8.28"
 evm_version = "cancun" # Robinhood Chain testnet supports PUSH0, TSTORE and MCOPY
 optimizer = true
 optimizer_runs = 200
-fs_permissions = [{ access = "read", path = "../circuits/target" }, { access = "read-write", path = "deployments" }]
+via_ir = false
+bytecode_hash = "ipfs"
+cbor_metadata = true
+fs_permissions = [{ access = "read", path = "test/fixtures" }, { access = "read", path = "../circuits/target" }, { access = "read-write", path = "deployments" }]
 
 [fuzz]
 runs = 1000

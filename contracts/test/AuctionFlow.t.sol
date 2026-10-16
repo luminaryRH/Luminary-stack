@@ -21,7 +21,7 @@ import {HonkVerifier as ReclaimHonk} from "../src/verifiers/ReclaimVerifier.sol"
 /// (skipped when they are absent): deposit, append, place three orders, pin at $250, settle at p* = $245 with the
 /// AuctionClearProof, append the outputs, withdraw a fill, cancel the rolled remainder.
 contract AuctionFlowTest is Test {
-    string constant DIR = "../circuits/target/fixtures/";
+    string constant DIR = "test/fixtures/";
     address constant POOL = 0x00000000000000000000000000000000000A0C71;
     address constant TSLA = 0x000000000000000000000000000000000000c9F9;
     address constant TQ = 0x0000000000000000000000000000000000007e7E;

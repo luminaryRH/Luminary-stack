@@ -1,0 +1,4 @@
+# The classic GitHub token committed in 7b4eaa8 (GITHUB_SETUP.md) — removed from the tree in the commit that added
+# this file. It must be revoked on GitHub; SECURITY.md records the revocation date. Rotated secrets stay in history
+# (AGENTS.md forbids rewriting pushed history), so the history scan skips this one fingerprint and nothing else.
+7b4eaa80304da59a60a7033f1671304116d2b8a8:GITHUB_SETUP.md:github-pat:19

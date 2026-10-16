@@ -8,7 +8,7 @@ import {HonkVerifier} from "../src/verifiers/AuctionClearVerifier.sol";
 /// prover the operator runs; `node node_modules/.cache/bench/bench.mjs`, see src/shielded/prove.bench.ts); skipped when
 /// the proof is absent.
 contract AuctionClearVerifierTest is Test {
-    string constant PROOF_DIR = "../circuits/target/fixtures/bbjs_settle/";
+    string constant PROOF_DIR = "test/fixtures/bbjs_settle/";
     HonkVerifier verifier;
     bytes proof;
     bytes32[] inputs;
