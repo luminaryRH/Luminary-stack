@@ -12,6 +12,29 @@ export class DbError extends Error {
 
 let client: postgres.Sql | undefined;
 
+// A query on a connection the pooler dropped silently never settles, and a warm instance then hangs every request
+// that awaits it (or a cached signature) until the 300 s function timeout. Past QUERY_TIMEOUT_MS the client is
+// discarded, so the next query opens fresh connections.
+const QUERY_TIMEOUT_MS = 20_000;
+
+function reset() {
+  const dead = client;
+  client = undefined;
+  signatures.clear();
+  void dead?.end({ timeout: 0 }).catch(() => {});
+}
+
+function timed<T>(query: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reset();
+      reject(new DbError(`database query timed out after ${QUERY_TIMEOUT_MS / 1000} s`, undefined));
+    }, QUERY_TIMEOUT_MS);
+  });
+  return Promise.race([query, timeout]).finally(() => clearTimeout(timer));
+}
+
 /** DATABASE_URL, moved to Supabase's transaction pooler (6543), which suits short serverless invocations. */
 function sql(): postgres.Sql {
   // idle connections close after 20 s: the pooler can drop them silently, and a reused function instance would then hang
@@ -32,9 +55,9 @@ function signature(fn: string) {
   let s = signatures.get(fn);
   if (!s) {
     // one JSON text column: the result never depends on the driver's array or type parsing
-    s = sql()`select json_build_object('names', coalesce(proargnames, '{}'), 'types', string_to_array(oidvectortypes(proargtypes), ', '),
+    s = timed(sql()`select json_build_object('names', coalesce(proargnames, '{}'), 'types', string_to_array(oidvectortypes(proargtypes), ', '),
                                        'ret', prorettype::regtype::text)::text as sig
-              from pg_proc where proname = ${fn} and pronamespace = 'public'::regnamespace`.then(([row]) => {
+              from pg_proc where proname = ${fn} and pronamespace = 'public'::regnamespace`).then(([row]) => {
       if (!row) throw new DbError(`no function ${fn}`, undefined);
       const sig = JSON.parse(row.sig as string) as { names: string[]; types: string[]; ret: string };
       return { types: new Map(sig.names.map((n, i) => [n, sig.types[i]!])), ret: sig.ret };
@@ -65,7 +88,7 @@ export async function rpc<T = unknown>(fn: string, args: Record<string, unknown>
   };
   const call = `${fn}(${names.map(param).join(", ")})`;
   try {
-    const rows = await sql().unsafe(ret === "void" ? `select ${call}` : `select to_jsonb(${call})::text as r`, names.map(value) as never[]);
+    const rows = await timed(sql().unsafe(ret === "void" ? `select ${call}` : `select to_jsonb(${call})::text as r`, names.map(value) as never[]));
     return (ret === "void" ? null : JSON.parse(rows[0]!.r as string)) as T;
   } catch (e) {
     const err = e as { message?: string; code?: string };

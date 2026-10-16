@@ -347,7 +347,7 @@ async function main() {
       "ReclaimProof refunded the lock while the auction was collecting",
     );
 
-    const p1 = await until("auction 1 printed", () => printOf(a1.id), 900_000);
+    const p1 = await until("auction 1 printed", () => printOf(a1.id), a1.callTime * 1000 - Date.now() + 900_000);
     const row1 = (await auctionRow(a1.id))!;
     const [pStar, refUsd] = [BigInt(p1.pStar), BigInt(row1.refUsd!)];
     const inBand = pStar * 10_000n >= refUsd * 9_500n && pStar * 10_000n <= refUsd * 10_500n;
