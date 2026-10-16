@@ -602,14 +602,16 @@ async function main() {
     await S.sync();
     const [b0, s0, n0] = [total(B), total(S), notesOf(B).length];
 
-    await B.split("TQ", "10", true, (s) => log("B", s));
+    // a fresh amount each run: an exact note left by an earlier run would be split into itself plus a zero change
+    const part = 10_000_000n + BigInt(Date.now() % 1_000_000);
+    await B.split("TQ", (Number(part) / 1e6).toFixed(6), true, (s) => log("B", s));
     await until(
       "split in the tree",
       settled(B, () => notesOf(B).length === n0 + 1),
     );
     check(
       "6 split one note in two",
-      total(B) === b0 && notesOf(B).some((n) => n.amount === 10_000_000n),
+      total(B) === b0 && notesOf(B).some((n) => n.amount === part),
       `${n0} → ${notesOf(B).length} TQ notes, total unchanged at ${Number(b0) / 1e6}`,
     );
 
