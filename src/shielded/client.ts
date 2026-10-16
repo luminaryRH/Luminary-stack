@@ -66,7 +66,9 @@ const POOL = new Interface([
   "function deposit(address asset, uint256 amount, bytes32 commitment, bytes proof) payable",
   "function depositNonce(address) view returns (uint256)",
   "function transact((bytes32 root, bytes32 aspRoot, bytes32[2] nullifiers, bytes32[2] outputs, address asset, uint256 released, uint256 fee, address to, address relayer) t, bytes proof, bytes memo)",
-  "function placeOrder(uint256 id, (bytes32 root, bytes32 nullifier, bytes32 feeNullifier, bytes32 change, bytes32 feeChange, bytes32 commitment, address relayer, uint256 fee) p, bytes proof, bytes sealedOrder)",
+  "function placeOrder(uint256 id, (bytes32 root, bytes32 nullifier, bytes32 feeNullifier, bytes32 change, bytes32 feeChange, bytes32 commitment, address relayer, uint256 fee, bytes32 aspRoot) p, bytes proof, bytes sealedOrder)",
+  "function ragequit((bytes32 root, bytes32 aspRoot, bytes32[2] nullifiers, bytes32[2] outputs, address asset, uint256 released, uint256 fee, address to, address relayer) t, uint256 nonce, bytes proof, bytes memo)",
+  "function minLock(address) view returns (uint256)",
   "function reclaim(uint256 id, uint256 slot, bytes32 orderNullifier, bytes32 refund, bytes proof)",
   "function abandon(uint256 id)",
   "function auctions(uint256 id) view returns ((address asset, uint64 callTime, uint8 kind, bool settled, bool voided, address quote, uint64 callBlock, uint16 capBps, uint16 feeBps, uint64 refUsd, uint64 quoteUsd, uint64 pinnedAt, uint16 live))",
@@ -444,9 +446,9 @@ export class ShieldedAccount {
     return BigInt(keccak256(abi.encode(["uint256", "address", "address", "address", "uint256"], [this.config.chainId, this.config.pool, to, relayer, fee]))) % FIELD;
   }
 
-  /** AuctionPool.placementContext: binds an order proof to this pool, its auction, relayer and fee. */
-  private placementContext(id: number, relayer: string, fee: bigint) {
-    return BigInt(keccak256(abi.encode(["uint256", "address", "uint256", "address", "uint256"], [this.config.chainId, this.config.pool, id, relayer, fee]))) % FIELD;
+  /** AuctionPool.placementContext: binds an order proof to this pool, its auction, relayer, fee and sealed order. */
+  private placementContext(id: number, relayer: string, fee: bigint, sealedOrder: string) {
+    return BigInt(keccak256(abi.encode(["uint256", "address", "uint256", "address", "uint256", "bytes32"], [this.config.chainId, this.config.pool, id, relayer, fee, keccak256(sealedOrder)]))) % FIELD;
   }
 
   private async call(to: string, data: string) {
@@ -524,8 +526,18 @@ export class ShieldedAccount {
    * `selfSubmit`; tokens are always self-submitted. Releasing funds proves the label is in the association set.
    * With `recipient`, the first output is made out to their owner key instead: a private transfer.
    */
-  private async transact(asset: bigint, ins: Note[], outs: bigint[], released: bigint, to: string, selfSubmit: boolean, progress: (s: string) => void, recipient?: { owner: bigint; viewPub: string }) {
-    const relayed = asset === ETH && !selfSubmit;
+  private async transact(
+    asset: bigint,
+    ins: Note[],
+    outs: bigint[],
+    released: bigint,
+    to: string,
+    selfSubmit: boolean,
+    progress: (s: string) => void,
+    recipient?: { owner: bigint; viewPub: string },
+    ragequitNonce?: bigint, // AuctionPool.ragequit: the label is shown instead of proven in the association set
+  ) {
+    const relayed = asset === ETH && !selfSubmit && ragequitNonce === undefined;
     const fee = relayed ? BigInt(this.config.relayFees.transactWei) : 0n;
     const relayer = relayed ? this.config.relayer : ZeroAddress;
     const { leaves, root } = this.tree();
@@ -547,7 +559,7 @@ export class ShieldedAccount {
     const spent = slots.map(spentOf);
 
     let asp: Awaited<ReturnType<ShieldedAccount["association"]>> = null;
-    if (released > 0n) {
+    if ((released > 0n || fee > 0n) && ragequitNonce === undefined) {
       progress("Checking your deposit against the association set…");
       asp = await this.association(label);
       if (!asp && this.config.associationRequired) {
@@ -576,6 +588,7 @@ export class ShieldedAccount {
       released,
       fee,
       context: this.context(to, relayer, fee),
+      public_label: ragequitNonce === undefined ? 0n : label,
     });
     const memo: TransactMemo = {
       label: String(label),
@@ -604,7 +617,29 @@ export class ShieldedAccount {
       return relayCall({ kind: "transact", transaction: t, proof, memo: sealedMemo }, progress);
     }
     progress("Confirm the transaction in your wallet…");
+    if (ragequitNonce !== undefined) return this.send(this.config.pool, POOL.encodeFunctionData("ragequit", [Object.values(t), ragequitNonce, proof, sealedMemo]));
     return this.send(this.config.pool, POOL.encodeFunctionData("transact", [Object.values(t), proof, sealedMemo]));
+  }
+
+  /**
+   * Ragequit: take `amountText` of `symbol` back to this wallet with no association proof, from notes that descend from
+   * one of this wallet's own deposits. It shows which deposit the value came from, so use it only when the screened
+   * withdrawal is closed (no association root for the deposit, or a broken gate). No owner or pause can stop it.
+   */
+  async ragequit(symbol: string, amountText: string, progress: (s: string) => void = () => {}) {
+    await this.sync();
+    const asset = this.assetOf(symbol);
+    const amount = toUnits(amountText, this.decimalsOf(asset));
+    if (!amount || amount <= 0n) throw Error("Enter an amount.");
+    await this.ensureChain();
+    const [count] = POOL.decodeFunctionResult("depositNonce", await this.call(this.config.pool, POOL.encodeFunctionData("depositNonce", [this.wallet])));
+    const nonces = new Map<bigint, bigint>();
+    for (let n = 0n; n < BigInt(count); n++) nonces.set(depositLabel(BigInt(this.config.chainId), this.config.pool, this.wallet, n), n);
+    const mine = this.spendableNotes(asset).filter((n) => nonces.has(n.label));
+    const single = [...mine].reverse().find((n) => n.amount >= amount);
+    const ins = single ? [single] : this.bestPair(mine, (sum) => sum >= amount, "smallest");
+    if (!ins) throw Error(`No notes from this wallet's own deposits cover ${amountText} ${symbol}. A ragequit only returns value to the wallet that deposited it.`);
+    return this.transact(asset, ins, [], amount, this.wallet, true, progress, undefined, nonces.get(ins[0]!.label));
   }
 
   /** Withdraw `amountText` of `symbol` to `to` (from up to two notes of one deposit; the rest stays shielded as change). */
@@ -760,7 +795,27 @@ export class ShieldedAccount {
         : {}),
     };
     const envelope = JSON.stringify({ o: await seal(this.config.sealPublic, openingToJson(opening)), u: await seal(viewPub, JSON.stringify(memo)) });
+    const sealedOrder = utf8Hex(envelope);
     const relayer = relayed ? this.config.relayer : ZeroAddress;
+
+    // the market minimums the pool binds into the proof (AuctionPool.minLock)
+    const minLockOf = async (token: bigint) => BigInt(POOL.decodeFunctionResult("minLock", await this.call(this.config.pool, POOL.encodeFunctionData("minLock", [address(token)])))[0]);
+    const minLock = [await minLockOf(asset), await minLockOf(quote)];
+    const floor = buy ? minLock[1]! : minLock[0]!;
+    if (lock < floor) {
+      throw Error(`The smallest ${buy ? "buy lock" : "sell"} in this market is ${formatUnits(floor * (buy ? quoteUnit : unit), this.decimalsOf(buy ? quote : asset))} ${this.symbol(buy ? quote : asset)}.`);
+    }
+    // where the pool requires association, both notes' deposits must be in the published set
+    let asp: Awaited<ReturnType<ShieldedAccount["association"]>> = null;
+    let feeAsp: Awaited<ReturnType<ShieldedAccount["association"]>> = null;
+    if (this.config.associationRequired) {
+      progress("Checking your deposit against the association set…");
+      asp = await this.association(n!.label);
+      feeAsp = feeNote ? await this.association(feeNote.label) : null;
+      if (!asp || (feeNote && (!feeAsp || feeAsp.root !== asp.root))) {
+        throw Error("The deposit these notes come from is not in the pool's current association set yet. If it was made in the last few minutes, try again shortly.");
+      }
+    }
 
     progress("Proving the order in your browser…");
     const { proof } = await proveCircuit("order_validity", {
@@ -796,8 +851,14 @@ export class ShieldedAccount {
       quote_unit: quoteUnit,
       commitment,
       fee,
-      context: this.placementContext(auction.id, relayer, fee),
+      context: this.placementContext(auction.id, relayer, fee, sealedOrder),
       terms: { min_qty: terms.minQty, display: terms.display, peg: terms.peg, rfq: terms.rfq },
+      asp_index: asp?.index ?? 0,
+      asp_path: asp?.path ?? zeroPath(),
+      fee_asp_index: feeAsp?.index ?? 0,
+      fee_asp_path: feeAsp?.path ?? zeroPath(),
+      asp_root: asp?.root ?? 0n,
+      min_lock: minLock,
     });
     const placement = {
       root: hex(root),
@@ -808,13 +869,14 @@ export class ShieldedAccount {
       commitment: hex(commitment),
       relayer,
       fee: String(fee),
+      aspRoot: hex(asp?.root ?? 0n),
     };
     if (relayed) {
       progress("Handing the sealed order to the relayer…");
-      return relayCall({ kind: "order", auctionId: String(auction.id), placement, proof, sealedOrder: utf8Hex(envelope) }, progress);
+      return relayCall({ kind: "order", auctionId: String(auction.id), placement, proof, sealedOrder }, progress);
     }
     progress("Confirm the sealed order in your wallet…");
-    return this.send(this.config.pool, POOL.encodeFunctionData("placeOrder", [auction.id, Object.values(placement), proof, utf8Hex(envelope)]));
+    return this.send(this.config.pool, POOL.encodeFunctionData("placeOrder", [auction.id, Object.values(placement), proof, sealedOrder]));
   }
 
   /** A fee note's size (enough for a few relayed orders) and what splitting it off through the relayer costs. */
@@ -848,6 +910,9 @@ export class ShieldedAccount {
     await this.sync();
     const o = this.orders.find((x) => hex(x.commitment) === commitmentHex.toLowerCase());
     if (!o) throw Error("Order not found.");
+    if (o.status === "open" && (this.auctions.get(o.auctionId)?.callTime ?? Infinity) <= Date.now() / 1000) {
+      throw Error(`Auction #${o.auctionId} has reached its call time, so the order is committed. It settles shortly; if the auction is voided instead, the lock can be reclaimed.`);
+    }
     if (o.status === "pinned") {
       await this.ensureChain();
       const [a] = POOL.decodeFunctionResult("auctions", await this.call(this.config.pool, POOL.encodeFunctionData("auctions", [o.auctionId])));
@@ -994,7 +1059,8 @@ export class ShieldedAccount {
             filled: o.result ? formatUnits(BigInt(o.result.qty), 6) : "0",
             pStar: o.result ? formatUnits(BigInt(o.result.pStar), 6) : null,
             rolled: Boolean(o.result?.rolls),
-            cancellable: o.status === "open" || o.status === "void" || o.status === "pinned",
+            // past its call time an order is committed (AuctionPool.reclaim): it settles, or is reclaimed once voided
+            cancellable: (o.status === "open" && (auction?.callTime ?? Infinity) > Date.now() / 1000) || o.status === "void" || o.status === "pinned",
           };
         })
         .reverse(),

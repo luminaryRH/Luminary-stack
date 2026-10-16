@@ -47,8 +47,13 @@ jobs:
           version: v1.5.1
       - run: git clone --depth 1 --branch v1.16.2 https://github.com/foundry-rs/forge-std lib/forge-std
       - run: forge build --sizes
-      - run: forge test -vv
+      - run: forge test -vv # includes the stateful invariants: 256 runs x 500 calls each
+        env:
+          FORK_RPC_URL: https://rpc.testnet.chain.robinhood.com # Fork.t.sol: the live stock token
       - run: forge coverage --report summary --no-match-coverage "(test|script|mocks|verifiers)/"
+        env:
+          FOUNDRY_INVARIANT_RUNS: "16"
+          FOUNDRY_INVARIANT_DEPTH: "100"
 
   circuits:
     name: circuits (nargo)

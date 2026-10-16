@@ -29,11 +29,13 @@ contract LUMI {
         emit Transfer(address(0), treasury, supply);
     }
 
+    /// Move `amount` from the sender to `to`.
     function transfer(address to, uint256 amount) external returns (bool) {
         _move(msg.sender, to, amount);
         return true;
     }
 
+    /// Let `spender` move up to `amount` of the sender's tokens.
     function approve(address spender, uint256 amount) external returns (bool) {
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);

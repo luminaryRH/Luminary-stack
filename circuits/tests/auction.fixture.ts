@@ -3,7 +3,8 @@
 // appended; a buy of 3 @ $255, a rolling sell of 2 @ $245 and an at-auction sell of 2 are placed in auction 0; it is
 // pinned at a $250 reference and settled with an AuctionClearProof built by src/shielded/settle.ts (the operator's
 // code) at p* = $245; the outputs are appended, the at-auction seller withdraws its TQ fill with a TransactProof, and
-// the rolled remainder is cancelled from auction 1 with a ReclaimProof.
+// the rolled remainder is cancelled from auction 1 with a ReclaimProof; the $245 seller takes its fill out through the
+// ragequit (its deposit's label made public, no association proof).
 import { writeFileSync } from "node:fs";
 import { AbiCoder, keccak256, ZeroAddress } from "ethers";
 import { settleAuction, commitmentOf, PLAIN, type OrderOpening, type PinnedAuction } from "../../src/shielded/settle";
@@ -22,12 +23,15 @@ const DEPOSITOR = "0x000000000000000000000000000000000000d0d0";
 const TO = "0x000000000000000000000000000000000000a11c";
 const FEE_OWNER = ownerPub(424242n);
 const AUCTION = 0n;
+const MIN_LOCK_ASSET = 1_000_000n; // the Foundry test sets these market minimums: 1 share, 100 TQ
+const MIN_LOCK_QUOTE = 100_000_000n;
 
 const abi = AbiCoder.defaultAbiCoder();
 const context = (to: string, relayer: string, fee: bigint) =>
   BigInt(keccak256(abi.encode(["uint256", "address", "address", "address", "uint256"], [CHAIN_ID, POOL, to, relayer, fee]))) % FIELD;
+// orders are placed with an empty sealedOrder in the Foundry test
 const placementContext = (id: bigint, relayer: string, fee: bigint) =>
-  BigInt(keccak256(abi.encode(["uint256", "address", "uint256", "address", "uint256"], [CHAIN_ID, POOL, id, relayer, fee]))) % FIELD;
+  BigInt(keccak256(abi.encode(["uint256", "address", "uint256", "address", "uint256", "bytes32"], [CHAIN_ID, POOL, id, relayer, fee, keccak256("0x")]))) % FIELD;
 const values = (o: Record<string, unknown>): Record<string, Value> =>
   Object.fromEntries(Object.entries(o).map(([k, v]) => [k, (typeof v === "number" ? BigInt(v) : v) as Value]));
 const zeroPath = () => Array<bigint>(DEPTH).fill(0n);
@@ -66,7 +70,8 @@ const place = (name: string, w: typeof buyer, index: number, o: OrderOpening) =>
     fee_change_blinding: 0n, buy: o.buy, qty: o.qty, has_limit: o.hasLimit, limit_usd: o.limitUsd, roll: o.roll,
     rolls_left: BigInt(o.rollsLeft), lock: o.lock, salt: o.salt, root: root1, spent, fee_spent: 0n, change, fee_change: 0n,
     asset: TSLA, unit: UNIT, quote_token: TQ, quote_unit: 1n, commitment, fee: 0n, context: placementContext(AUCTION, ZeroAddress, 0n),
-    terms: plainTerms,
+    terms: plainTerms, asp_index: 0n, asp_path: zeroPath(), fee_asp_index: 0n, fee_asp_path: zeroPath(), asp_root: 0n,
+    min_lock: [MIN_LOCK_ASSET, MIN_LOCK_QUOTE],
   });
   return { root: root1, spent, change, commitment };
 };
@@ -109,7 +114,26 @@ prove("transact", "flow_withdraw", {
   in_indexes: [BigInt(fillIndex), 0n], in_paths: [pathOf(all, fillIndex), zeroPath()], out_owners: [sellB.owner, sellB.owner],
   out_amounts: [0n, 0n], out_blindings: [99n, 98n], asp_index: 0n, asp_path: zeroPath(), root: root2, asp_root: 0n,
   spent: [withdrawal.nullifier0, withdrawal.nullifier1], outputs: [withdrawal.output0, withdrawal.output1], asset: TQ,
-  released: payout, fee: 0n, context: context(TO, ZeroAddress, 0n),
+  released: payout, fee: 0n, context: context(TO, ZeroAddress, 0n), public_label: 0n,
+});
+
+// 5b. the $245 seller ragequits its TQ fill to the depositor address, showing its deposit's label (deposit 1)
+const soldA = s.results[1]!;
+const fillAIndex = all.indexOf(soldA.fill);
+const payoutA = soldA.quote - soldA.fee;
+const dummyA = note(sellA.owner, TQ, 0n, 444n, sellA.label);
+const ragequit = {
+  nullifier0: nullifier(sellerA.secret, soldA.fill, BigInt(fillAIndex)),
+  nullifier1: nullifier(sellerA.secret, dummyA, 0n),
+  output0: note(sellA.owner, TQ, 0n, 89n, sellA.label),
+  output1: note(sellA.owner, TQ, 0n, 88n, sellA.label),
+};
+prove("transact", "flow_ragequit", {
+  secret: sellerA.secret, label: sellA.label, in_amounts: [payoutA, 0n], in_blindings: [blind(sellA.salt, 0n), 444n],
+  in_indexes: [BigInt(fillAIndex), 0n], in_paths: [pathOf(all, fillAIndex), zeroPath()], out_owners: [sellA.owner, sellA.owner],
+  out_amounts: [0n, 0n], out_blindings: [89n, 88n], asp_index: 0n, asp_path: zeroPath(), root: root2, asp_root: 0n,
+  spent: [ragequit.nullifier0, ragequit.nullifier1], outputs: [ragequit.output0, ragequit.output1], asset: TQ,
+  released: payoutA, fee: 0n, context: context(DEPOSITOR, ZeroAddress, 0n), public_label: sellA.label,
 });
 
 // 6. seller A cancels the rolled remainder from auction 1 while it is still collecting
@@ -140,6 +164,8 @@ writeFileSync(
     root2,
     payout,
     withdrawal,
+    payoutA,
+    ragequit,
     cancel: { commitment: rolledCommitment, spent: cancelSpent, refund: cancelRefund },
   }),
 );

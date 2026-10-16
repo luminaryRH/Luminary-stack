@@ -232,6 +232,7 @@ export async function relay(body: Record<string, unknown>) {
       commitment: bytes32(p["commitment"], "commitment"),
       relayer: address(p["relayer"], "relayer"),
       fee: uint(p["fee"], "fee"),
+      aspRoot: bytes32(p["aspRoot"] ?? "0x" + "0".repeat(64), "aspRoot"),
     };
     await checkFee("order", placement.relayer, placement.fee);
     const auctionId = uint(String(body["auctionId"] ?? ""), "auctionId");

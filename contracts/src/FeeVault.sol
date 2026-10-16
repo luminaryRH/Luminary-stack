@@ -62,6 +62,7 @@ contract FeeVault {
         emit Distributed(token, toShare, toTreasury);
     }
 
+    /// Turn the fee share on (to `recipient`, at most MAX_SHARE_BPS) or off (0).
     function setShare(address recipient, uint16 shareBps_) external onlyOwner {
         if (shareBps_ > MAX_SHARE_BPS) revert TooHigh();
         if (shareBps_ != 0 && recipient == address(0)) revert ZeroAddress();
@@ -70,17 +71,20 @@ contract FeeVault {
         emit ShareSet(recipient, shareBps_);
     }
 
+    /// Where the rest of every distribution goes.
     function setTreasury(address treasury_) external onlyOwner {
         if (treasury_ == address(0)) revert ZeroAddress();
         treasury = treasury_;
         emit TreasurySet(treasury_);
     }
 
+    /// Start moving ownership to `newOwner`; it takes effect when they accept.
     function transferOwnership(address newOwner) external onlyOwner {
         pendingOwner = newOwner;
         emit OwnershipTransferStarted(owner, newOwner);
     }
 
+    /// Accept a pending ownership transfer.
     function acceptOwnership() external {
         if (msg.sender != pendingOwner) revert NotPendingOwner();
         emit OwnershipTransferred(owner, msg.sender);

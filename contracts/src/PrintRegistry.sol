@@ -29,11 +29,13 @@ contract PrintRegistry {
         deployer = msg.sender;
     }
 
+    /// Set once, by the deployer: the AuctionPool that writes prints.
     function setWriter(address writer_) external {
         if (msg.sender != deployer || writer != address(0)) revert AlreadySet();
         writer = writer_;
     }
 
+    /// Append the print of settled auction `auctionId` (the writer only, once per auction).
     function record(uint256 auctionId, address asset, uint256 pStar, uint256 crossedQty) external {
         if (msg.sender != writer) revert NotWriter();
         if (printOf[auctionId] != 0) revert AlreadyPrinted();
@@ -42,10 +44,12 @@ contract PrintRegistry {
         emit Printed(auctionId, asset, pStar, crossedQty, prints.length - 1);
     }
 
+    /// How many prints the tape holds.
     function count() external view returns (uint256) {
         return prints.length;
     }
 
+    /// Print number `index`, oldest first.
     function get(uint256 index) external view returns (Print memory) {
         return prints[index];
     }

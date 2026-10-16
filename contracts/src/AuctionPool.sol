@@ -11,14 +11,17 @@ import {IPriceFeed, IPrintRegistry, IProofVerifier, IScreeningGate} from "./Inte
 ///                    chain, so notes become spendable once their batch is appended (anyone may advance).
 ///   transact       — TransactProof: up to two unspent notes become two new notes, releasing an amount to a recipient
 ///                    and a fee to a relayer (withdrawals, merging, splitting, private transfers).
+///   ragequit       — TransactProof with the label public: a depositor takes value of their own deposit back to their own
+///                    address with no association proof. No owner, gate or pause can stop it.
 ///   placeOrder     — OrderValidityProof: a note is locked into an order in a collecting auction. The order itself
-///                    travels sealed to the clearing committee; a relayed order pays its relayer in ETH from a second note.
+///                    travels sealed to the clearing committee (the proof binds its ciphertext); a relayed order pays its
+///                    relayer in ETH from a second note.
 ///   pin            — at the call time, pins the call block and the reference and quote prices (permissionless).
 ///   settleAuction  — AuctionClearProof: the auction's orders cleared at one price p* inside the band, with the volume
 ///                    maximized, produce exactly the fill notes, rolled orders / refunds and fee note. The print (p*,
 ///                    volume) is written to PrintRegistry in the same transaction.
-///   reclaim        — ReclaimProof: an order's owner takes the lock back: while its auction is still collecting (cancel),
-///                    or after it was voided or abandoned. Never gated by the operator.
+///   reclaim        — ReclaimProof: an order's owner takes the lock back: before the call time (cancel), after its
+///                    auction was voided or abandoned, or when the settlement left the order out. Never gated by the operator.
 /// Auctions are scheduled by the operator (the off-chain calendar); RFQ auctions are opened by RfqDesk, which settles
 /// them at the reference with its own proof.
 contract AuctionPool {
@@ -60,6 +63,7 @@ contract AuctionPool {
         bytes32 commitment;
         address relayer;
         uint256 fee; // wei, from the fee note
+        bytes32 aspRoot; // association-set root both labels are proven in; 0 = none
     }
 
     struct Clearing {
@@ -69,6 +73,8 @@ contract AuctionPool {
         bytes32[64] residuals;
         bool[64] rolls;
         bytes32 feeNote;
+        bool roll; // leftovers of rolling orders rest in `rollInto`; false = every leftover is refunded
+        uint64 excluded; // slots left out (their order does not open); they clear to nothing and stay reclaimable
     }
 
     struct Market {
@@ -91,7 +97,7 @@ contract AuctionPool {
         uint64 refUsd; // micro-USD per asset token, pinned
         uint64 quoteUsd; // micro-USD per quote token, pinned
         uint64 pinnedAt;
-        uint16 live; // orders resting in it (cancelled slots excluded)
+        uint16 live; // orders resting in it (cancelled slots are free again)
     }
 
     uint256 internal constant FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
@@ -107,6 +113,8 @@ contract AuctionPool {
     uint16 public constant MAX_CAP_BPS = 2000;
     uint256 public constant SETTLE_DEADLINE = 1 hours; // after the pin; past it the auction can be abandoned
     uint256 public constant MAX_DEPOSIT_FEE = 0.001 ether;
+    uint256 internal constant MAX_MIN_LOCK = 1 << 64; // circuits/order_validity MAX_LOCK
+    uint256 internal constant ONE_SHARE = 1e18; // a stock token's uiMultiplier when one token is one share
 
     IProofVerifier public immutable depositVerifier;
     IProofVerifier public immutable treeVerifier;
@@ -140,8 +148,10 @@ contract AuctionPool {
     mapping(address token => Market) public markets;
     Auction[] internal auctionList;
     mapping(uint256 id => bytes32[]) internal slots;
-    // Orders in auctions not yet settled. Capped at ORDERS per asset, so a settlement's rolled orders always fit.
-    mapping(address asset => uint256) public openOrders;
+    mapping(uint256 id => uint256[]) internal freeSlots; // cancelled slots, reused before the list grows
+    mapping(uint256 id => uint64) public excludedSlots; // per settled auction: the slots its settlement left out
+    // Smallest lock an order may carry, in the token's micro-units: holding an auction's slots costs real capital.
+    mapping(address token => uint256) public minLock;
 
     bool private transient entered;
 
@@ -156,10 +166,11 @@ contract AuctionPool {
     event OrderResting(uint256 indexed id, uint256 slot, bytes32 commitment, bytes sealedOrder);
     event OrderFeePaid(address indexed relayer, uint256 fee); // ETH leaving the pool for a relayed order (solvency)
     event AuctionPinned(uint256 indexed id, uint256 callBlock, uint256 refUsd, uint256 quoteUsd);
-    event AuctionSettled(uint256 indexed id, uint256 pStar, uint256 crossedQty, bytes notes);
+    event AuctionSettled(uint256 indexed id, uint256 pStar, uint256 crossedQty, uint64 excluded, bytes notes);
     event AuctionVoided(uint256 indexed id);
-    event OrderReclaimed(uint256 indexed id, uint256 slot, bool cancelled);
+    event OrderReclaimed(uint256 indexed id, uint256 slot, bytes32 commitment, bool cancelled);
     event MarketSet(address indexed token, address feed, uint256 unit, bool listed, uint256 capBps);
+    event MinLockSet(address indexed token, uint256 minLock);
     event FeeSet(bytes32 feeOwner, uint16 feeBps);
     event DepositsPausedSet(bool paused);
     event GateSet(address gate);
@@ -197,6 +208,7 @@ contract AuctionPool {
     error AssociationRequired();
     error TransferFailed();
     error Reentrancy();
+    error AlreadySet();
 
     constructor(address owner_, Verifiers memory v, IPrintRegistry prints_, bytes32 feeOwner_, uint16 feeBps_) {
         if (
@@ -261,8 +273,13 @@ contract AuctionPool {
     }
 
     /// The label the next deposit from `depositor` carries. 0 and 1 are never labels (1 is the settlement fee label).
-    function depositLabel(address depositor) public view returns (uint256 label) {
-        label = uint256(keccak256(abi.encode(block.chainid, address(this), depositor, depositNonce[depositor]))) % FIELD;
+    function depositLabel(address depositor) public view returns (uint256) {
+        return labelOf(depositor, depositNonce[depositor]);
+    }
+
+    /// The label of `depositor`'s deposit number `nonce`.
+    function labelOf(address depositor, uint256 nonce) public view returns (uint256 label) {
+        label = uint256(keccak256(abi.encode(block.chainid, address(this), depositor, nonce))) % FIELD;
         if (label < 2) label += 2;
     }
 
@@ -290,14 +307,26 @@ contract AuctionPool {
     /// @notice Spend up to two notes into two new notes, releasing `released` to `to` and `fee` to `relayer`. Anyone may
     /// submit the proof; it only ever pays where it was made to pay. `memo` carries the outputs sealed to their owners.
     function transact(Transaction calldata t, bytes calldata proof, bytes calldata memo) external nonReentrant {
+        // value leaving the pool, to a recipient or a relayer, needs an association proof where the gate requires one
+        _checkAssociation(t.aspRoot, t.released != 0 || t.fee != 0);
+        _transact(t, proof, memo, 0);
+    }
+
+    /// @notice Exit without an association proof: the depositor of deposit `nonce` takes value descending from it back
+    /// to their own address (`t.to`). The proof shows the spent notes carry exactly that deposit's label, so this exit
+    /// reveals which deposit the value came from. No relayer fee; anyone may submit it, it only pays the depositor.
+    function ragequit(Transaction calldata t, uint256 nonce, bytes calldata proof, bytes calldata memo) external nonReentrant {
+        if (t.aspRoot != 0 || t.fee != 0 || t.released == 0 || nonce >= depositNonce[t.to]) revert BadAmount();
+        _transact(t, proof, memo, labelOf(t.to, nonce));
+    }
+
+    function _transact(Transaction calldata t, bytes calldata proof, bytes calldata memo, uint256 publicLabel) private {
         if (!knownRoot[t.root]) revert UnknownRoot();
         if (t.nullifiers[0] == t.nullifiers[1] || spent[t.nullifiers[0]] || spent[t.nullifiers[1]]) revert NoteSpent();
         if (t.released > type(uint128).max || t.fee > type(uint128).max) revert BadAmount();
         if ((t.released != 0 && t.to == address(0)) || (t.fee != 0 && t.relayer == address(0))) revert ZeroAddress();
-        if (t.aspRoot != 0 && (address(gate) == address(0) || !gate.isAssociationRoot(t.aspRoot))) revert UnknownAssociationRoot();
-        if (t.released != 0 && t.aspRoot == 0 && address(gate) != address(0) && gate.associationRequired()) revert AssociationRequired();
 
-        bytes32[] memory inputs = new bytes32[](10);
+        bytes32[] memory inputs = new bytes32[](11);
         inputs[0] = t.root;
         inputs[1] = t.aspRoot;
         inputs[2] = t.nullifiers[0];
@@ -308,6 +337,7 @@ contract AuctionPool {
         inputs[7] = bytes32(t.released);
         inputs[8] = bytes32(t.fee);
         inputs[9] = context(t.to, t.relayer, t.fee);
+        inputs[10] = bytes32(publicLabel);
         _verify(transactVerifier, proof, inputs);
 
         spent[t.nullifiers[0]] = true;
@@ -324,11 +354,13 @@ contract AuctionPool {
         return bytes32(uint256(keccak256(abi.encode(block.chainid, address(this), to, relayer, fee))) % FIELD);
     }
 
-    /// Binds an order proof to this chain, this pool, its auction, relayer and fee.
-    function placementContext(uint256 id, address relayer, uint256 fee) public view returns (bytes32) {
-        return bytes32(uint256(keccak256(abi.encode(block.chainid, address(this), id, relayer, fee))) % FIELD);
+    /// Binds an order proof to this chain, this pool, its auction, relayer, fee and sealed order (keccak256 of the
+    /// bytes), so nobody can replay the proof with another ciphertext.
+    function placementContext(uint256 id, address relayer, uint256 fee, bytes32 sealedHash) public view returns (bytes32) {
+        return bytes32(uint256(keccak256(abi.encode(block.chainid, address(this), id, relayer, fee, sealedHash))) % FIELD);
     }
 
+    /// Every commitment queued so far (the tree holds the first `treeSize`).
     function commitmentCount() external view returns (uint256) {
         return commitments.length;
     }
@@ -354,10 +386,13 @@ contract AuctionPool {
 
     /// @notice Lock part of a note into an order in collecting auction `id`. The pool only sees the order commitment;
     /// the order itself travels encrypted to the committee in `sealedOrder`. A relayed order (fee > 0) pays its relayer
-    /// in ETH from a separate note, so the fee reveals nothing about the side.
+    /// in ETH from a separate note, so the fee reveals nothing about the side. Where the gate requires association, the
+    /// proof shows both notes' labels are in a current association root, so a blocked deposit can neither trade nor pay.
     function placeOrder(uint256 id, Placement calldata p, bytes calldata proof, bytes calldata sealedOrder) external nonReentrant {
         Auction storage a = _auction(id);
         if (block.timestamp >= a.callTime || a.voided) revert NotCollecting();
+        if (!markets[a.asset].listed) revert MarketNotListed(); // a halted market takes no orders
+        _checkAssociation(p.aspRoot, true);
         if (!knownRoot[p.root]) revert UnknownRoot();
         if (spent[p.nullifier]) revert NoteSpent();
         if (p.fee > type(uint128).max) revert BadAmount();
@@ -368,8 +403,8 @@ contract AuctionPool {
             revert BadFee();
         }
         if (p.commitment == 0) revert BadCount(); // 0 marks an empty slot
-        if (slots[id].length >= (a.kind == Kind.RFQ ? RFQ_ORDERS : ORDERS) || openOrders[a.asset] >= ORDERS) revert AuctionFull();
-        _verify(orderVerifier, proof, _placementInputs(id, a, p));
+        if (a.live >= _capacity(a)) revert AuctionFull();
+        _verify(orderVerifier, proof, _placementInputs(id, a, p, keccak256(sealedOrder)));
 
         spent[p.nullifier] = true;
         _queue(p.change);
@@ -383,8 +418,8 @@ contract AuctionPool {
     }
 
     /// order_validity public inputs, in circuit order.
-    function _placementInputs(uint256 id, Auction storage a, Placement calldata p) private view returns (bytes32[] memory inputs) {
-        inputs = new bytes32[](12);
+    function _placementInputs(uint256 id, Auction storage a, Placement calldata p, bytes32 sealedHash) private view returns (bytes32[] memory inputs) {
+        inputs = new bytes32[](15);
         inputs[0] = p.root;
         inputs[1] = p.nullifier;
         inputs[2] = p.feeNullifier;
@@ -396,11 +431,15 @@ contract AuctionPool {
         inputs[8] = bytes32(uint256(markets[a.quote].unit));
         inputs[9] = p.commitment;
         inputs[10] = bytes32(p.fee);
-        inputs[11] = placementContext(id, p.relayer, p.fee);
+        inputs[11] = placementContext(id, p.relayer, p.fee, sealedHash);
+        inputs[12] = p.aspRoot;
+        inputs[13] = bytes32(minLock[a.asset]);
+        inputs[14] = bytes32(minLock[a.quote]);
     }
 
     /// @notice At the call time, pin the call block and the reference (asset) and quote prices. Permissionless. A stale
-    /// or missing price, or an auction without orders, voids it: its orders are reclaimable at once.
+    /// or missing price, an auction without orders, a delisted (halted) market, or a token its issuer paused or whose
+    /// share multiplier is not 1 (a split or stock dividend) voids it: its orders are reclaimable at once.
     function pin(uint256 id) external {
         Auction storage a = _auction(id);
         if (block.timestamp < a.callTime) revert TooEarly();
@@ -409,7 +448,7 @@ contract AuctionPool {
         a.pinnedAt = uint64(block.timestamp);
         (uint256 refUsd, bool refOk) = _price(a.asset);
         (uint256 quoteUsd, bool quoteOk) = _price(a.quote);
-        if (!refOk || !quoteOk || a.live == 0) {
+        if (!refOk || !quoteOk || a.live == 0 || !markets[a.asset].listed || !_tradable(a.asset) || !_tradable(a.quote)) {
             _void(id, a);
             return;
         }
@@ -418,28 +457,31 @@ contract AuctionPool {
         emit AuctionPinned(id, block.number, refUsd, quoteUsd);
     }
 
-    /// @notice Settle a pinned auction. Permissionless; `notes` carries the outputs encrypted to their owners. Rolled
-    /// orders rest in `rollInto`, a collecting auction of the same pair (ignored when nothing rolls).
+    /// @notice Settle a pinned auction. Permissionless; `notes` carries the outputs encrypted to their owners. With
+    /// `c.roll`, rolled orders rest in `rollInto`, a collecting auction of the same pair with room for them; without it
+    /// the proof refunds every leftover. Only a scheduler may leave slots out (`c.excluded`, for orders whose sealed
+    /// opening does not open their commitment): those clear to nothing and their owners reclaim the lock.
     function settleAuction(uint256 id, Clearing calldata c, uint256 rollInto, bytes calldata proof, bytes calldata notes) external nonReentrant {
         Auction storage a = _auction(id);
         if (a.kind == Kind.RFQ) revert BadAuction();
         _checkSettleable(a);
+        if (c.excluded != 0 && !scheduler[msg.sender]) revert NotScheduler();
         bytes32[] storage list = slots[id];
         _verify(clearVerifier, proof, _clearingInputs(a, list, c));
 
         a.settled = true;
-        openOrders[a.asset] -= a.live;
         a.live = 0;
+        excludedSlots[id] = c.excluded;
         uint256 n = list.length;
         for (uint256 i; i < n; i++) {
-            if (list[i] == 0) continue; // cancelled: the proof fixed its outputs to 0
+            if (list[i] == 0 || _isExcluded(c.excluded, i)) continue; // the proof fixed its outputs to 0
             _queue(c.fills[i]);
             if (c.rolls[i]) _rest(rollInto, _rollTarget(a, rollInto), c.residuals[i], "");
             else _queue(c.residuals[i]);
         }
         _queue(c.feeNote);
         prints.record(id, a.asset, c.pStar, c.crossedQty);
-        emit AuctionSettled(id, c.pStar, c.crossedQty, notes);
+        emit AuctionSettled(id, c.pStar, c.crossedQty, c.excluded, notes);
     }
 
     /// @notice RfqDesk's settlement of an RFQ auction it verified: fills and refunds, the fee note, the print at the
@@ -456,7 +498,6 @@ contract AuctionPool {
         if (fills.length != list.length || residuals.length != list.length) revert BadCount();
 
         a.settled = true;
-        openOrders[a.asset] -= a.live;
         a.live = 0;
         for (uint256 i; i < list.length; i++) {
             if (list[i] == 0) continue;
@@ -465,7 +506,7 @@ contract AuctionPool {
         }
         _queue(feeNote);
         prints.record(id, a.asset, a.refUsd, crossedQty);
-        emit AuctionSettled(id, a.refUsd, crossedQty, notes);
+        emit AuctionSettled(id, a.refUsd, crossedQty, 0, notes);
     }
 
     /// @notice Void a pinned auction nobody settled within SETTLE_DEADLINE. Its orders become reclaimable and it can
@@ -478,13 +519,15 @@ contract AuctionPool {
         _void(id, a);
     }
 
-    /// @notice Take the lock of the order in `slot` back as a note (ReclaimProof): a cancel while the auction is still
-    /// collecting (before its pin), or a reclaim once it was voided. Settled and pinned auctions cannot be reclaimed from.
+    /// @notice Take the lock of the order in `slot` back as a note (ReclaimProof): a cancel before the call time (once
+    /// the reference price can be known, an order is committed), a reclaim once the auction was voided, or a reclaim of
+    /// an order its settlement left out. Otherwise settled and pinned auctions cannot be reclaimed from.
     /// ponytail: no relayer, so the sender's address is linked to the reclaimed order; route through /api/relay later.
     function reclaim(uint256 id, uint256 slot, bytes32 orderNullifier, bytes32 refund, bytes calldata proof) external {
         Auction storage a = _auction(id);
-        bool cancel = a.callBlock == 0 && !a.voided;
-        if (!cancel && !a.voided) revert NotCollecting();
+        bool cancel = a.callBlock == 0 && !a.voided && block.timestamp < a.callTime;
+        bool leftOut = a.settled && _isExcluded(excludedSlots[id], slot);
+        if (!cancel && !a.voided && !leftOut) revert NotCollecting();
         if (spent[orderNullifier]) revert NoteSpent();
         bytes32 commitment = slots[id][slot];
         if (commitment == 0) revert BadCount();
@@ -502,21 +545,24 @@ contract AuctionPool {
         spent[orderNullifier] = true;
         if (cancel) {
             slots[id][slot] = 0;
+            freeSlots[id].push(slot);
             a.live--;
-            openOrders[a.asset]--;
         }
         _queue(refund);
-        emit OrderReclaimed(id, slot, cancel);
+        emit OrderReclaimed(id, slot, commitment, cancel);
     }
 
+    /// Auction `id`: its pair, kind, call time, pinned prices and state.
     function auctions(uint256 id) external view returns (Auction memory) {
         return auctionList[id];
     }
 
+    /// How many auctions have been scheduled (ids are 0 to auctionCount - 1).
     function auctionCount() external view returns (uint256) {
         return auctionList.length;
     }
 
+    /// Auction `id`'s order commitments in slot order; 0 = an empty (cancelled) slot.
     function orderList(uint256 id) external view returns (bytes32[] memory) {
         return slots[id];
     }
@@ -531,25 +577,39 @@ contract AuctionPool {
         emit MarketSet(token, feed, unit, listed, capBps);
     }
 
+    /// The smallest lock of an order on either side of `token`'s markets, in its micro-units (0 = none).
+    function setMinLock(address token, uint256 minLock_) external onlyOwner {
+        if (markets[token].unit == 0 || minLock_ >= MAX_MIN_LOCK) revert BadMarket();
+        minLock[token] = minLock_;
+        emit MinLockSet(token, minLock_);
+    }
+
+    /// Allow or stop `account` scheduling calendar auctions (not RFQ: only the desk opens those).
     function setScheduler(address account, bool allowed_) external onlyOwner {
         scheduler[account] = allowed_;
         emit SchedulerSet(account, allowed_);
     }
 
+    /// Set once: the desk settles RFQ auctions with its own proof, so replacing it would let the owner write any note.
     function setDesk(address desk_) external onlyOwner {
+        if (desk != address(0)) revert AlreadySet();
+        if (desk_ == address(0)) revert ZeroAddress();
         desk = desk_;
         emit DeskSet(desk_);
     }
 
+    /// The settlement fee (at most MAX_FEE_BPS) and the owner key of the fee notes; applies to auctions scheduled after.
     function setFee(bytes32 feeOwner_, uint16 feeBps_) external onlyOwner {
         _setFee(feeOwner_, feeBps_);
     }
 
+    /// Pause or resume deposits. Only deposits: withdrawals, ragequits, cancels and reclaims stay open.
     function setDepositsPaused(bool paused_) external onlyOwner {
         depositsPaused = paused_;
         emit DepositsPausedSet(paused_);
     }
 
+    /// The ETH fee on top of every deposit (at most MAX_DEPOSIT_FEE), paid to `recipient` for appending it.
     function setDepositFee(address recipient, uint256 fee) external onlyOwner {
         if (fee > MAX_DEPOSIT_FEE) revert BadFee();
         if (fee != 0 && recipient == address(0)) revert ZeroAddress();
@@ -558,16 +618,19 @@ contract AuctionPool {
         emit DepositFeeSet(recipient, fee);
     }
 
+    /// The screening gate for deposits and association roots (0 = none). The ragequit never consults it.
     function setGate(IScreeningGate gate_) external onlyOwner {
         gate = gate_;
         emit GateSet(address(gate_));
     }
 
+    /// Start moving ownership to `newOwner`; it takes effect when they accept.
     function transferOwnership(address newOwner) external onlyOwner {
         pendingOwner = newOwner;
         emit OwnershipTransferStarted(owner, newOwner);
     }
 
+    /// Accept a pending ownership transfer.
     function acceptOwnership() external {
         if (msg.sender != pendingOwner) revert NotPendingOwner();
         emit OwnershipTransferred(owner, msg.sender);
@@ -588,7 +651,7 @@ contract AuctionPool {
 
     /// auction_clear public inputs, in circuit order.
     function _clearingInputs(Auction storage a, bytes32[] storage list, Clearing calldata c) private view returns (bytes32[] memory inputs) {
-        inputs = new bytes32[](12 + 4 * ORDERS);
+        inputs = new bytes32[](13 + 4 * ORDERS);
         inputs[0] = bytes32(uint256(uint160(a.asset)));
         inputs[1] = bytes32(uint256(markets[a.asset].unit));
         inputs[2] = bytes32(uint256(uint160(a.quote)));
@@ -600,13 +663,14 @@ contract AuctionPool {
         inputs[8] = bytes32(c.pStar);
         inputs[9] = bytes32(c.crossedQty);
         for (uint256 i; i < ORDERS; i++) {
-            if (i < list.length) inputs[10 + i] = list[i];
+            if (i < list.length && !_isExcluded(c.excluded, i)) inputs[10 + i] = list[i]; // an excluded slot proves as empty
             inputs[10 + ORDERS + i] = c.fills[i];
             inputs[10 + 2 * ORDERS + i] = c.residuals[i];
             inputs[10 + 3 * ORDERS + i] = bytes32(uint256(c.rolls[i] ? 1 : 0));
         }
         inputs[10 + 4 * ORDERS] = feeOwner;
         inputs[11 + 4 * ORDERS] = c.feeNote;
+        inputs[12 + 4 * ORDERS] = bytes32(uint256(c.roll ? 1 : 0));
     }
 
     function _auction(uint256 id) private view returns (Auction storage a) {
@@ -620,16 +684,32 @@ contract AuctionPool {
         if (a.voided) revert Voided();
     }
 
-    /// A rolled order's next auction: same pair, not RFQ, still collecting.
+    /// A rolled order's next auction: same pair, listed, not RFQ, still collecting (_rest checks it has room).
     function _rollTarget(Auction storage from, uint256 id) private view returns (Auction storage a) {
         a = _auction(id);
         if (a.asset != from.asset || a.quote != from.quote || a.kind == Kind.RFQ || a.voided || block.timestamp >= a.callTime) revert BadAuction();
-        if (slots[id].length >= ORDERS) revert AuctionFull();
+        if (!markets[a.asset].listed) revert MarketNotListed();
+    }
+
+    function _capacity(Auction storage a) private view returns (uint256) {
+        return a.kind == Kind.RFQ ? RFQ_ORDERS : ORDERS;
+    }
+
+    function _isExcluded(uint64 mask, uint256 slot) private pure returns (bool) {
+        return slot < ORDERS && (mask >> slot) & 1 == 1;
+    }
+
+    /// An association root must be a current one; value that moves needs one where the gate requires association.
+    function _checkAssociation(bytes32 aspRoot, bool moves) private view {
+        if (aspRoot != 0) {
+            if (address(gate) == address(0) || !gate.isAssociationRoot(aspRoot)) revert UnknownAssociationRoot();
+        } else if (moves && address(gate) != address(0) && gate.associationRequired()) {
+            revert AssociationRequired();
+        }
     }
 
     function _void(uint256 id, Auction storage a) private {
         a.voided = true;
-        openOrders[a.asset] -= a.live;
         emit AuctionVoided(id);
     }
 
@@ -640,11 +720,22 @@ contract AuctionPool {
         emit Committed(index, commitment);
     }
 
+    /// Rests an order in the auction's first free slot: a cancelled one, else a new one.
     function _rest(uint256 id, Auction storage a, bytes32 commitment, bytes memory sealedOrder) private {
-        slots[id].push(commitment);
+        if (a.live >= _capacity(a)) revert AuctionFull();
+        bytes32[] storage list = slots[id];
+        uint256[] storage free = freeSlots[id];
+        uint256 slot;
+        if (free.length != 0) {
+            slot = free[free.length - 1];
+            free.pop();
+            list[slot] = commitment;
+        } else {
+            slot = list.length;
+            list.push(commitment);
+        }
         a.live++;
-        openOrders[a.asset]++;
-        emit OrderResting(id, slots[id].length - 1, commitment, sealedOrder);
+        emit OrderResting(id, slot, commitment, sealedOrder);
     }
 
     function _setFee(bytes32 feeOwner_, uint16 feeBps_) private {
@@ -652,6 +743,25 @@ contract AuctionPool {
         feeOwner = feeOwner_;
         feeBps = feeBps_;
         emit FeeSet(feeOwner_, feeBps_);
+    }
+
+    /// False while the issuer has paused the token, or its share multiplier (ERC-8056 uiMultiplier: splits, stock
+    /// dividends) is not one, or changes before this auction could settle: markets price one token as one share.
+    /// Tokens without these functions (the quote tokens) are always tradable.
+    function _tradable(address token) private view returns (bool) {
+        (bool hasPause, uint256 paused) = _read(token, "paused()");
+        if (hasPause && paused != 0) return false;
+        (bool hasMultiplier, uint256 m) = _read(token, "uiMultiplier()");
+        if (!hasMultiplier) return true;
+        if (m != ONE_SHARE) return false;
+        (, uint256 next) = _read(token, "newUIMultiplier()");
+        (, uint256 at) = _read(token, "effectiveAt()");
+        return next == 0 || next == ONE_SHARE || at > block.timestamp + SETTLE_DEADLINE;
+    }
+
+    function _read(address token, string memory signature) private view returns (bool ok, uint256 value) {
+        (bool success, bytes memory ret) = token.staticcall(abi.encodeWithSignature(signature));
+        if (success && ret.length >= 32) return (true, abi.decode(ret, (uint256)));
     }
 
     /// The token's USD price in micro-USD from its feed, or not ok when stale, non-positive or failing.

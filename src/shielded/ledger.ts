@@ -340,7 +340,14 @@ export async function rebuild(keys: ViewKeys, wallet: string, leaves: bigint[], 
       for (const o of orders) if (o.auctionId === Number(a["id"]) && o.status === "open") o.status = "pinned";
     } else if (e.name === "AuctionSettled") {
       const pStar = BigInt(a["pStar"]);
+      const excluded = BigInt(a["excluded"] ?? 0);
       for (const o of orders.filter((x) => (x.status === "open" || x.status === "pinned") && x.auctionId === Number(a["id"]))) {
+        if ((excluded >> BigInt(o.slot)) & 1n) {
+          // its sealed copy could not be opened, so the settlement left it out: the lock is reclaimable (cancel)
+          o.status = "void";
+          log(e, "Left out", `Auction #${o.auctionId} settled without this order. Take the lock back with Cancel.`, lockAsset(o), o.opening.lock * unit(lockAsset(o)));
+          continue;
+        }
         const r = results.get(o.commitment);
         if (!r) continue;
         o.status = "settled";
@@ -358,7 +365,8 @@ export async function rebuild(keys: ViewKeys, wallet: string, leaves: bigint[], 
     } else if (e.name === "AuctionVoided") {
       for (const o of orders) if ((o.status === "open" || o.status === "pinned") && o.auctionId === Number(a["id"])) o.status = "void";
     } else if (e.name === "OrderReclaimed") {
-      const o = orders.find((x) => x.auctionId === Number(a["id"]) && x.slot === Number(a["slot"]));
+      // a cancelled slot is reused, so the commitment (not the slot) says which order came back
+      const o = orders.find((x) => x.auctionId === Number(a["id"]) && x.commitment === BigInt(a["commitment"]));
       if (!o) continue;
       const cancelled = Boolean(a["cancelled"]);
       o.status = cancelled ? "cancelled" : "reclaimed";

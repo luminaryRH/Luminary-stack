@@ -11,7 +11,8 @@
 //   p*          maximizes V(p) = min(D(p), S(p)); ties to the smallest |D−S|, then closest to ref, then the lower price
 //   fills       strictly better orders first (pro rata among them if they alone exceed the volume), then the orders
 //               at p* pro rata; remainders by largest fraction, ties to the earliest slot
-//   leftovers   roll into the next auction when the order rolls and has rolls left, else refunded
+//   leftovers   roll into the next auction when the order rolls, has rolls left and the pool has a roll target
+//               (`roll_allowed`), else refunded
 // Output blindings derive from each order's salt, so owners recognise their notes; fills, refunds and rolled orders
 // keep the order's label, the fee note carries FEE_LABEL.
 use luminary::{FEE_LABEL, OrderTerms, blind, note, order};
@@ -161,6 +162,7 @@ fn main(
     rolls: pub [bool; N],
     fee_owner: pub Field,
     fee_note: pub Field,
+    roll_allowed: pub bool, // false when the pool has no collecting auction to roll into: leftovers are refunded
 ) {
     assert(fee_bps < BPS);
     assert(cap_bps < BPS);
@@ -281,7 +283,7 @@ fn main(
         let o = orders[i];
         let q = f1[i] + f2[i];
         let rest = o.qty - q;
-        let roll = active[i] & (rest > 0) & o.roll & (o.rolls_left > 0);
+        let roll = active[i] & (rest > 0) & o.roll & (o.rolls_left > 0) & roll_allowed;
         assert(rolls[i] == roll);
         if active[i] {
             let value = q * p_star;
@@ -376,7 +378,7 @@ fn run(p_idx: u32, p_star: u128, crossed: u128) {
     let (orders, commitments, fills, residuals, rolls, fee_note) = scenario();
     main(
         orders, p_idx, [false; N], [MAX, MAX], [0, 0], [false; N], [MAX, MAX], [0, 0], 777, TSLA, UNIT, TQ, 1, REF, 500,
-        1000000, 5, p_star, crossed, commitments, fills, residuals, rolls, FEE_OWNER, fee_note,
+        1000000, 5, p_star, crossed, commitments, fills, residuals, rolls, FEE_OWNER, fee_note, true,
     );
 }
 
@@ -425,6 +427,25 @@ fn nothing_crosses_without_overlap() {
     // but 237.5 / 262.5 are 12.5 away, so p* = 240 (lower of the two closest)
     main(
         orders, 0, [false; N], [MAX, MAX], [0, 0], [false; N], [MAX, MAX], [0, 0], 777, TSLA, UNIT, TQ, 1, REF, 500, 1000000, 5,
-        240000000, 0, commitments, fills, residuals, [false; N], FEE_OWNER, note(FEE_OWNER, TQ, 0, 777, 1),
+        240000000, 0, commitments, fills, residuals, [false; N], FEE_OWNER, note(FEE_OWNER, TQ, 0, 777, 1), true,
+    );
+}
+
+#[test]
+fn without_a_roll_target_the_rolling_leftover_is_refunded() {
+    let (orders, commitments, fills, mut residuals, _, fee_note) = scenario();
+    residuals[1] = note(12, TSLA, 1000000 * UNIT, blind(2, 1), 102);
+    main(
+        orders, 1, [false; N], [MAX, MAX], [0, 0], [false; N], [MAX, MAX], [0, 0], 777, TSLA, UNIT, TQ, 1, REF, 500,
+        1000000, 5, 245000000, 3000000, commitments, fills, residuals, [false; N], FEE_OWNER, fee_note, false,
+    );
+}
+
+#[test(should_fail)]
+fn without_a_roll_target_nothing_rolls() {
+    let (orders, commitments, fills, residuals, rolls, fee_note) = scenario();
+    main(
+        orders, 1, [false; N], [MAX, MAX], [0, 0], [false; N], [MAX, MAX], [0, 0], 777, TSLA, UNIT, TQ, 1, REF, 500,
+        1000000, 5, 245000000, 3000000, commitments, fills, residuals, rolls, FEE_OWNER, fee_note, false,
     );
 }

@@ -904,7 +904,7 @@ export default function Dashboard() {
             <>
               <p className="eyebrow orange">{t("ONE LAST LOOK")}</p>
               <DialogTitle>{t("Seal your intent.")}</DialogTitle>
-              <DialogDescription>{t("Your browser proves the order and seals it to the clearing committee. It stays private until the call.")}</DialogDescription>
+              <DialogDescription>{t("Your browser proves the order and seals it to the clearing key. On testnet the operator alone holds that key, so it can read orders; nobody else can before the call.")}</DialogDescription>
               <div className="review-asset"><span className="asset-letter">{symbol[0]}</span><div><h3>{t(side === "buy" ? "Buy" : "Sell")} {qty} {symbol}</h3><p>{NAMES[symbol]}{t(" · Tokenized stock")}</p></div><LockKeyhole size={24} /></div>
               <dl className="review-details">
                 <div><dt>{t("Order type")}</dt><dd>{t(kind === "limit" ? "Limit order" : "At auction price")}</dd></div>

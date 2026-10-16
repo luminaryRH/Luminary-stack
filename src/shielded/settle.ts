@@ -39,8 +39,12 @@ const EMPTY = {
 
 const isPlain = (o: OrderOpening) => o.terms.minQty === 0n && o.terms.display === 0n && o.terms.peg === 0n && o.terms.rfq === 0n;
 
-/** `slots` in slot order; null for an empty or cancelled slot. */
-export function settleAuction(a: PinnedAuction, slots: (OrderOpening | null)[], feeBlinding: bigint) {
+/**
+ * `slots` in slot order; null for an empty, cancelled or left-out slot (`excluded`, a bit per slot: an order whose
+ * sealed opening does not open its commitment). `rollAllowed` is false when there is no collecting auction with room for
+ * the rolled orders: every leftover is then refunded.
+ */
+export function settleAuction(a: PinnedAuction, slots: (OrderOpening | null)[], feeBlinding: bigint, rollAllowed = true, excluded = 0n) {
   if (slots.length > ORDERS) throw new Error(`auction holds ${slots.length} slots`);
   const c = clearAuction(
     slots.map((o) => o && { buy: o.buy, qty: o.qty, hasLimit: o.hasLimit, limitUsd: o.limitUsd, lock: o.lock, plain: isPlain(o) }),
@@ -71,7 +75,7 @@ export function settleAuction(a: PinnedAuction, slots: (OrderOpening | null)[], 
     }
     fees += fee;
     const rest = o.qty - q;
-    const rolls = rest > 0n && o.roll && o.rollsLeft > 0;
+    const rolls = rest > 0n && o.roll && o.rollsLeft > 0 && rollAllowed;
     let residual: bigint;
     let rolled: OrderOpening | undefined;
     if (rolls) {
@@ -130,6 +134,7 @@ export function settleAuction(a: PinnedAuction, slots: (OrderOpening | null)[], 
     rolls,
     fee_owner: a.feeOwner,
     fee_note: feeNote,
+    roll_allowed: rollAllowed,
   };
   // hints are padded to N; an empty tail slot never ranks above a cut (remainder 0, later slot)
   if (c.pIdx >= slots.length) inputs.p_idx = BigInt(c.pIdx === slots.length ? ORDERS : ORDERS + 1);
@@ -139,7 +144,7 @@ export function settleAuction(a: PinnedAuction, slots: (OrderOpening | null)[], 
     results,
     inputs,
     /** AuctionPool.Clearing */
-    onchain: { pStar: c.pStar, crossedQty: c.volume, fills, residuals, rolls, feeNote },
+    onchain: { pStar: c.pStar, crossedQty: c.volume, fills, residuals, rolls, feeNote, roll: rollAllowed, excluded },
   };
 }
 

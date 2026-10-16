@@ -6,7 +6,11 @@
 // Labels: the order and its change keep the order note's label (settlement passes it on to fills); the fee change keeps
 // the fee note's label.
 // Bounds keep every product in auction_clear inside u128, so no order can make an auction unprovable.
-use luminary::{DEPTH, OrderTerms, PLAIN, note, nullifier, order, owner_pub, root_from_path};
+// With `asp_root` != 0 the proof also shows the order note's label (and the fee note's, when relayed) is in the published
+// association set, so a blocked deposit cannot trade or pay a relayer where the pool requires association.
+// `min_lock` is the market minimum the pool supplies ([asset, quote] micro-units): a buy locks at least the quote's, a
+// sell at least the asset's, so filling an auction's slots costs real capital.
+use luminary::{DEPTH, OrderTerms, PLAIN, asp_leaf, note, nullifier, order, owner_pub, root_from_path};
 
 global MIN_QTY: u128 = 1000;
 global MAX_QTY: u128 = 0x100000000000000; // 2^56 micro-units
@@ -49,6 +53,12 @@ fn main(
     fee: pub u128, // wei to the relayer
     context: pub Field,
     terms: OrderTerms,
+    asp_index: u32,
+    asp_path: [Field; DEPTH],
+    fee_asp_index: u32,
+    fee_asp_path: [Field; DEPTH],
+    asp_root: pub Field, // 0 = no association proof (the pool accepts that only where it does not require one)
+    min_lock: pub [u128; 2],
 ) {
     let owner = owner_pub(secret);
     let note_asset = if buy { quote_token } else { asset };
@@ -74,6 +84,13 @@ fn main(
 
     assert((qty >= MIN_QTY) & (qty < MAX_QTY));
     assert((lock > 0) & (lock < MAX_LOCK));
+    assert(lock >= (if buy { min_lock[1] } else { min_lock[0] }));
+    if asp_root != 0 {
+        assert(root_from_path(asp_leaf(label), asp_index, asp_path) == asp_root);
+        if fee != 0 {
+            assert(root_from_path(asp_leaf(fee_label), fee_asp_index, fee_asp_path) == asp_root);
+        }
+    }
     assert(limit_usd < MAX_PRICE);
     if !buy {
         assert(lock == qty);
@@ -127,7 +144,8 @@ fn place_with(buy: bool, note_asset: Field, note_amount: u128, lock: u128, qty: 
     let commitment = order(owner, TSLA, buy, qty, true, 250000000, true, 11, lock, 99, L, terms);
     main(
         42, L, 77, note_amount, 0, path, 5, FL, fee_note_amount, 88, 1, fee_path, 6, buy, qty, true, 250000000, true, 11, lock,
-        99, root, nullifier(42, mine, 0), fee_spent, change, fee_change, TSLA, UNIT, TQ, QUNIT, commitment, fee, 123, terms,
+        99, root, nullifier(42, mine, 0), fee_spent, change, fee_change, TSLA, UNIT, TQ, QUNIT, commitment, fee, 123, terms, 0, [0; DEPTH], 0, [0; DEPTH], 0,
+        [0, 0],
     );
 }
 
@@ -188,7 +206,8 @@ fn a_self_submitted_order_has_no_fee_note() {
     let commitment = order(owner, TSLA, true, 3000000, true, 250000000, true, 11, 800000000, 99, L, PLAIN);
     main(
         42, L, 77, 1000000000, 0, path, 5, FL, 0, 0, 0, [0; DEPTH], 0, true, 3000000, true, 250000000, true, 11, 800000000, 99,
-        root, nullifier(42, mine, 0), nullifier(42, fee_note, 1), change, 0, TSLA, UNIT, TQ, QUNIT, commitment, 0, 123, PLAIN,
+        root, nullifier(42, mine, 0), nullifier(42, fee_note, 1), change, 0, TSLA, UNIT, TQ, QUNIT, commitment, 0, 123, PLAIN, 0, [0; DEPTH], 0, [0; DEPTH], 0,
+        [0, 0],
     );
 }
 
@@ -200,6 +219,69 @@ fn the_order_keeps_the_notes_label() {
     let commitment = order(owner, TSLA, true, 3000000, true, 250000000, true, 11, 800000000, 99, 9999, PLAIN);
     main(
         42, L, 77, 1000000000, 0, path, 5, FL, 0, 0, 0, [0; DEPTH], 0, true, 3000000, true, 250000000, true, 11, 800000000, 99,
-        root, nullifier(42, mine, 0), 0, change, 0, TSLA, UNIT, TQ, QUNIT, commitment, 0, 123, PLAIN,
+        root, nullifier(42, mine, 0), 0, change, 0, TSLA, UNIT, TQ, QUNIT, commitment, 0, 123, PLAIN, 0, [0; DEPTH], 0, [0; DEPTH], 0,
+        [0, 0],
     );
+}
+
+/// Association set [asp_leaf(777), asp_leaf(label), asp_leaf(fee_label)]: its root and the paths of leaves 1 and 2.
+fn asp_set(label: Field, fee_label: Field) -> (Field, [Field; DEPTH], [Field; DEPTH]) {
+    let z = luminary::zeros();
+    let leaves = [asp_leaf(777), asp_leaf(label), asp_leaf(fee_label)];
+    let (root, _) = luminary::append(z[DEPTH], 0, [0; DEPTH], leaves, 3);
+    let mut path = [0; DEPTH];
+    let mut fee_path = [0; DEPTH];
+    for i in 2..DEPTH {
+        path[i] = z[i];
+        fee_path[i] = z[i];
+    }
+    path[0] = leaves[0];
+    path[1] = luminary::node(leaves[2], z[0]);
+    fee_path[0] = z[0];
+    fee_path[1] = luminary::node(leaves[0], leaves[1]);
+    (root, path, fee_path)
+}
+
+/// A relayed sell proving both labels against `asp_root`, with the market minimums `min_lock`.
+fn place_screened(asp_root: Field, path: [Field; DEPTH], fee_path: [Field; DEPTH], min_lock: [u128; 2]) {
+    let (root, note_path, note_fee_path, mine, fee_note) = tree(TSLA, 5000000000000000000, 1000000000000000);
+    let owner = owner_pub(42);
+    let change = note(owner, TSLA, 3000000000000000000, 5, L);
+    let fee_change = note(owner, 0, 600000000000000, 6, FL);
+    let commitment = order(owner, TSLA, false, 2000000, true, 250000000, true, 11, 2000000, 99, L, PLAIN);
+    main(
+        42, L, 77, 5000000000000000000, 0, note_path, 5, FL, 1000000000000000, 88, 1, note_fee_path, 6, false, 2000000, true,
+        250000000, true, 11, 2000000, 99, root, nullifier(42, mine, 0), nullifier(42, fee_note, 1), change, fee_change, TSLA,
+        UNIT, TQ, QUNIT, commitment, 400000000000000, 123, PLAIN, 1, path, 2, fee_path, asp_root, min_lock,
+    );
+}
+
+#[test]
+fn proves_both_labels_are_in_the_association_set() {
+    let (asp_root, path, fee_path) = asp_set(L, FL);
+    place_screened(asp_root, path, fee_path, [0, 0]);
+}
+
+#[test(should_fail)]
+fn a_blocked_order_label_cannot_trade() {
+    let (asp_root, path, fee_path) = asp_set(999, FL);
+    place_screened(asp_root, path, fee_path, [0, 0]);
+}
+
+#[test(should_fail)]
+fn a_blocked_fee_label_cannot_pay_a_relayer() {
+    let (asp_root, path, fee_path) = asp_set(L, 999);
+    place_screened(asp_root, path, fee_path, [0, 0]);
+}
+
+#[test]
+fn a_sell_at_the_asset_minimum_places() {
+    let (asp_root, path, fee_path) = asp_set(L, FL);
+    place_screened(asp_root, path, fee_path, [2000000, 999999999]);
+}
+
+#[test(should_fail)]
+fn a_sell_below_the_asset_minimum_fails() {
+    let (asp_root, path, fee_path) = asp_set(L, FL);
+    place_screened(asp_root, path, fee_path, [2000001, 0]);
 }

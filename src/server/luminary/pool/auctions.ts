@@ -3,14 +3,16 @@
 //   schedule  planned auctions due within the horizon → AuctionPool.schedule (stock auctions quote in USDG)
 //   pin       at the call time → AuctionPool.pin (permissionless; an auction without orders or prices voids itself)
 //   settle    pinned auctions → open each sealed order (committee.ts), clear (engine/clearing.ts via settle.ts), prove
-//             AuctionClearProof and send settleAuction with every owner's result sealed to their viewing key
+//             AuctionClearProof and send settleAuction with every owner's result sealed to their viewing key. An order
+//             whose sealed opening does not open its commitment is left out (its owner reclaims the lock), and leftovers
+//             are refunded instead of rolled when no collecting auction of the pair has room for them.
 // Clearing and proving run in one step, so the plaintext orders never reach the database. The chain is the state:
 // every step recomputes from it (and from the indexed events), and a send still in flight is skipped by its key.
 import { hexlify, toBeHex, toUtf8Bytes } from "ethers";
 import auctionClear from "@/shielded/circuits/auction_clear.json";
 import rfqCross from "@/shielded/circuits/rfq_cross.json";
 import { seal } from "@/shielded/crypto";
-import { hex, ready } from "@/shielded/protocol";
+import { ORDERS, hex, ready } from "@/shielded/protocol";
 import { prove } from "@/shielded/prove";
 import { commitmentOf, feeBlindingOf, openingFromJson, openingToJson, settleAuction, settleRfq, type OrderOpening, type PinnedAuction, type SettledOrder } from "@/shielded/settle";
 import { planAuctions, type CorporateAction, type MarketDay } from "../calendar";
@@ -134,6 +136,7 @@ async function settleOne(a: OpenAuction) {
   // slot order is the chain's; a cancelled slot is 0 there
   const ciphertexts = new Map((await orderCiphertexts(a)).map((o) => [o.slot, o]));
   const slots: (OrderOpening | null)[] = [];
+  let excluded = 0n; // AuctionPool.Clearing.excluded: a bit per left-out slot
   for (let slot = 0; slot < list.length; slot++) {
     const commitment = list[slot]!.toLowerCase();
     if (BigInt(commitment) === 0n) {
@@ -150,8 +153,11 @@ async function settleOne(a: OpenAuction) {
       // an out-of-field value in the opening
     }
     if (!opening || !opens) {
-      console.error("auction cannot be settled: an order does not open its commitment", { id: a.id, slot });
-      return { error: `slot ${slot} does not open its commitment (reclaimable once the auction is abandoned)` };
+      // one unreadable order must not hold back the rest: it clears to nothing and its owner reclaims the lock
+      console.error("an order does not open its commitment; settling without it", { id: a.id, slot });
+      excluded |= 1n << BigInt(slot);
+      slots.push(null);
+      continue;
     }
     slots.push(opening);
   }
@@ -168,19 +174,29 @@ async function settleOne(a: OpenAuction) {
     feeOwner: BigInt(feeOwner),
   };
   const feeBlinding = feeBlindingOf(BigInt(env("FEE_SECRET")), BigInt(a.id));
-  if (a.kind === KINDS.indexOf("RFQ")) return settleBlock(a, pinned, slots, list, feeBlinding);
-  const r = settleAuction(pinned, slots, feeBlinding);
+  if (a.kind === KINDS.indexOf("RFQ")) {
+    // an RFQ block crosses whole or refunds both sides; a block with an unreadable order is left to abandon
+    if (excluded) return { error: "an RFQ order does not open its commitment (reclaimable once the block is abandoned)" };
+    return settleBlock(a, pinned, slots, list, feeBlinding);
+  }
+  let r = settleAuction(pinned, slots, feeBlinding, true, excluded);
 
   let rollInto = 0;
-  const rolls = r.results.filter((x) => x.rolled);
+  let rolls = r.results.filter((x) => x.rolled);
   if (rolls.length) {
-    // the next collecting auction of the same asset and quote token (AuctionPool rejects any other roll target)
+    // the next collecting auction of the same asset and quote token with room for every rolled order (AuctionPool
+    // rejects any other roll target); without one, every leftover is refunded instead
     const after = Math.max(Number(s.callTime), Date.now() / 1000 + MIN_LEAD_SEC);
     const target = (await rpc<OpenAuction[]>("lum_pool_open_auctions", {}))
       .filter((x) => !x.pinned && x.asset === a.asset && x.quote === a.quote && x.kind !== KINDS.indexOf("RFQ") && x.callTime > after)
+      .filter((x) => x.orders.length + rolls.length <= ORDERS)
       .sort((x, y) => x.callTime - y.callTime)[0];
-    if (!target) return { waiting: "no collecting auction of this pair to roll orders into yet" };
-    rollInto = target.id;
+    if (!target) {
+      r = settleAuction(pinned, slots, feeBlinding, false, excluded);
+      rolls = [];
+    } else rollInto = target.id;
+  }
+  if (rolls.length) {
     // rolled orders rest in the next auction; their openings must exist before the transaction that creates them
     const rows = await Promise.all(rolls.map(async (x) => ({ commitment: hex(x.residual), sealed: await seal(sealingPublicKey(), openingToJson(x.rolled!)) })));
     await rpc("lum_pool_put_openings", { p_rows: rows });
@@ -211,10 +227,10 @@ async function settleOne(a: OpenAuction) {
     await rpc("lum_pool_put_fee_note", { p_commitment: hex(r.onchain.feeNote), p_quote: s.quote, p_auction_id: a.id, p_amount: String(feeAmount * pinned.quoteUnit) });
   }
   const { proof } = await prove(auctionClear as never, r.inputs, 4);
-  const clearing = [r.onchain.pStar, r.onchain.crossedQty, r.onchain.fills.map(hex), r.onchain.residuals.map(hex), r.onchain.rolls, hex(r.onchain.feeNote)];
+  const clearing = [r.onchain.pStar, r.onchain.crossedQty, r.onchain.fills.map(hex), r.onchain.residuals.map(hex), r.onchain.rolls, hex(r.onchain.feeNote), r.onchain.roll, r.onchain.excluded];
   const tx = await sendPool("settleAuction", [a.id, clearing, rollInto, proof, hexlify(toUtf8Bytes(JSON.stringify(notes)))], `settle:${a.id}`);
   return tx
-    ? { settled: true, pStar: String(r.clearing.pStar), crossedQty: String(r.clearing.volume), orders: slots.filter(Boolean).length, tx }
+    ? { settled: true, pStar: String(r.clearing.pStar), crossedQty: String(r.clearing.volume), orders: slots.filter(Boolean).length, ...(excluded ? { leftOut: excluded.toString(2) } : {}), tx }
     : { waiting: "an operator transaction is still pending" };
 }
 

@@ -15,9 +15,9 @@ export const POOL_ABI = new Interface([
   "event OrderResting(uint256 indexed id, uint256 slot, bytes32 commitment, bytes sealedOrder)",
   "event OrderFeePaid(address indexed relayer, uint256 fee)",
   "event AuctionPinned(uint256 indexed id, uint256 callBlock, uint256 refUsd, uint256 quoteUsd)",
-  "event AuctionSettled(uint256 indexed id, uint256 pStar, uint256 crossedQty, bytes notes)",
+  "event AuctionSettled(uint256 indexed id, uint256 pStar, uint256 crossedQty, uint64 excluded, bytes notes)",
   "event AuctionVoided(uint256 indexed id)",
-  "event OrderReclaimed(uint256 indexed id, uint256 slot, bool cancelled)",
+  "event OrderReclaimed(uint256 indexed id, uint256 slot, bytes32 commitment, bool cancelled)",
   "event Printed(uint256 indexed auctionId, address indexed asset, uint256 pStar, uint256 crossedQty, uint256 index)", // PrintRegistry
   "event Disclosed(bytes32 indexed auditor, address indexed from, bytes grant)", // DisclosureRegistry
   "event BlockOpened(uint256 indexed id, address indexed asset, address quote, uint256 callTime)", // RfqDesk
@@ -28,7 +28,8 @@ export const POOL_ABI = new Interface([
   "function depositFee() view returns (uint256)",
   "function feeOwner() view returns (bytes32)",
   "function feeBps() view returns (uint16)",
-  "function openOrders(address) view returns (uint256)",
+  "function minLock(address) view returns (uint256)",
+  "function excludedSlots(uint256) view returns (uint64)",
   "function SETTLE_DEADLINE() view returns (uint256)",
   "function markets(address) view returns (address feed, uint88 unit, bool listed, uint16 capBps)",
   "function auctions(uint256 id) view returns ((address asset, uint64 callTime, uint8 kind, bool settled, bool voided, address quote, uint64 callBlock, uint16 capBps, uint16 feeBps, uint64 refUsd, uint64 quoteUsd, uint64 pinnedAt, uint16 live))",
@@ -38,10 +39,11 @@ export const POOL_ABI = new Interface([
   "function pin(uint256 id)",
   "function abandon(uint256 id)",
   "function advanceTree(uint256 count, bytes32 newRoot, bytes proof)",
-  "function settleAuction(uint256 id, (uint256 pStar, uint256 crossedQty, bytes32[64] fills, bytes32[64] residuals, bool[64] rolls, bytes32 feeNote) c, uint256 rollInto, bytes proof, bytes notes)",
+  "function settleAuction(uint256 id, (uint256 pStar, uint256 crossedQty, bytes32[64] fills, bytes32[64] residuals, bool[64] rolls, bytes32 feeNote, bool roll, uint64 excluded) c, uint256 rollInto, bytes proof, bytes notes)",
   "function transact((bytes32 root, bytes32 aspRoot, bytes32[2] nullifiers, bytes32[2] outputs, address asset, uint256 released, uint256 fee, address to, address relayer) t, bytes proof, bytes memo)",
-  "function placeOrder(uint256 id, (bytes32 root, bytes32 nullifier, bytes32 feeNullifier, bytes32 change, bytes32 feeChange, bytes32 commitment, address relayer, uint256 fee) p, bytes proof, bytes sealedOrder)",
+  "function placeOrder(uint256 id, (bytes32 root, bytes32 nullifier, bytes32 feeNullifier, bytes32 change, bytes32 feeChange, bytes32 commitment, address relayer, uint256 fee, bytes32 aspRoot) p, bytes proof, bytes sealedOrder)",
   "function reclaim(uint256 id, uint256 slot, bytes32 orderNullifier, bytes32 refund, bytes proof)",
+  "function ragequit((bytes32 root, bytes32 aspRoot, bytes32[2] nullifiers, bytes32[2] outputs, address asset, uint256 released, uint256 fee, address to, address relayer) t, uint256 nonce, bytes proof, bytes memo)",
 ]);
 
 export const DESK_ABI = new Interface([

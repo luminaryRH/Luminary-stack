@@ -5,7 +5,8 @@
 // cannot be redirected or have its fee changed.
 // Labels: both inputs and both outputs carry the same private `label` — the deposit the
 // value descends from. With `asp_root` != 0 the proof also shows that label is in the published association set,
-// without revealing which deposit it is.
+// without revealing which deposit it is. With `public_label` != 0 the label is public instead: the pool's ragequit, where
+// a depositor takes value of their own deposit back to their own address with no association proof (AuctionPool.ragequit).
 use luminary::{DEPTH, asp_leaf, note, nullifier, owner_pub, root_from_path};
 
 fn main(
@@ -28,6 +29,7 @@ fn main(
     released: pub u128,
     fee: pub u128,
     context: pub Field,
+    public_label: pub Field, // 0 = the label stays private
 ) {
     let owner = owner_pub(secret);
     let mut total_in: u128 = 0;
@@ -50,6 +52,9 @@ fn main(
 
     if asp_root != 0 {
         assert(root_from_path(asp_leaf(label), asp_index, asp_path) == asp_root);
+    }
+    if public_label != 0 {
+        assert(label == public_label);
     }
     let _ = context;
 }
@@ -96,7 +101,7 @@ fn withdraw(asp_index: u32, asp_path: [Field; DEPTH], asp_root: Field) {
     let outputs = [note(owner, 0, 590, 1, L), note(owner, 0, 0, 2, L)];
     main(
         42, L, [1000, 0], [77, 555], [1, 0], [path_a, [0; DEPTH]], [owner, owner], [590, 0], [1, 2], asp_index, asp_path, root,
-        asp_root, [nullifier(42, a, 1), nullifier(42, dummy, 0)], outputs, 0, 400, 10, 99,
+        asp_root, [nullifier(42, a, 1), nullifier(42, dummy, 0)], outputs, 0, 400, 10, 99, 0,
     );
 }
 
@@ -109,6 +114,30 @@ fn withdraws_with_change_and_a_dummy_input() {
 fn proves_its_label_is_in_the_association_set() {
     let (asp_root, asp_path) = asp_set(L);
     withdraw(1, asp_path, asp_root);
+}
+
+#[test]
+fn ragequit_shows_the_label() {
+    let (root, path_a, _, a, _) = tree();
+    let owner = owner_pub(42);
+    let dummy = note(owner, 0, 0, 555, L);
+    let outputs = [note(owner, 0, 600, 1, L), note(owner, 0, 0, 2, L)];
+    main(
+        42, L, [1000, 0], [77, 555], [1, 0], [path_a, [0; DEPTH]], [owner, owner], [600, 0], [1, 2], 0, [0; DEPTH], root, 0,
+        [nullifier(42, a, 1), nullifier(42, dummy, 0)], outputs, 0, 400, 0, 99, L,
+    );
+}
+
+#[test(should_fail)]
+fn ragequit_cannot_claim_another_label() {
+    let (root, path_a, _, a, _) = tree();
+    let owner = owner_pub(42);
+    let dummy = note(owner, 0, 0, 555, L);
+    let outputs = [note(owner, 0, 600, 1, L), note(owner, 0, 0, 2, L)];
+    main(
+        42, L, [1000, 0], [77, 555], [1, 0], [path_a, [0; DEPTH]], [owner, owner], [600, 0], [1, 2], 0, [0; DEPTH], root, 0,
+        [nullifier(42, a, 1), nullifier(42, dummy, 0)], outputs, 0, 400, 0, 99, 556,
+    );
 }
 
 #[test(should_fail)]
@@ -124,7 +153,7 @@ fn merges_two_notes_into_one() {
     let outputs = [note(owner, 0, 1500, 1, L), note(owner, 0, 0, 2, L)];
     main(
         42, L, [1000, 500], [77, 78], [1, 2], [path_a, path_b], [owner, owner], [1500, 0], [1, 2], 0, [0; DEPTH], root, 0,
-        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99,
+        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99, 0,
     );
 }
 
@@ -149,7 +178,7 @@ fn notes_of_two_labels_cannot_merge() {
     let outputs = [note(owner, 0, 1500, 1, L), note(owner, 0, 0, 2, L)];
     main(
         42, L, [1000, 500], [77, 78], [1, 2], [path_a, path_b], [owner, owner], [1500, 0], [1, 2], 0, [0; DEPTH], root, 0,
-        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99,
+        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99, 0,
     );
 }
 
@@ -160,7 +189,7 @@ fn outputs_keep_the_label() {
     let outputs = [note(owner, 0, 1500, 1, 999), note(owner, 0, 0, 2, L)];
     main(
         42, L, [1000, 500], [77, 78], [1, 2], [path_a, path_b], [owner, owner], [1500, 0], [1, 2], 0, [0; DEPTH], root, 0,
-        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99,
+        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99, 0,
     );
 }
 
@@ -171,7 +200,7 @@ fn cannot_create_value() {
     let outputs = [note(owner, 0, 1501, 1, L), note(owner, 0, 0, 2, L)];
     main(
         42, L, [1000, 500], [77, 78], [1, 2], [path_a, path_b], [owner, owner], [1501, 0], [1, 2], 0, [0; DEPTH], root, 0,
-        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99,
+        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99, 0,
     );
 }
 
@@ -182,7 +211,7 @@ fn cannot_spend_one_note_twice() {
     let outputs = [note(owner, 0, 2000, 1, L), note(owner, 0, 0, 2, L)];
     main(
         42, L, [1000, 1000], [77, 77], [1, 1], [path_a, path_a], [owner, owner], [2000, 0], [1, 2], 0, [0; DEPTH], root, 0,
-        [nullifier(42, a, 1), nullifier(42, a, 1)], outputs, 0, 0, 0, 99,
+        [nullifier(42, a, 1), nullifier(42, a, 1)], outputs, 0, 0, 0, 99, 0,
     );
 }
 
@@ -194,7 +223,7 @@ fn the_nullifier_must_be_the_notes() {
     let outputs = [note(owner, 0, 590, 1, L), note(owner, 0, 0, 2, L)];
     main(
         42, L, [1000, 0], [77, 555], [1, 0], [path_a, [0; DEPTH]], [owner, owner], [590, 0], [1, 2], 0, [0; DEPTH], root, 0,
-        [nullifier(42, a, 2), nullifier(42, dummy, 0)], outputs, 0, 400, 10, 99,
+        [nullifier(42, a, 2), nullifier(42, dummy, 0)], outputs, 0, 400, 10, 99, 0,
     );
 }
 
@@ -205,7 +234,7 @@ fn an_output_must_commit_to_its_amount() {
     let outputs = [note(owner, 0, 999999, 1, L), note(owner, 0, 0, 2, L)];
     main(
         42, L, [1000, 500], [77, 78], [1, 2], [path_a, path_b], [owner, owner], [1500, 0], [1, 2], 0, [0; DEPTH], root, 0,
-        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99,
+        [nullifier(42, a, 1), nullifier(42, b, 2)], outputs, 0, 0, 0, 99, 0,
     );
 }
 
@@ -218,6 +247,6 @@ fn a_valued_input_needs_membership() {
     let outputs = [note(owner, 0, 700, 1, L), note(owner, 0, 0, 2, L)];
     main(
         42, L, [700, 0], [5, 555], [7, 0], [[0; DEPTH], [0; DEPTH]], [owner, owner], [700, 0], [1, 2], 0, [0; DEPTH], root, 0,
-        [nullifier(42, fake, 7), nullifier(42, dummy, 0)], outputs, 0, 0, 0, 99,
+        [nullifier(42, fake, 7), nullifier(42, dummy, 0)], outputs, 0, 0, 0, 99, 0,
     );
 }

@@ -3071,9 +3071,9 @@
     "Robinhood 测试网水龙头",
     "Robinhood テストネット・フォーセット"
   ],
-  "Your browser proves the order and seals it to the clearing committee. It stays private until the call.": [
-    "您的浏览器为订单生成证明并将其密封给清算委员会，竞价前始终保持私密。",
-    "ブラウザが注文を証明し、清算委員会に向けて封印します。コールまで非公開のままです。"
+  "Your browser proves the order and seals it to the clearing key. On testnet the operator alone holds that key, so it can read orders; nobody else can before the call.": [
+    "您的浏览器为订单生成证明，并将其密封给清算密钥。测试网上该密钥仅由运营方持有，因此运营方可以读取订单；竞价前其他任何人都无法读取。",
+    "ブラウザが注文を証明し、清算鍵に向けて封印します。テストネットではこの鍵を運営者だけが持つため運営者は注文を読めますが、コールまで他の誰も読めません。"
   ],
   "Submitted by": [
     "提交方",

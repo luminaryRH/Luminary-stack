@@ -19,7 +19,7 @@ import {HonkVerifier as ReclaimHonk} from "../src/verifiers/ReclaimVerifier.sol"
 
 /// The whole auction path against the real verifiers, with the proofs from `bun circuits/tests/auction.fixture.ts`
 /// (skipped when they are absent): deposit, append, place three orders, pin at $250, settle at p* = $245 with the
-/// AuctionClearProof, append the outputs, withdraw a fill, cancel the rolled remainder.
+/// AuctionClearProof, append the outputs, withdraw a fill, cancel the rolled remainder, ragequit the other fill.
 contract AuctionFlowTest is Test {
     string constant DIR = "test/fixtures/";
     address constant POOL = 0x00000000000000000000000000000000000A0C71;
@@ -59,6 +59,8 @@ contract AuctionFlowTest is Test {
         tslaFeed = new MockAggregator("TSLA / USD", address(this), 250e8);
         pool.setMarket(TSLA, address(tslaFeed), 1e12, true, 500);
         pool.setMarket(TQ, TQ, 1, true, 100);
+        pool.setMinLock(TSLA, 1e6); // the proofs were made with these minimums (auction.fixture.ts)
+        pool.setMinLock(TQ, 100e6);
     }
 
     function _proof(string memory name) internal view returns (bytes memory) {
@@ -95,7 +97,9 @@ contract AuctionFlowTest is Test {
             p.nullifier = _b32(string.concat(k, ".spent"));
             p.change = _b32(string.concat(k, ".change"));
             p.commitment = _b32(string.concat(k, ".commitment"));
+            uint256 gas = gasleft();
             pool.placeOrder(0, p, _proof(string.concat("flow_order_", vm.toString(i))), "");
+            if (i == 0) emit log_named_uint("placeOrder gas", gas - gasleft());
         }
     }
 
@@ -111,6 +115,7 @@ contract AuctionFlowTest is Test {
             c.rolls[i] = rolls[i];
         }
         c.feeNote = _b32(".feeNote");
+        c.roll = true;
     }
 
     function _pinned() internal {
@@ -144,12 +149,38 @@ contract AuctionFlowTest is Test {
         t.asset = TQ;
         t.released = uint256(_b32(".payout"));
         t.to = TO;
+        gas = gasleft();
         pool.transact(t, _proof("flow_withdraw"), "");
+        emit log_named_uint("transact gas", gas - gasleft());
         assertEq(TreasuryQuote(TQ).balanceOf(TO), 489_755_000, "2 TSLA at $245 less 5 bps");
 
         pool.reclaim(1, 0, _b32(".cancel.spent"), _b32(".cancel.refund"), _proof("flow_cancel"));
         assertEq(pool.auctions(1).live, 0);
-        assertEq(pool.openOrders(TSLA), 0);
+
+        // the $245 seller (deposit 1 of DEPOSITOR) exits with its label public, no association proof
+        t.nullifiers = [_b32(".ragequit.nullifier0"), _b32(".ragequit.nullifier1")];
+        t.outputs = [_b32(".ragequit.output0"), _b32(".ragequit.output1")];
+        t.released = uint256(_b32(".payoutA"));
+        t.to = DEPOSITOR;
+        uint256 before = TreasuryQuote(TQ).balanceOf(DEPOSITOR);
+        vm.expectRevert(); // the verifier rejects it
+        pool.ragequit(t, 0, _proof("flow_ragequit"), ""); // the label of another deposit
+        pool.ragequit(t, 1, _proof("flow_ragequit"), "");
+        assertEq(TreasuryQuote(TQ).balanceOf(DEPOSITOR) - before, 244_877_500, "1 TSLA at $245 less 5 bps");
+    }
+
+    function test_an_order_proof_is_bound_to_its_sealed_order() public {
+        if (bytes(fx).length == 0) vm.skip(true);
+        _deposits();
+        pool.schedule(TSLA, TQ, AuctionPool.Kind.CLOSE, uint64(block.timestamp + 600));
+        AuctionPool.Placement memory p;
+        p.root = _b32(".placements[0].root");
+        p.nullifier = _b32(".placements[0].spent");
+        p.change = _b32(".placements[0].change");
+        p.commitment = _b32(".placements[0].commitment");
+        vm.expectRevert(); // the verifier rejects it
+        pool.placeOrder(0, p, _proof("flow_order_0"), "junk"); // proved for an empty sealed order
+        pool.placeOrder(0, p, _proof("flow_order_0"), "");
     }
 
     function test_a_different_p_star_is_rejected() public {

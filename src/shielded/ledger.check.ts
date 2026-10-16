@@ -81,7 +81,7 @@ for (const r of s.results) {
   else leaves.push(r.residual);
 }
 leaves.push(s.onchain.feeNote);
-emit("AuctionSettled", { id: "0", pStar: String(s.onchain.pStar), crossedQty: String(s.onchain.crossedQty), notes: utf8Hex(JSON.stringify(notes)) }, "0xsettle");
+emit("AuctionSettled", { id: "0", pStar: String(s.onchain.pStar), crossedQty: String(s.onchain.crossedQty), excluded: "0", notes: utf8Hex(JSON.stringify(notes)) }, "0xsettle");
 
 const [b, sl] = s.results;
 assert(b!.qty === 3n * U && sl!.qty === 3n * U && sl!.rolls, `expected 3 crossed with the seller rolling 1, got ${b!.qty} / ${sl!.qty}`);
@@ -106,7 +106,7 @@ assert(!S.notes.some((n) => n.origin === "Released lock"), "a rolled order relea
 
 // the seller cancels the roll: the refund comes back as blind(salt, 3)
 leaves.push(note(seller.keys.owner, TSLA, rolled.opening.lock * UNIT, blind(rolled.opening.salt, 3n), rolled.opening.label));
-emit("OrderReclaimed", { id: "1", slot: "0", cancelled: true });
+emit("OrderReclaimed", { id: "1", slot: "0", commitment: hex(rolled.commitment), cancelled: true });
 const S2 = await mine(seller);
 has(S2, "Cancelled order", TSLA, 1n * U * UNIT);
 assert(S2.orders.find((o) => o.auctionId === 1)!.status === "cancelled", "roll cancelled");

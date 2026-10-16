@@ -1,5 +1,5 @@
 // bun supabase/checks/pool.check.ts
-// The Luminary schema (0001–0004) in PGlite: idempotent event recording with the cursor, the leaf table, open auctions
+// The Luminary schema (0001–0006) in PGlite: idempotent event recording with the cursor, the leaf table, open auctions
 // with a cancelled slot, the auction lifecycle and print tape driven by events, calendar planning, the operator send
 // queue, relay idempotency and the worker run log.
 import { PGlite } from "@electric-sql/pglite";
@@ -36,9 +36,10 @@ const batch = [
   ev("0xT2", 0, 101, "Committed", { index: "0", commitment: "0xc0" }),
   ev("0xT3", 0, 102, "OrderResting", { id: "0", slot: "0", commitment: "0xo0", sealedOrder: "0xs0" }),
   ev("0xT4", 0, 103, "OrderResting", { id: "0", slot: "1", commitment: "0xo1", sealedOrder: "0xs1" }),
-  ev("0xT5", 0, 104, "OrderReclaimed", { id: "0", slot: "0", cancelled: true }),
+  ev("0xT5", 0, 104, "OrderReclaimed", { id: "0", slot: "0", commitment: "0xo0", cancelled: true }),
+  ev("0xT5", 1, 105, "OrderResting", { id: "0", slot: "0", commitment: "0xo2", sealedOrder: "0xs2" }), // the slot is reused
 ];
-assert.equal(await record(batch, 110), 6);
+assert.equal(await record(batch, 110), 7);
 assert.equal(await record(batch, 105), 0, "idempotent");
 assert.equal(Number(await val(`select lum_get_cursor('pool_events')`)), 110, "cursor never moves back");
 assert.deepEqual(await val(`select lum_pool_leaves(0, 10)`), ["0xc0", "0xc1"]);
@@ -46,7 +47,7 @@ assert.deepEqual(await val(`select lum_pool_leaf_stats()`), { count: 2, max: 1 }
 
 let open = await val(`select lum_pool_open_auctions()`);
 assert.equal(open.length, 1);
-assert.deepEqual(open[0].orders.map((o: any) => o.slot), [1], "the cancelled slot is left out");
+assert.deepEqual(open[0].orders.map((o: any) => o.commitment), ["0xo2", "0xo1"], "the cancelled order is left out, the order reusing its slot is not");
 assert.equal(open[0].pinned, false);
 let a = (await q(`select * from lum_auctions`))[0]!;
 assert.equal(a.status, "collecting");

@@ -17,7 +17,12 @@
     "check": "node scripts/check-naming.mjs && bun src/server/luminary/engine/clearing.check.ts && bun src/server/luminary/calendar.check.ts && bun src/server/luminary/nav.check.ts && bun supabase/checks/pool.check.ts && bun src/shielded/ledger.check.ts && bun src/shielded/buylock.check.ts && bun src/shielded/rfq-settle.check.ts"
   },
   "overrides": {
-    "rolldown": "1.2.1"
+    "rolldown": "1.2.1",
+    "seroval": "1.6.9",
+    "seroval-plugins": "1.6.9",
+    "nanoid": "3.3.19",
+    "js-yaml": "4.3.2",
+    "source-map-js": "1.2.2"
   },
   "dependencies": {
     "@aztec/bb.js": "5.0.0-nightly.20260522",

@@ -3,6 +3,7 @@ pragma solidity 0.8.28;
 
 /// Chainalysis-style sanctions oracle.
 interface ISanctionsList {
+    /// Whether `account` is on the sanctions list.
     function isSanctioned(address account) external view returns (bool);
 }
 
@@ -69,10 +70,12 @@ contract ScreeningGate {
         return false;
     }
 
+    /// The most recently posted association root (0 before the first).
     function latestAssociationRoot() external view returns (bytes32) {
         return rootCount == 0 ? bytes32(0) : associationRoots[(rootCount - 1) % ROOT_HISTORY];
     }
 
+    /// Publish a new association root (poster or owner); the oldest of the last ROOT_HISTORY drops out.
     function postAssociationRoot(bytes32 root) external {
         if (msg.sender != poster && msg.sender != owner) revert NotPoster();
         if (root == 0 || uint256(root) >= FIELD) revert BadRoot();
@@ -81,6 +84,7 @@ contract ScreeningGate {
         emit AssociationRootPosted(root, rootCount);
     }
 
+    /// Block or unblock `accounts` from depositing.
     function setBlocked(address[] calldata accounts, bool isBlocked) external onlyOwner {
         for (uint256 i; i < accounts.length; i++) {
             blocked[accounts[i]] = isBlocked;
@@ -88,26 +92,31 @@ contract ScreeningGate {
         }
     }
 
+    /// Plug in a sanctions oracle (0 = none); it applies on top of the blocklist.
     function setSanctions(ISanctionsList sanctions_) external onlyOwner {
         sanctions = sanctions_;
         emit SanctionsSet(address(sanctions_));
     }
 
+    /// Who posts association roots.
     function setPoster(address poster_) external onlyOwner {
         poster = poster_;
         emit PosterSet(poster_);
     }
 
+    /// Require (or not) an association proof for value leaving the pool. Ragequits are never affected.
     function setAssociationRequired(bool required) external onlyOwner {
         associationRequired = required;
         emit AssociationRequiredSet(required);
     }
 
+    /// Start moving ownership to `newOwner`; it takes effect when they accept.
     function transferOwnership(address newOwner) external onlyOwner {
         pendingOwner = newOwner;
         emit OwnershipTransferStarted(owner, newOwner);
     }
 
+    /// Accept a pending ownership transfer.
     function acceptOwnership() external {
         if (msg.sender != pendingOwner) revert NotPendingOwner();
         emit OwnershipTransferred(owner, msg.sender);

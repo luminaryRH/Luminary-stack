@@ -39,6 +39,9 @@ contract Deploy is Script {
     uint16 constant STOCK_CAP_BPS = 500;
     uint16 constant NAV_CAP_BPS = 100;
     uint16 constant FEE_BPS = 5;
+    // smallest order lock, so holding an auction's 64 slots costs real capital: 0.05 share, or 25 of a quote token
+    uint256 constant STOCK_MIN_LOCK = 50_000;
+    uint256 constant QUOTE_MIN_LOCK = 25e6;
 
 
     address[5] stocks = [TSLA, AMZN, AMD, PLTR, NFLX];
@@ -93,8 +96,10 @@ contract Deploy is Script {
         tq = new TreasuryQuote(usdg, operator);
         usdg.setMinter(address(tq));
         pool.setMarket(address(tq), address(tq), 1, true, NAV_CAP_BPS);
+        pool.setMinLock(address(tq), QUOTE_MIN_LOCK);
         MockAggregator usdgFeed = new MockAggregator("USDG / USD", operator, 1e8);
         pool.setMarket(address(usdg), address(usdgFeed), 1, false, 0);
+        pool.setMinLock(address(usdg), QUOTE_MIN_LOCK);
         vm.serializeAddress("feeds", "USDG", address(usdgFeed));
         MockAggregator ethFeed = new MockAggregator("ETH / USD", operator, int256(vm.envUint("PRICE_ETH")));
         vm.serializeAddress("feeds", "ETH", address(ethFeed));
@@ -102,6 +107,7 @@ contract Deploy is Script {
             string memory symbol = symbols[i];
             MockAggregator feed = new MockAggregator(string.concat(symbol, " / USD"), operator, int256(vm.envUint(string.concat("PRICE_", symbol))));
             pool.setMarket(stocks[i], address(feed), STOCK_UNIT, true, STOCK_CAP_BPS);
+            pool.setMinLock(stocks[i], STOCK_MIN_LOCK);
             feeds = vm.serializeAddress("feeds", symbol, address(feed));
         }
     }

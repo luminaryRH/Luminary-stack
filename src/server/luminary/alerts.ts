@@ -1,10 +1,10 @@
 // Monitoring (every 5 minutes, from the nav job): posts an alert to ALERT_WEBHOOK_URL when an admin power is used on the
-// pool, gate, vault or desk, when a large amount leaves the pool, when the operator wallet runs low on gas, or when a
-// worker step has stalled. The runbook for each alert is in SECURITY.md. Without ALERT_WEBHOOK_URL it only logs.
+// pool, gate, vault or desk, when a large amount leaves the pool, when the operator wallet runs low on gas, when the
+// note tree passes 80% of its 2^20 leaves, or when a worker step has stalled. The runbook for each alert is in SECURITY.md. Without ALERT_WEBHOOK_URL it only logs.
 import { Interface, formatEther } from "ethers";
 import { provider } from "./chain";
 import { rpc } from "./db";
-import { deployment, operator } from "./pool/contract";
+import { deployment, operator, pool } from "./pool/contract";
 
 const ADMIN = new Interface([
   "event OwnershipTransferStarted(address indexed from, address indexed to)",
@@ -27,10 +27,12 @@ const OUTFLOW = new Interface(["event Transacted(bytes32 indexed nullifier0, byt
 const LOW_GAS_WEI = 2_000_000_000_000_000n; // 0.002 ETH: about a day of settlements
 const LARGE_OUTFLOW_UNITS = 10n ** 6n * 10_000n; // 10,000 tokens of a 6-decimal asset; 18-decimal assets scale below
 const MAX_RANGE = 50_000;
+const TREE_WARN = (2 ** 20 * 8) / 10; // AuctionPool CAPACITY: no rollover yet (SECURITY.md, accepted risk 4)
 
 interface AlertState {
   block: number;
   lowGasSent?: boolean;
+  treeSent?: boolean;
 }
 
 async function post(lines: string[]) {
@@ -75,6 +77,10 @@ export async function watchAlerts() {
   const low = wei < LOW_GAS_WEI;
   if (low && !state.lowGasSent) lines.push(`operator ${operator().address} holds ${formatEther(wei)} ETH (below ${formatEther(LOW_GAS_WEI)}): top it up, or relays, pins and settlements stop`);
 
+  const leaves = Number(await pool().getFunction("commitmentCount")());
+  const treeFull = leaves >= TREE_WARN;
+  if (treeFull && !state.treeSent) lines.push(`the note tree holds ${leaves} of ${2 ** 20} leaves: plan the rollover before it fills (withdrawals stop at capacity)`);
+
   const cron = await rpc<Record<string, Record<string, { status: string; at: string }>>>("lum_cron_status", {});
   for (const [job, steps] of Object.entries(cron ?? {})) {
     for (const [step, r] of Object.entries(steps)) {
@@ -84,6 +90,6 @@ export async function watchAlerts() {
   }
 
   const sent = await post(lines);
-  await rpc("lum_pool_put_state", { p_name: "alerts", p_value: { block: head, lowGasSent: low } satisfies AlertState });
+  await rpc("lum_pool_put_state", { p_name: "alerts", p_value: { block: head, lowGasSent: low, treeSent: treeFull } satisfies AlertState });
   return { alerts: lines.length, sent, from, to: head };
 }
