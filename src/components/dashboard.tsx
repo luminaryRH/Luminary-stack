@@ -266,7 +266,9 @@ export default function Dashboard() {
   const openFor = (s: string) =>
     auctions.filter((a) => a.symbol === s && a.id !== null && a.status === "collecting" && a.kind !== "RFQ" && Date.parse(a.callTime) > now + 60_000);
   const ticketAuctions = openFor(symbol);
-  const chosen = ticketAuctions.find((a) => String(a.id) === auctionId) ?? ticketAuctions[0];
+  // until the auctions scheduled before the switch to USDG have called, default to one that takes USDG
+  const quoteOf = (id: number | null) => snap?.auctions.find((a) => a.id === id)?.quote;
+  const chosen = ticketAuctions.find((a) => String(a.id) === auctionId) ?? ticketAuctions.find((a) => quoteOf(a.id) === "USDG") ?? ticketAuctions[0];
   const ref = refOf(symbol);
   const qtyNum = Number(qty);
   const validQty = Number.isFinite(qtyNum) && qtyNum >= 0.001 && /^\d+(\.\d{1,6})?$/.test(qty.trim());
@@ -275,7 +277,7 @@ export default function Dashboard() {
   const estimate = validQty ? qtyNum * pricing : 0;
   // a buy locks the auction's quote token, USDG (TQ, at its NAV, in auctions scheduled before the switch): the limit
   // (or 5% over the reference at auction) plus the fee
-  const quoteSym = snap?.auctions.find((a) => a.id === chosen?.id)?.quote ?? "USDG";
+  const quoteSym = quoteOf(chosen?.id ?? null) ?? "USDG";
   const lockQuote = side === "buy" ? (qtyNum * (kind === "limit" ? limitNum : ref * 1.05) * 1.001) / (quoteSym === "TQ" ? nav : 1) : 0;
   const validTicket = validQty && !!chosen && (kind === "auction" || limitNum > 0);
   const orders = snap?.orders ?? [];
@@ -287,7 +289,7 @@ export default function Dashboard() {
     const group = o.status === "open" || o.status === "pinned" ? "sealed" : o.status === "settled" ? "filled" : "cancelled";
     return (filter === "all" || group === filter) && o.symbol.toLowerCase().includes(search.toLowerCase());
   });
-  const prints = live?.prints ?? [];
+  const prints = (live?.prints ?? []).filter((p) => p.symbol !== "TQ"); // TQ's NAV auctions ended with the switch to USDG
   const filteredPrints = prints.filter((p) => (filter === "all" || p.symbol === filter) && (p.symbol ?? "").toLowerCase().includes(search.toLowerCase()));
   const calls = useMemo(() => {
     const groups = new Map<string, { kind: string; callTime: string; rows: LiveAuction[] }>();
