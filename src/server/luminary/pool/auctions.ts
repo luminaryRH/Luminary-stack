@@ -167,10 +167,13 @@ async function settleOne(a: OpenAuction) {
   let rollInto = 0;
   const rolls = r.results.filter((x) => x.rolled);
   if (rolls.length) {
-    const symbol = await rpc<string | null>("lum_symbol_of", { p_address: s.asset });
-    const target = symbol ? await rpc<number | null>("lum_auction_roll_target", { p_symbol: symbol, p_after: new Date(Number(s.callTime) * 1000).toISOString() }) : null;
-    if (target === null) return { waiting: "no collecting auction of this pair to roll orders into yet" };
-    rollInto = Number(target);
+    // the next collecting auction of the same asset and quote token (AuctionPool rejects any other roll target)
+    const after = Math.max(Number(s.callTime), Date.now() / 1000 + MIN_LEAD_SEC);
+    const target = (await rpc<OpenAuction[]>("lum_pool_open_auctions", {}))
+      .filter((x) => !x.pinned && x.asset === a.asset && x.quote === a.quote && x.kind !== KINDS.indexOf("RFQ") && x.callTime > after)
+      .sort((x, y) => x.callTime - y.callTime)[0];
+    if (!target) return { waiting: "no collecting auction of this pair to roll orders into yet" };
+    rollInto = target.id;
     // rolled orders rest in the next auction; their openings must exist before the transaction that creates them
     const rows = await Promise.all(rolls.map(async (x) => ({ commitment: hex(x.residual), sealed: await seal(sealingPublicKey(), openingToJson(x.rolled!)) })));
     await rpc("lum_pool_put_openings", { p_rows: rows });
