@@ -587,6 +587,8 @@ async function main() {
   if (FROM <= 6) {
     // ---- 6. shielded split, private transfer and merge (TQ: a token, so always self-submitted) -------------------
     await until("buyer TQ spendable", spendable(B, "TQ", 20));
+    // notes still queued for the tree (batched) would join during the split and throw off the note count
+    await until("tree queue drained", async () => (await B.sync(), B.config.tree.queued === B.config.tree.size), 900_000);
     const tq = BigInt(d.tokens.TQ);
     const notesOf = (acc: ShieldedAccount) =>
       acc.notes.filter(

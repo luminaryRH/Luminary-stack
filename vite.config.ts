@@ -16,7 +16,8 @@ export default defineConfig({
     // missing from the wrapper's narrow option type.)
     traceDeps: ["@aztec/bb.js", "@noir-lang/noir_js", "@noir-lang/acvm_js", "@noir-lang/noirc_abi", "postgres"],
     // The tick can prove a tree batch and an auction in one run (~30 s each on one thread); 300 s is the Hobby maximum.
-    vercel: { functions: { maxDuration: 300 } },
+    // hnd1 (Tokyo) sits next to the Supabase pooler (ap-northeast-1): every request makes several sequential queries.
+    vercel: { functions: { maxDuration: 300, regions: ["hnd1"] } },
     // Cross-origin isolation, so bb.js can prove with threads (SharedArrayBuffer) in the browser. Only the dashboard
     // (every link to it is a full page load): elsewhere it would block the Sketchfab hero viewer. nitro's own /assets
     // rule ends routing there, so it carries the headers too (the proving worker needs COEP on its own script).

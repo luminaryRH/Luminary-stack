@@ -21,7 +21,7 @@ function reset() {
   const dead = client;
   client = undefined;
   signatures.clear();
-  void dead?.end({ timeout: 0 }).catch(() => {});
+  void dead?.end({ timeout: 10 }).catch(() => {}); // queries of other requests still in flight get 10 s to finish
 }
 
 function timed<T>(query: Promise<T>): Promise<T> {
