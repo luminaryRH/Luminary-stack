@@ -44,7 +44,7 @@ const ERC20 = [
   "function transfer(address,uint256) returns (bool)",
 ];
 const KIND = { OPEN: 0, CLOSE: 1, MIDNIGHT: 2, NAV: 3, RFQ: 4 } as const;
-// FROM=3 resumes at check 3 with the same (already funded) users; NAV_ID=<id> re-checks a NAV auction already settled
+// FROM=4 resumes at check 4 with the same (already funded) users
 const FROM = Number(process.env["FROM"] ?? 1);
 
 const nativeFetch = globalThis.fetch;
@@ -237,18 +237,14 @@ async function main() {
     1e6;
 
   if (FROM <= 4) {
-    // ---- funding: USDG faucet → TQ → shielded; ETH for relayer fees; stock tokens --------------------------------
-    const bTq = Number(B.view().balances.find((b) => b.symbol === "TQ")?.spendable ?? 0);
-    if (bTq < 500) {
+    // ---- funding: USDG faucet → shielded; ETH for relayer fees; stock tokens ----------------------------------------
+    if (Number(B.view().balances.find((b) => b.symbol === "USDG")?.spendable ?? 0) < 500) {
       await B.mintUsdg("2000", (s) => log("B", s));
-      await B.toTreasury("2000", (s) => log("B", s));
-      await B.deposit("TQ", "1500", (s) => log("B", s));
+      await B.deposit("USDG", "1500", (s) => log("B", s));
       await B.deposit("ETH", "0.0006", (s) => log("B", s));
     }
     if (Number(S.view().balances.find((b) => b.symbol === "TSLA")?.spendable ?? 0) < 1.5) {
       await S.deposit("TSLA", "2", (s) => log("S", s));
-      await S.mintUsdg("500", (s) => log("S", s));
-      await S.deposit("USDG", "300", (s) => log("S", s));
     }
     // relayer fees come out of shielded ETH; earlier runs spend it down
     if (Number(B.view().balances.find((b) => b.symbol === "ETH")?.spendable ?? 0) < 0.0004) {
@@ -257,10 +253,9 @@ async function main() {
     await until(
       "deposits spendable",
       async () =>
-        (await spendable(B, "TQ", 500)()) &&
+        (await spendable(B, "USDG", 500)()) &&
         (await spendable(B, "ETH", 0.0001)()) &&
-        (await spendable(S, "TSLA", 1.5)()) &&
-        (await spendable(S, "USDG", 200)()),
+        (await spendable(S, "TSLA", 1.5)()),
     );
     log("deposits are in the tree");
     if (B.notes.filter((n) => !n.spent && n.asset === 0n && n.amount > 0n).length < 2)
@@ -269,7 +264,7 @@ async function main() {
 
   if (FROM <= 2) {
     // ---- 1. TSLA CLOSE auction clears every crossable order at one p* inside the band, with one proof -------------
-    const a1 = await schedule(d.tokens.TSLA, d.tokens.TQ, KIND.CLOSE, 900); // room for two tree batches (up to 2 min each)
+    const a1 = await schedule(d.tokens.TSLA, d.tokens.USDG, KIND.CLOSE, 900); // room for two tree batches (up to 2 min each)
     await until(
       "auction 1 indexed",
       async () => (await indexed(B, a1.id)()) && (await indexed(S, a1.id)()),
@@ -313,7 +308,7 @@ async function main() {
       (s) => log("S", s),
     );
     // a buy placed and cancelled before the call (ReclaimProof)
-    await until("buyer change in the tree", spendable(B, "TQ", 100));
+    await until("buyer change in the tree", spendable(B, "USDG", 100));
     await until("second sell indexed", placed(S, a1.id, 2));
     await B.placeOrder(
       {
@@ -398,69 +393,6 @@ async function main() {
       "2 no plaintext order data",
       sealedOnly,
       "OrderResting carries only commitments and ciphertexts {o,u}",
-    );
-  }
-
-  // ---- 3. NAV auction of TreasuryQuote uses NAV as its reference ----------------------------------------------
-  if (FROM <= 3) {
-    const reuse = process.env["NAV_ID"];
-    const a3 = reuse
-      ? { id: Number(reuse) }
-      : await schedule(d.tokens.TQ, d.tokens.USDG, KIND.NAV, 420);
-    if (!reuse) {
-      await until(
-        "NAV auction indexed",
-        async () => (await indexed(B, a3.id)()) && (await indexed(S, a3.id)()),
-      );
-      const navNow =
-        Number(
-          await new Contract(
-            d.tokens.TQ,
-            ["function nav() view returns (uint256)"],
-            chain,
-          ).getFunction("nav")(),
-        ) / 1e6;
-      await B.placeOrder(
-        {
-          auctionId: a3.id,
-          side: "sell",
-          sizeText: "100",
-          limitText: "",
-          roll: false,
-          selfSubmit: true,
-        },
-        (s) => log("B", s),
-      );
-      await S.placeOrder(
-        {
-          auctionId: a3.id,
-          side: "buy",
-          sizeText: "100",
-          limitText: (navNow * 1.005).toFixed(6),
-          lockText: (100 * navNow * 1.006).toFixed(6),
-          roll: false,
-          selfSubmit: true,
-        },
-        (s) => log("S", s),
-      );
-    }
-    const p3 = await until("NAV auction printed", () => printOf(a3.id), 900_000);
-    const row3 = (await auctionRow(a3.id))!;
-    // AuctionPool's callBlock is the parent-chain block number on this Orbit chain; the pin's own L2 block is the event's
-    const pin = (
-      await api<{ events: { block: number; args: { id: string } }[] }>(
-        `/api/pool/events?names=AuctionPinned&after=${d.deployBlock}`,
-      )
-    ).events.find((e) => Number(e.args.id) === a3.id)!;
-    const navAtPin = await new Contract(
-      d.tokens.TQ,
-      ["function nav() view returns (uint256)"],
-      chain,
-    ).getFunction("nav")({ blockTag: pin.block });
-    check(
-      "3 NAV auction references NAV",
-      BigInt(row3.refUsd!) === BigInt(navAtPin),
-      `ref ${Number(row3.refUsd) / 1e6} = NAV ${Number(navAtPin) / 1e6} at the pin; p* ${Number(p3.pStar) / 1e6}, crossed ${Number(p3.crossedQty) / 1e6} TQ`,
     );
   }
 
@@ -585,14 +517,14 @@ async function main() {
   }
 
   if (FROM <= 6) {
-    // ---- 6. shielded split, private transfer and merge (TQ: a token, so always self-submitted) -------------------
-    await until("buyer TQ spendable", spendable(B, "TQ", 20));
+    // ---- 6. shielded split, private transfer and merge (USDG: a token, so always self-submitted) -------------------
+    await until("buyer USDG spendable", spendable(B, "USDG", 20));
     // notes still queued for the tree (batched) would join during the split and throw off the note count
     await until("tree queue drained", async () => (await B.sync(), B.config.tree.queued === B.config.tree.size), 900_000);
-    const tq = BigInt(d.tokens.TQ);
+    const usdg = BigInt(d.tokens.USDG);
     const notesOf = (acc: ShieldedAccount) =>
       acc.notes.filter(
-        (n) => !n.spent && n.amount > 0n && n.asset === tq && n.index < acc.config.tree.size,
+        (n) => !n.spent && n.amount > 0n && n.asset === usdg && n.index < acc.config.tree.size,
       );
     const total = (acc: ShieldedAccount) => notesOf(acc).reduce((s, n) => s + n.amount, 0n);
     const settled = (acc: ShieldedAccount, ok: () => boolean) => async () => (
@@ -604,7 +536,7 @@ async function main() {
 
     // a fresh amount each run: an exact note left by an earlier run would be split into itself plus a zero change
     const part = 10_000_000n + BigInt(Date.now() % 1_000_000);
-    await B.split("TQ", (Number(part) / 1e6).toFixed(6), true, (s) => log("B", s));
+    await B.split("USDG", (Number(part) / 1e6).toFixed(6), true, (s) => log("B", s));
     await until(
       "split in the tree",
       settled(B, () => notesOf(B).length === n0 + 1),
@@ -612,10 +544,10 @@ async function main() {
     check(
       "6 split one note in two",
       total(B) === b0 && notesOf(B).some((n) => n.amount === part),
-      `${n0} → ${notesOf(B).length} TQ notes, total unchanged at ${Number(b0) / 1e6}`,
+      `${n0} → ${notesOf(B).length} USDG notes, total unchanged at ${Number(b0) / 1e6}`,
     );
 
-    await B.transfer("TQ", "5", S.shieldedAddress(), true, (s) => log("B", s));
+    await B.transfer("USDG", "5", S.shieldedAddress(), true, (s) => log("B", s));
     await until(
       "transfer received",
       settled(S, () => total(S) === s0 + 5_000_000n),
@@ -627,11 +559,11 @@ async function main() {
     check(
       "6 private transfer to a shielded address",
       true,
-      `B ${Number(b0) / 1e6} → ${Number(total(B)) / 1e6} TQ, S ${Number(s0) / 1e6} → ${Number(total(S)) / 1e6} TQ`,
+      `B ${Number(b0) / 1e6} → ${Number(total(B)) / 1e6} USDG, S ${Number(s0) / 1e6} → ${Number(total(S)) / 1e6} USDG`,
     );
 
     const n1 = notesOf(B).length;
-    await B.merge("TQ", true, (s) => log("B", s));
+    await B.merge("USDG", true, (s) => log("B", s));
     await until(
       "merge in the tree",
       settled(B, () => notesOf(B).length === n1 - 1),
@@ -639,7 +571,7 @@ async function main() {
     check(
       "6 merge two notes into one",
       total(B) === b0 - 5_000_000n,
-      `${n1} → ${notesOf(B).length} TQ notes, total ${Number(total(B)) / 1e6}`,
+      `${n1} → ${notesOf(B).length} USDG notes, total ${Number(total(B)) / 1e6}`,
     );
   }
 
@@ -684,8 +616,8 @@ async function main() {
   if (FROM <= 8) {
     // ---- 8. reclaim from an abandoned auction: an order sealed to the wrong key cannot be opened, so the operator
     // cannot settle; past SETTLE_DEADLINE the owner abandons the auction and takes the lock back (about an hour) ----
-    await until("buyer TQ spendable", spendable(B, "TQ", 20));
-    const a8 = await schedule(d.tokens.TSLA, d.tokens.TQ, KIND.CLOSE, 300);
+    await until("buyer USDG spendable", spendable(B, "USDG", 20));
+    const a8 = await schedule(d.tokens.TSLA, d.tokens.USDG, KIND.CLOSE, 300);
     await until("auction 8 indexed", indexed(B, a8.id));
     const r = await ref("TSLA");
     const wrongKey = Wallet.createRandom().signingKey.compressedPublicKey;
@@ -708,15 +640,15 @@ async function main() {
     const pinnedAt = Number((await new Contract(d.AuctionPool, POOL_ABI, chain).getFunction("auctions")(a8.id)).pinnedAt);
     log(`auction #${a8.id} pinned; abandonable after ${new Date((pinnedAt + 3_600) * 1000).toISOString()}`);
     await until("settle deadline passed", async () => (await chain.getBlock("latest"))!.timestamp > pinnedAt + 3_630, 5_400_000);
-    const tqBefore = Number(B.view().balances.find((b) => b.symbol === "TQ")?.spendable ?? 0);
+    const before8 = Number(B.view().balances.find((b) => b.symbol === "USDG")?.spendable ?? 0);
     await B.cancel(orderOf(B, a8.id)[0]!.id, (s) => log("B", s));
     await until("lock reclaimed", async () => (await status8()) === "reclaimed");
-    await until("refund in the tree", spendable(B, "TQ", tqBefore + 0.1 * r * 0.5 * 0.99));
+    await until("refund in the tree", spendable(B, "USDG", before8 + 0.1 * r * 0.5 * 0.99));
     const row8 = await auctionRow(a8.id);
     check(
       "8 abandoned auction: owner reclaims the lock",
       row8?.status === "void",
-      `auction #${a8.id} ${row8?.status}; lock of ~${(0.1 * r * 0.5).toFixed(2)} TQ back as a spendable note`,
+      `auction #${a8.id} ${row8?.status}; lock of ~${(0.1 * r * 0.5).toFixed(2)} USDG back as a spendable note`,
     );
   }
 }

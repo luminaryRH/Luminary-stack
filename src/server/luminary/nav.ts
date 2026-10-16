@@ -1,9 +1,9 @@
-// nav-watcher (every 5 minutes): mirrors real prices into the testnet MockAggregators and accrues TreasuryQuote's NAV.
+// nav-watcher (every 5 minutes): mirrors real prices into the testnet MockAggregators.
 // Prices come from Chainlink on Robinhood Chain mainnet (4663); it has no NFLX feed, so NFLX is Robinhood's public
 // quote midpoint. Only AuctionPool.pin reads the feeds, so a feed is pushed only while an auction on it calls within
 // NEEDED_SEC, when the price moved or its last round is getting old (MAX_STALENESS is 1 hour); pinAuctions refreshes
-// it once more at the call if needed. NAV per share follows a fixed APY from the deployment block, raised in NAV_STEP
-// increments. The dashboard's marks come from the database, every 5 minutes, whatever is pushed.
+// it once more at the call if needed. TreasuryQuote's NAV is no longer
+// raised (auctions quote in USDG since 2026-10-16); it is still recorded for old TQ balances. The dashboard's marks come from the database, every 5 minutes, whatever is pushed.
 import { Contract } from "ethers";
 import { mainnetProvider, provider } from "./chain";
 import { rpc } from "./db";
@@ -22,9 +22,6 @@ const MAINNET_FEEDS: Record<string, string> = {
 const MOVE_BPS = 10n; // push on a 0.1% move
 const REFRESH_SEC = 30 * 60; // or when the round is this old
 const NEEDED_SEC = 15 * 60; // feeds of auctions calling this soon are kept current (three watcher runs)
-const APY_BPS = 450n; // TreasuryQuote's accrual
-const NAV_STEP = 5n; // micro-USD per share, ~1 hour of accrual at 4.5% APY
-const YEAR_SEC = 365n * 86_400n;
 
 /** Robinhood's quote midpoint in 8 decimals. */
 async function robinhoodMid(symbol: string): Promise<bigint> {
@@ -83,19 +80,7 @@ export async function watchPrices() {
     }
   }
 
-  // NAV = 1.000000 × (1 + APY × elapsed / year) since the deployment, raised in steps the contract accepts (≤ 1%)
-  const tq = new Contract(d.tokens.TQ, TQ_ABI, p);
-  const nav = BigInt(await tq.getFunction("nav")());
-  const t0 = BigInt((await p.getBlock(d.deployBlock))!.timestamp);
-  const target = 1_000_000n + (1_000_000n * APY_BPS * (now - t0)) / (10_000n * YEAR_SEC);
-  let navTx: string | null = null;
-  if (target >= nav + NAV_STEP && !busy.has("nav")) {
-    const next = target < (nav * 10_100n) / 10_000n ? target : (nav * 10_100n) / 10_000n;
-    navTx = await sendOperator(d.tokens.TQ, TQ_ABI.encodeFunctionData("raiseNav", [next]), "nav").catch((e) => {
-      errors.push(`nav: ${String((e as Error)?.message ?? e).slice(0, 120)}`);
-      return null;
-    });
-  }
+  const nav = BigInt(await new Contract(d.tokens.TQ, TQ_ABI, p).getFunction("nav")());
   await rpc("lum_marks_put", { p_rows: marks, p_nav: String(nav) });
-  return { pushed, marks: marks.length, nav: String(nav), ...(navTx ? { navTx } : {}), ...(errors.length ? { error: errors.join("; ") } : {}) };
+  return { pushed, marks: marks.length, nav: String(nav), ...(errors.length ? { error: errors.join("; ") } : {}) };
 }

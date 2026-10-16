@@ -4,8 +4,8 @@
 // ETH transactions and every order go through the relayer by default, so the connected wallet is only ever linked to
 // its own deposits. Every note carries its deposit's label: withdrawals prove that label is in the association set.
 //
-// Orders rest in AuctionPool auctions: a buy locks the auction's quote token (TQ for stock auctions, USDG for the NAV
-// auction), a sell locks the stock. A relayed order pays its ETH relayer fee from a separate ETH note.
+// Orders rest in AuctionPool auctions: a buy locks the auction's quote token (USDG; TQ in auctions scheduled
+// before 2026-10-16), a sell locks the stock. A relayed order pays its ETH relayer fee from a separate ETH note.
 import { AbiCoder, Interface, ZeroAddress, formatUnits, getAddress, hexlify, isHexString, keccak256, toUtf8Bytes } from "ethers";
 import { CHAIN_HEX, CONFIG, DEPLOYMENT } from "@/lib/luminary-config";
 import { KEY_MESSAGE, keysFromSignature, parseShieldedAddress, seal, shieldedAddress, type ShieldedKeys } from "./crypto";
@@ -69,7 +69,7 @@ const ERC20 = new Interface([
   "function balanceOf(address) view returns (uint256)",
 ]);
 const USDG = new Interface(["function mint(address to, uint256 amount)"]);
-const TQ = new Interface(["function deposit(uint256 assets, address receiver) returns (uint256)", "function redeem(uint256 shares, address receiver, address holder) returns (uint256)"]);
+const TQ = new Interface(["function redeem(uint256 shares, address receiver, address holder) returns (uint256)"]);
 const CHAIN = {
   chainId: CHAIN_HEX,
   chainName: CONFIG.chainName,
@@ -675,7 +675,7 @@ export class ShieldedAccount {
     if (buy) {
       const typed = t.lockText?.trim() ? toUnits(t.lockText, this.market(quote).decimals) : undefined;
       if (typed !== undefined) lock = typed === null ? null : typed / quoteUnit;
-      // ponytail: assumes 1 quote token ≈ $1 (TQ NAV starts at 1 and only rises), so qty × limit covers the buy; an at-auction buy names its lock
+      // ponytail: assumes 1 quote token ≈ $1 (USDG; old TQ auctions: NAV starts at 1 and only rises), so qty × limit covers the buy; an at-auction buy names its lock
       else lock = limit ? (qty * limit * (10_000n + BigInt(this.config.feeBps))) / 10_000n / 1_000_000n + 1n : null;
       if (!lock || lock <= 0n) throw Error(`Enter the most ${this.symbol(quote)} this buy may spend.`);
     }
@@ -876,12 +876,12 @@ export class ShieldedAccount {
     return this.send(this.config.pool, POOL.encodeFunctionData("reclaim", [o.auctionId, o.slot, hex(spent), hex(refund), proof]));
   }
 
-  /** Opens an RFQ auction of `symbol` against TQ on RfqDesk, called after `delaySec` (60 to 3600); returns the tx hash. */
+  /** Opens an RFQ auction of `symbol` against USDG on RfqDesk, called after `delaySec` (60 to 3600); returns the tx hash. */
   async openRfq(symbol: string, delaySec = 600, progress: (s: string) => void = () => {}) {
     await this.sync();
     if (!DEPLOYMENT) throw Error("No deployment.");
     progress("Open the RFQ auction in your wallet…");
-    return this.send(DEPLOYMENT.RfqDesk, DESK.encodeFunctionData("open", [this.marketBySymbol(symbol).token, this.marketBySymbol("TQ").token, delaySec]));
+    return this.send(DEPLOYMENT.RfqDesk, DESK.encodeFunctionData("open", [this.marketBySymbol(symbol).token, this.marketBySymbol("USDG").token, delaySec]));
   }
 
   /** Testnet faucet: mint up to 10,000 MockUSDG to the wallet. */
@@ -892,17 +892,7 @@ export class ShieldedAccount {
     return this.send(this.marketBySymbol("USDG").token, USDG.encodeFunctionData("mint", [this.wallet, amount]));
   }
 
-  /** USDG → TQ (TreasuryQuote shares) in the wallet, ready to deposit as buy collateral. */
-  async toTreasury(amountText: string, progress: (s: string) => void = () => {}) {
-    const amount = toUnits(amountText, 6);
-    if (!amount || amount <= 0n) throw Error("Enter an amount.");
-    const tq = this.marketBySymbol("TQ").token;
-    await this.approve(this.marketBySymbol("USDG").token, tq, amount, "USDG", progress);
-    progress("Confirm the treasury deposit in your wallet…");
-    return this.send(tq, TQ.encodeFunctionData("deposit", [amount, this.wallet]));
-  }
-
-  /** TQ shares → USDG in the wallet, at the current NAV. */
+  /** TQ shares (left from before auctions quoted in USDG) → USDG in the wallet, at the current NAV. */
   async fromTreasury(sharesText: string, progress: (s: string) => void = () => {}) {
     const shares = toUnits(sharesText, 6);
     if (!shares || shares <= 0n) throw Error("Enter an amount.");

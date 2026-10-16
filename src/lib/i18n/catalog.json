@@ -3302,5 +3302,61 @@
   "Select the key above and copy it.": [
     "请选中上方密钥并复制。",
     "上のキーを選択してコピーしてください。"
+  ],
+  "Shielded collateral (USDG)": [
+    "隐私抵押品（USDG）",
+    "シールド担保（USDG）"
+  ],
+  "Locked for this buy (USDG)": [
+    "本次买入锁定（USDG）",
+    "この買いでロック（USDG）"
+  ],
+  "USDG · cash for buys": [
+    "USDG · 买入资金",
+    "USDG · 買い付け資金"
+  ],
+  "USDG · DOLLAR STABLECOIN": [
+    "USDG · 美元稳定币",
+    "USDG · ドル建てステーブルコイン"
+  ],
+  "One dollar token,": [
+    "同一种美元代币，",
+    "ひとつのドル建てトークンで、"
+  ],
+  "from deposit to fill.": [
+    "从存入到成交。",
+    "入金から約定まで。"
+  ],
+  "Buys lock USDG, a dollar stablecoin, until the call. Whatever is not filled comes back as a note you can spend again.": [
+    "买单锁定美元稳定币 USDG，直至竞价。未成交的部分会以可再次使用的票据返还。",
+    "買い注文はコールまでドル建てステーブルコインの USDG をロックします。約定しなかった分は、再び使えるノートとして戻ります。"
+  ],
+  "Testnet: mint free test USDG with Add funds. Yield-bearing treasury collateral is planned for later.": [
+    "测试网：通过“添加资金”免费铸造测试 USDG。带收益的国债抵押品计划稍后推出。",
+    "テストネット：「資金を追加」から無料のテスト用 USDG をミントできます。利回りのある国債担保は今後提供予定です。"
+  ],
+  "Understand settlement ": [
+    "了解结算",
+    "決済について知る"
+  ],
+  "Mint test USDG and shield it into the pool as buy collateral. Stock tokens and ETH come from the testnet faucet.": [
+    "铸造测试 USDG，再存入隐私池作为买入抵押品。股票代币和 ETH 请从测试网水龙头领取。",
+    "テスト用 USDG をミントし、買い担保としてプールにシールドします。株式トークンと ETH はテストネットのフォーセットから。"
+  ],
+  "Dollar settlement": [
+    "美元结算",
+    "ドル建て決済"
+  ],
+  "Buys lock USDG, a dollar stablecoin, and the auction settles in it. Yield-bearing treasury collateral is planned for later.": [
+    "买单锁定美元稳定币 USDG，竞价也以其结算。带收益的国债抵押品计划稍后推出。",
+    "買い注文はドル建てステーブルコインの USDG をロックし、オークションも USDG で決済します。利回りのある国債担保は今後提供予定です。"
+  ],
+  "What do auctions settle in?": [
+    "竞价以什么结算？",
+    "オークションは何で決済されますか？"
+  ],
+  "Auctions settle in USDG, a dollar stablecoin: buys lock it until the call, and whatever is not filled comes back. Tokenized treasury collateral, where resting cash could earn yield, is planned for later and would never be guaranteed.": [
+    "竞价以美元稳定币 USDG 结算：买单在竞价前锁定 USDG，未成交的部分会返还。可让闲置资金获得收益的代币化国债抵押品计划稍后推出，收益绝不作保证。",
+    "オークションはドル建てステーブルコインの USDG で決済されます。買い注文はコールまで USDG をロックし、約定しなかった分は戻ります。待機中の資金が利回りを得られるトークン化国債担保は今後提供予定で、利回りが保証されることはありません。"
   ]
 }

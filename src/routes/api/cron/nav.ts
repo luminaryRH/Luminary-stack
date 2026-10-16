@@ -3,7 +3,7 @@ import { isCronAuthorized, runJob } from "@/server/luminary/cron";
 import { fail, handle, ok } from "@/server/luminary/http";
 import { watchPrices } from "@/server/luminary/nav";
 
-// Every 5 minutes: mirror mainnet prices into the testnet feeds and accrue TreasuryQuote's NAV.
+// Every 5 minutes: mirror mainnet prices into the testnet feeds.
 export const Route = createFileRoute("/api/cron/nav")({
   server: {
     handlers: {

@@ -1,6 +1,6 @@
 // The auction lifecycle from the operator side, run by the scheduler tick:
 //   plan      the calendar (calendar.ts) → planned rows in lum_auctions
-//   schedule  planned auctions due within the horizon → AuctionPool.schedule (stock auctions quote in TreasuryQuote)
+//   schedule  planned auctions due within the horizon → AuctionPool.schedule (stock auctions quote in USDG)
 //   pin       at the call time → AuctionPool.pin (permissionless; an auction without orders or prices voids itself)
 //   settle    pinned auctions → open each sealed order (committee.ts), clear (engine/clearing.ts via settle.ts), prove
 //             AuctionClearProof and send settleAuction with every owner's result sealed to their viewing key
@@ -77,7 +77,7 @@ export async function scheduleAuctions() {
     const key = `schedule:${a.key}`;
     if (busy.has(key)) continue;
     const asset = a.kind === "NAV" ? d.tokens.TQ : d.tokens[a.symbol as keyof typeof d.tokens];
-    const quote = a.kind === "NAV" ? d.tokens.USDG : d.tokens.TQ;
+    const quote = d.tokens.USDG;
     if (!asset) continue;
     const tx = await sendPool("schedule", [asset, quote, KINDS.indexOf(a.kind as (typeof KINDS)[number]), a.callTime], key);
     if (!tx) break;

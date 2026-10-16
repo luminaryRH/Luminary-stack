@@ -34,7 +34,7 @@ const KIND_LABEL: Record<string, string> = { OPEN: "Opening call", CLOSE: "Closi
 const ASSETS = ["ETH", "TQ", "USDG", ...STOCKS];
 type Modal = "wallet" | "funds" | "review" | "feenote" | "proof" | null;
 type Snapshot = ReturnType<ShieldedAccount["view"]>;
-type FundAction = "mint" | "convert" | "redeem" | "shield" | "unshield" | "feenote";
+type FundAction = "mint" | "redeem" | "shield" | "unshield" | "feenote";
 const errText = (e: unknown) => {
   const x = e as { shortMessage?: string; message?: string; code?: number | string } | null;
   if (x?.code === 4001 || x?.code === "ACTION_REJECTED") return "You rejected the request in your wallet.";
@@ -273,12 +273,16 @@ export default function Dashboard() {
   const limitNum = Number(limit || ref.toFixed(2));
   const pricing = kind === "limit" ? limitNum : ref;
   const estimate = validQty ? qtyNum * pricing : 0;
-  // a buy locks TQ: the limit (or 5% over the reference at auction) plus the fee, at the current NAV
-  const lockTq = side === "buy" ? (qtyNum * (kind === "limit" ? limitNum : ref * 1.05) * 1.001) / nav : 0;
+  // a buy locks the auction's quote token, USDG (TQ, at its NAV, in auctions scheduled before the switch): the limit
+  // (or 5% over the reference at auction) plus the fee
+  const quoteSym = snap?.auctions.find((a) => a.id === chosen?.id)?.quote ?? "USDG";
+  const lockQuote = side === "buy" ? (qtyNum * (kind === "limit" ? limitNum : ref * 1.05) * 1.001) / (quoteSym === "TQ" ? nav : 1) : 0;
   const validTicket = validQty && !!chosen && (kind === "auction" || limitNum > 0);
   const orders = snap?.orders ?? [];
   const openOrders = orders.filter((o) => o.status === "open" || o.status === "pinned");
-  const reservedTq = Number(balance("TQ")?.inOrders ?? 0);
+  // dollar cash for buys: USDG, plus any TQ left from before the switch at its NAV
+  const cash = (k: "spendable" | "inOrders") => Number(balance("USDG")?.[k] ?? 0) + Number(balance("TQ")?.[k] ?? 0) * nav;
+  const hasTq = Number(balance("TQ")?.spendable ?? 0) + Number(balance("TQ")?.inOrders ?? 0) + Number(walletBal.find((w) => w.symbol === "TQ")?.amount ?? 0) > 0;
   const filteredOrders = orders.filter((o) => {
     const group = o.status === "open" || o.status === "pinned" ? "sealed" : o.status === "settled" ? "filled" : "cancelled";
     return (filter === "all" || group === filter) && o.symbol.toLowerCase().includes(search.toLowerCase());
@@ -363,7 +367,7 @@ export default function Dashboard() {
           side: side as "buy" | "sell",
           sizeText: qty.trim(),
           limitText: kind === "limit" ? String(limitNum) : "",
-          lockText: side === "buy" ? lockTq.toFixed(6) : undefined,
+          lockText: side === "buy" ? lockQuote.toFixed(6) : undefined,
           roll,
           selfSubmit,
         },
@@ -386,7 +390,6 @@ export default function Dashboard() {
     if (!account) return;
     const ok = await run(async (progress) => {
       if (fundAction === "mint") return account.mintUsdg(amount, progress);
-      if (fundAction === "convert") return account.toTreasury(amount, progress);
       if (fundAction === "redeem") return account.fromTreasury(amount, progress);
       if (fundAction === "shield") return account.deposit(fundAsset, amount, progress);
       if (fundAction === "unshield") return account.withdraw(fundAsset, amount, account.wallet, fundAsset !== "ETH", progress);
@@ -499,7 +502,7 @@ export default function Dashboard() {
       const accept: RfqIntent = { ...m.intent, kind: "accept", side: mySide, auctionId: target.id };
       await sendIntent(me, m.from, accept);
       const size = (Number(m.intent.qty) / 1e6).toString();
-      const lock = mySide === "buy" ? ((Number(m.intent.qty) / 1e6) * refOf(symbolOf) * 1.05 / nav).toFixed(6) : undefined;
+      const lock = mySide === "buy" ? ((Number(m.intent.qty) / 1e6) * refOf(symbolOf) * 1.05).toFixed(6) : undefined;
       await account.placeOrder({ auctionId: target.id, side: mySide, sizeText: size, limitText: "", lockText: lock, rfq, selfSubmit: true }, progress);
     }, "Block accepted. Your side is sealed in the RFQ auction.");
   }
@@ -513,7 +516,7 @@ export default function Dashboard() {
     const sellerPub = mySide === "buy" ? m.from : session.pub;
     const rfq = account.rfqCommitmentOf({ symbol: symbolOf, qty: m.intent.qty, buyerPub, sellerPub, nonce: m.intent.nonce });
     const size = (Number(m.intent.qty) / 1e6).toString();
-    const lock = mySide === "buy" ? ((Number(m.intent.qty) / 1e6) * refOf(symbolOf) * 1.05 / nav).toFixed(6) : undefined;
+    const lock = mySide === "buy" ? ((Number(m.intent.qty) / 1e6) * refOf(symbolOf) * 1.05).toFixed(6) : undefined;
     await run(
       (progress) => account.placeOrder({ auctionId: m.intent.auctionId!, side: mySide, sizeText: size, limitText: "", lockText: lock, rfq, selfSubmit: true }, progress),
       "Your side of the block is sealed. It settles at the reference after the call.",
@@ -620,10 +623,10 @@ export default function Dashboard() {
         <div className="ticket-summary">
           <div><span>{t("Estimated value")}</span><strong>{formatMoney(estimate)}</strong></div>
           <div>
-            <span>{t(side === "buy" ? "Shielded collateral (TQ)" : `Shielded ${symbol}`)}</span>
-            <span>{connected ? fmtQty(Number(balance(side === "buy" ? "TQ" : symbol)?.spendable ?? 0), locale) : "—"}</span>
+            <span>{t(side === "buy" ? `Shielded collateral (${quoteSym})` : `Shielded ${symbol}`)}</span>
+            <span>{connected ? fmtQty(Number(balance(side === "buy" ? quoteSym : symbol)?.spendable ?? 0), locale) : "—"}</span>
           </div>
-          {side === "buy" && <div><span>{t("Locked for this buy (TQ)")}</span><span>{fmtQty(lockTq, locale)}</span></div>}
+          {side === "buy" && <div><span>{t(`Locked for this buy (${quoteSym})`)}</span><span>{fmtQty(lockQuote, locale)}</span></div>}
         </div>
         <Button className="main-button" disabled={busy || !live || (connected && !validTicket)} onClick={() => setModal(connected ? "review" : "wallet")}>
           {connected ? <><LockKeyhole size={16} />{t(" Review sealed order")}</> : <>{t("Connect wallet ")}<ArrowUpRight size={16} /></>}
@@ -664,8 +667,8 @@ export default function Dashboard() {
                 <button className="icon-button" aria-label={t("Refresh")} disabled={busy} onClick={() => void run(async () => {}, "Refreshed.")}><RefreshCw className={busy ? "animate-spin" : ""} size={18} /></button>
               </section>
               <div className="dashboard-stats">
-                <div><span>{t("Shielded collateral ")}<Wallet size={14} /></span><strong>{connected ? formatMoney(Number(balance("TQ")?.spendable ?? 0) * nav) : "—"}</strong><small>{t("Treasury quote (TQ) · NAV ")}{nav.toFixed(6)}</small></div>
-                <div><span>{t("Sealed orders ")}<LockKeyhole size={14} /></span><strong>{connected ? String(openOrders.length).padStart(2, "0") : "00"}<em>{connected ? formatMoney(reservedTq * nav) : "$0.00"}{t(" reserved")}</em></strong><small>{t("Your orders, visible only to you")}</small></div>
+                <div><span>{t("Shielded collateral ")}<Wallet size={14} /></span><strong>{connected ? formatMoney(cash("spendable")) : "—"}</strong><small>{t("USDG · cash for buys")}</small></div>
+                <div><span>{t("Sealed orders ")}<LockKeyhole size={14} /></span><strong>{connected ? String(openOrders.length).padStart(2, "0") : "00"}<em>{connected ? formatMoney(cash("inOrders")) : "$0.00"}{t(" reserved")}</em></strong><small>{t("Your orders, visible only to you")}</small></div>
                 <div><span>{t("Next auction ")}<Clock3 size={14} /></span><strong className="countdown">{countdown}</strong><small>{t(nextEvent ? KIND_LABEL[nextEvent.kind] : "Finding the next call")}{t(" · UTC")}</small></div>
               </div>
               <div className="terminal-grid">
@@ -809,21 +812,21 @@ export default function Dashboard() {
               <PageHeading kicker="THE FOUNDATION" title="Your treasury" description="A balance with purpose. Collateral for your next moment." action={<Button disabled={busy} onClick={() => { setFundAction("mint"); setFundAsset("USDG"); setModal(connected ? "funds" : "wallet"); }}><Plus size={16} />{t(" Add funds")}</Button>} />
               <div className="treasury-grid">
                 <section className="treasury-balance">
-                  <p className="eyebrow">{t("SHIELDED TREASURY COLLATERAL")}</p>
-                  <h2>{connected ? formatMoney(Number(balance("TQ")?.spendable ?? 0) * nav) : "—"}</h2>
-                  <span>{t("TREASURY QUOTE (TQ) · NAV ")}{nav.toFixed(6)}</span>
+                  <p className="eyebrow">{t("SHIELDED COLLATERAL")}</p>
+                  <h2>{connected ? formatMoney(cash("spendable")) : "—"}</h2>
+                  <span>{t("USDG · DOLLAR STABLECOIN")}</span>
                   <div>
-                    <p>{t("Spendable ")}<strong>{connected ? fmtQty(Number(balance("TQ")?.spendable ?? 0), locale) : "—"} TQ</strong></p>
-                    <p>{t("Reserved in orders ")}<strong>{connected ? fmtQty(reservedTq, locale) : "—"} TQ</strong></p>
+                    <p>{t("Spendable ")}<strong>{connected ? fmtQty(Number(balance("USDG")?.spendable ?? 0), locale) : "—"} USDG</strong></p>
+                    <p>{t("Reserved in orders ")}<strong>{connected ? fmtQty(Number(balance("USDG")?.inOrders ?? 0), locale) : "—"} USDG</strong></p>
                   </div>
-                  <Button variant="outline" disabled={!connected} onClick={() => { setFundAction("unshield"); setFundAsset("TQ"); setModal("funds"); }}>{t("Withdraw funds ")}<ArrowUpRight size={15} /></Button>
+                  <Button variant="outline" disabled={!connected} onClick={() => { setFundAction("unshield"); setFundAsset("USDG"); setModal("funds"); }}>{t("Withdraw funds ")}<ArrowUpRight size={15} /></Button>
                 </section>
                 <section className="treasury-explainer">
                   <Coins size={30} />
-                  <h3>{t("Let resting collateral")}<br />{t("work while you wait.")}</h3>
-                  <p>{t("Buys lock TreasuryQuote shares. Their NAV accrues while your order waits for its call, so resting collateral earns.")}</p>
-                  <small>{t("Testnet: MockUSDG backs TQ and NAV accrues at a fixed 4.5% APY.")}</small>
-                  <button className="text-link" onClick={() => setProtocol(true)}>{t("Understand treasury settlement ")}<ArrowUpRight size={15} /></button>
+                  <h3>{t("One dollar token,")}<br />{t("from deposit to fill.")}</h3>
+                  <p>{t("Buys lock USDG, a dollar stablecoin, until the call. Whatever is not filled comes back as a note you can spend again.")}</p>
+                  <small>{t("Testnet: mint free test USDG with Add funds. Yield-bearing treasury collateral is planned for later.")}</small>
+                  <button className="text-link" onClick={() => setProtocol(true)}>{t("Understand settlement ")}<ArrowUpRight size={15} /></button>
                 </section>
               </div>
               <section className="panel">
@@ -831,7 +834,7 @@ export default function Dashboard() {
                 <Table>
                   <TableHeader><TableRow><TableHead>{t("Asset")}</TableHead><TableHead>{t("Wallet")}</TableHead><TableHead>{t("Shielded")}</TableHead><TableHead>{t("Joining the pool")}</TableHead><TableHead>{t("In orders")}</TableHead><TableHead /></TableRow></TableHeader>
                   <TableBody>
-                    {ASSETS.map((s) => {
+                    {ASSETS.filter((s) => s !== "TQ" || hasTq).map((s) => {
                       const b = balance(s);
                       return (
                         <TableRow key={s}>
@@ -902,7 +905,7 @@ export default function Dashboard() {
                 <div><dt>{t("Price")}</dt><dd>{kind === "limit" ? formatMoney(limitNum) : t("Uniform auction price")}</dd></div>
                 <div><dt>{t("Auction")}</dt><dd>{chosen ? `${t(KIND_LABEL[chosen.kind])} #${chosen.id} · ${utc(chosen.callTime)}` : "—"}</dd></div>
                 <div><dt>{t("Unfilled orders")}</dt><dd>{t(roll ? "Roll to next call" : "Refund after call")}</dd></div>
-                <div><dt>{t(side === "buy" ? "Collateral locked" : "Shares locked")}</dt><dd>{side === "buy" ? `${fmtQty(lockTq, locale)} TQ` : `${qty} ${symbol}`}</dd></div>
+                <div><dt>{t(side === "buy" ? "Collateral locked" : "Shares locked")}</dt><dd>{side === "buy" ? `${fmtQty(lockQuote, locale)} ${quoteSym}` : `${qty} ${symbol}`}</dd></div>
                 <div><dt>{t("Submitted by")}</dt><dd>{t(relayed ? "The relayer (private)" : "Your wallet")}</dd></div>
               </dl>
               {kind === "auction" && side === "buy" && <p className="footnote">{t("An at-auction buy locks 5% over the reference; whatever it does not spend comes back to you.")}</p>}
@@ -924,19 +927,18 @@ export default function Dashboard() {
             <>
               <p className="eyebrow orange">{t("TREASURY / FUNDS")}</p>
               <DialogTitle>{t("Move funds.")}</DialogTitle>
-              <DialogDescription>{t("Mint test USDG, turn it into treasury quote (TQ), and shield it into the pool as buy collateral. Stock tokens and ETH come from the testnet faucet.")}</DialogDescription>
+              <DialogDescription>{t("Mint test USDG and shield it into the pool as buy collateral. Stock tokens and ETH come from the testnet faucet.")}</DialogDescription>
               <label className="modal-label">{t("Action")}
-                <Pick value={fundAction} onChange={(v) => { setFundAction(v as FundAction); if (v === "mint" || v === "convert") setFundAsset("USDG"); if (v === "redeem") setFundAsset("TQ"); }} label="Action" options={[
+                <Pick value={fundAction} onChange={(v) => { setFundAction(v as FundAction); if (v === "mint") setFundAsset("USDG"); if (v === "redeem") setFundAsset("TQ"); }} label="Action" options={[
                   { value: "mint", label: "Mint test USDG (faucet)" },
-                  { value: "convert", label: "USDG → TQ (treasury quote)" },
-                  { value: "redeem", label: "TQ → USDG" },
+                  ...(hasTq ? [{ value: "redeem", label: "TQ → USDG" }] : []),
                   { value: "shield", label: "Shield into the pool" },
                   { value: "unshield", label: "Withdraw to my wallet" },
                   { value: "feenote", label: "Prepare a relayer fee note (ETH)" },
                 ]} />
               </label>
               {(fundAction === "shield" || fundAction === "unshield") && (
-                <label className="modal-label">{t("Asset")}<Pick value={fundAsset} onChange={setFundAsset} label="Asset" options={ASSETS.map((s) => ({ value: s, label: s }))} /></label>
+                <label className="modal-label">{t("Asset")}<Pick value={fundAsset} onChange={setFundAsset} label="Asset" options={ASSETS.filter((s) => s !== "TQ" || hasTq).map((s) => ({ value: s, label: s }))} /></label>
               )}
               {fundAction !== "feenote" && (
                 <label className="modal-label">{t("Amount")}<Input type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} aria-label={t("Amount")} /></label>
