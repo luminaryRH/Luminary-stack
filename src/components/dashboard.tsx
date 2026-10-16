@@ -208,7 +208,10 @@ export default function Dashboard() {
     try {
       await work((s) => toast.loading(t(s), { id }));
       toast.success(t(done), { id });
-      await Promise.all([load(), refreshAccount().catch(() => {})]);
+      const refresh = () => Promise.all([load(), refreshAccount().catch(() => {})]);
+      await refresh();
+      // the chain indexer records a transaction within about a minute: look again until it has
+      for (const ms of [15_000, 40_000, 75_000]) setTimeout(() => void refresh(), ms);
       return true;
     } catch (e) {
       toast.error(t(errText(e)), { id });
@@ -257,6 +260,7 @@ export default function Dashboard() {
   const refOf = (s: string) => micro(live?.marks?.prices[s]?.usd);
   const nav = micro(live?.marks?.nav?.nav) || 1;
   const balance = (s: string) => snap?.balances.find((b) => b.symbol === s);
+  const shares = (n: number) => `${fmtQty(n, locale)}${t(n === 1 ? " share" : " shares")}`;
   const upcoming = auctions.filter((a) => (a.status === "scheduled" || a.status === "collecting") && Date.parse(a.callTime) > now);
   const nextEvent = upcoming[0];
   const remaining = nextEvent ? Math.max(0, Date.parse(nextEvent.callTime) - now) : 0;
@@ -552,7 +556,7 @@ export default function Dashboard() {
           {rows.map((o) => (
             <TableRow key={o.id}>
               <TableCell><strong>{o.symbol}</strong><small className={o.side === "BUY" ? "positive" : "orange"}>{t(o.side)}</small></TableCell>
-              <TableCell>{fmtQty(Number(o.size), locale)}{t(" shares")}{o.status === "settled" && <small className="muted"> · {t("filled")} {fmtQty(Number(o.filled), locale)}</small>}</TableCell>
+              <TableCell>{shares(Number(o.size))}{o.status === "settled" && <small className="muted"> · {t("filled")} {fmtQty(Number(o.filled), locale)}</small>}</TableCell>
               <TableCell>{o.limit ? formatMoney(Number(o.limit)) : t("At auction")}</TableCell>
               <TableCell>{t(KIND_LABEL[o.kind ?? ""] ?? "Auction")} #{o.auctionId}{o.callTime && <small className="muted"> · {utc(o.callTime)}</small>}</TableCell>
               <TableCell>
@@ -594,7 +598,7 @@ export default function Dashboard() {
             <TableRow key={p.auctionId}>
               <TableCell><strong>{p.symbol}</strong><small className="muted">#{p.auctionId}</small></TableCell>
               <TableCell>{formatMoney(micro(p.pStar))}</TableCell>
-              <TableCell>{fmtQty(micro(p.crossedQty), locale)}{t(" shares")}</TableCell>
+              <TableCell>{shares(micro(p.crossedQty))}</TableCell>
               <TableCell>{t(KIND_LABEL[p.kind ?? ""] ?? "Auction")}</TableCell>
               <TableCell>{utc(p.at)}</TableCell>
               <TableCell><button className="proof-link" onClick={() => { setProof(p); setModal("proof"); }}><ShieldCheck size={15} />{t(" View ")}<ArrowUpRight size={13} /></button></TableCell>
@@ -957,7 +961,7 @@ export default function Dashboard() {
               <DialogDescription>{t("Printed in the settlement transaction that verified the auction's clearing proof. No individual order or identity is published.")}</DialogDescription>
               <dl className="review-details">
                 <div><dt>{t("Auction")}</dt><dd>#{proof.auctionId} · {t(KIND_LABEL[proof.kind ?? ""] ?? "Auction")}</dd></div>
-                <div><dt>{t("Crossed volume")}</dt><dd>{fmtQty(micro(proof.crossedQty), locale)}{t(" shares")}</dd></div>
+                <div><dt>{t("Crossed volume")}</dt><dd>{shares(micro(proof.crossedQty))}</dd></div>
                 <div><dt>{t("Reference at the call")}</dt><dd>{proof.refUsd ? formatMoney(micro(proof.refUsd)) : "—"}</dd></div>
                 <div><dt>{t("Block")}</dt><dd>{proof.block}</dd></div>
                 <div><dt>{t("Published")}</dt><dd>{utc(proof.at)}{t(" UTC")}</dd></div>

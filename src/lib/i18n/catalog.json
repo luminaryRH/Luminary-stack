@@ -3358,5 +3358,9 @@
   "Auctions settle in USDG, a dollar stablecoin: buys lock it until the call, and whatever is not filled comes back. Tokenized treasury collateral, where resting cash could earn yield, is planned for later and would never be guaranteed.": [
     "竞价以美元稳定币 USDG 结算：买单在竞价前锁定 USDG，未成交的部分会返还。可让闲置资金获得收益的代币化国债抵押品计划稍后推出，收益绝不作保证。",
     "オークションはドル建てステーブルコインの USDG で決済されます。買い注文はコールまで USDG をロックし、約定しなかった分は戻ります。待機中の資金が利回りを得られるトークン化国債担保は今後提供予定で、利回りが保証されることはありません。"
+  ],
+  "share": [
+    "股",
+    "株"
   ]
 }
