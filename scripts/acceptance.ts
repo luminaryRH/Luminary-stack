@@ -1,4 +1,4 @@
-// Testnet acceptance (plan.md Verification): the five end-to-end checks, plus cancel and withdraw, against a running
+// Testnet acceptance (plan.md Verification): the end-to-end checks, plus cancel and withdraw, against a running
 // app on Robinhood Chain testnet. Two users (wallets derived from the operator key, funded by it) go through the same
 // ShieldedAccount the dashboard uses; the operator schedules short-notice auctions so a run takes minutes, and the
 // workers are driven through the cron routes, as pg_cron does.
@@ -269,7 +269,7 @@ async function main() {
 
   if (FROM <= 2) {
     // ---- 1. TSLA CLOSE auction clears every crossable order at one p* inside the band, with one proof -------------
-    const a1 = await schedule(d.tokens.TSLA, d.tokens.TQ, KIND.CLOSE, 480);
+    const a1 = await schedule(d.tokens.TSLA, d.tokens.TQ, KIND.CLOSE, 900); // room for two tree batches (up to 2 min each)
     await until(
       "auction 1 indexed",
       async () => (await indexed(B, a1.id)()) && (await indexed(S, a1.id)()),
@@ -674,6 +674,45 @@ async function main() {
         unspent(seen.notes) === unspent(B.notes) &&
         seen.orders.length === B.orders.length,
       `${seen.notes.filter((n) => !n.spent).length} unspent notes and ${seen.orders.length} orders, same as the owner's`,
+    );
+  }
+
+  if (FROM <= 8) {
+    // ---- 8. reclaim from an abandoned auction: an order sealed to the wrong key cannot be opened, so the operator
+    // cannot settle; past SETTLE_DEADLINE the owner abandons the auction and takes the lock back (about an hour) ----
+    await until("buyer TQ spendable", spendable(B, "TQ", 20));
+    const a8 = await schedule(d.tokens.TSLA, d.tokens.TQ, KIND.CLOSE, 300);
+    await until("auction 8 indexed", indexed(B, a8.id));
+    const r = await ref("TSLA");
+    const wrongKey = Wallet.createRandom().signingKey.compressedPublicKey;
+    let cfg = B.config; // sync() replaces config, so the wrong key goes in through an accessor
+    Object.defineProperty(B, "config", {
+      configurable: true,
+      get: () => ({ ...cfg, sealPublic: wrongKey }),
+      set: (v: typeof cfg) => (cfg = v),
+    });
+    try {
+      await B.placeOrder(
+        { auctionId: a8.id, side: "buy", sizeText: "0.1", limitText: (r * 0.5).toFixed(2), roll: false, selfSubmit: true },
+        (s) => log("B", s),
+      );
+    } finally {
+      Object.defineProperty(B, "config", { configurable: true, enumerable: true, writable: true, value: cfg });
+    }
+    const status8 = async () => (await B.sync(), orderOf(B, a8.id)[0]?.status);
+    await until("order 8 pinned, not settled", async () => (await status8()) === "pinned", 900_000);
+    const pinnedAt = Number((await new Contract(d.AuctionPool, POOL_ABI, chain).getFunction("auctions")(a8.id)).pinnedAt);
+    log(`auction #${a8.id} pinned; abandonable after ${new Date((pinnedAt + 3_600) * 1000).toISOString()}`);
+    await until("settle deadline passed", async () => (await chain.getBlock("latest"))!.timestamp > pinnedAt + 3_630, 5_400_000);
+    const tqBefore = Number(B.view().balances.find((b) => b.symbol === "TQ")?.spendable ?? 0);
+    await B.cancel(orderOf(B, a8.id)[0]!.id, (s) => log("B", s));
+    await until("lock reclaimed", async () => (await status8()) === "reclaimed");
+    await until("refund in the tree", spendable(B, "TQ", tqBefore + 0.1 * r * 0.5 * 0.99));
+    const row8 = await auctionRow(a8.id);
+    check(
+      "8 abandoned auction: owner reclaims the lock",
+      row8?.status === "void",
+      `auction #${a8.id} ${row8?.status}; lock of ~${(0.1 * r * 0.5).toFixed(2)} TQ back as a spendable note`,
     );
   }
 }

@@ -1,12 +1,20 @@
 // Appends queued commitments to the pool's tree with a TreeUpdateProof (no Poseidon on chain).
 // Deposits, change notes and settlement outputs become spendable once their batch lands. The frontier after each batch
 // is cached, so a run only reads and hashes the new leaves; without a matching cache it rebuilds from every leaf.
+// A partial batch waits up to MAX_WAIT_SEC for more leaves (one proof and one operator tx per batch).
 import treeUpdate from "@/shielded/circuits/tree_update.json";
 import { BATCH, appendLeaves, frontierOf, hex, ready, rootOf } from "@/shielded/protocol";
 import { prove } from "@/shielded/prove";
 import { rpc } from "../db";
 import { pool } from "./contract";
 import { sendPool } from "./sends";
+
+const MAX_WAIT_SEC = 120;
+
+interface TreeQueue {
+  size: number;
+  since: number;
+}
 
 interface TreeCache {
   size: number;
@@ -22,8 +30,17 @@ export async function advancePoolTree() {
   const stats = await rpc<{ count: number; max: number }>("lum_pool_leaf_stats", {});
   if (stats.count !== stats.max + 1 || stats.count < count) return { waiting: `indexed ${stats.count} of ${count} commitments` };
 
-  await ready();
+  // a partial batch waits up to MAX_WAIT_SEC from when the tree first fell behind, so busy periods share one tx
   const n = Math.min(BATCH, count - size);
+  if (n < BATCH) {
+    const now = Math.floor(Date.now() / 1000);
+    const q = await rpc<TreeQueue | null>("lum_pool_get_state", { p_name: "treeQueue" });
+    if (q?.size !== size) await rpc("lum_pool_put_state", { p_name: "treeQueue", p_value: { size, since: now } satisfies TreeQueue });
+    const waited = q?.size === size ? now - q.since : 0;
+    if (waited < MAX_WAIT_SEC) return { batching: n, waitSec: MAX_WAIT_SEC - waited };
+  }
+
+  await ready();
   const onChainRoot = String(await c.getFunction("root")()).toLowerCase();
   const cache = await rpc<TreeCache | null>("lum_pool_get_state", { p_name: "tree" });
   let frontier: bigint[];
