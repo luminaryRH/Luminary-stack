@@ -831,7 +831,7 @@ export default function Dashboard() {
                   <Coins size={30} />
                   <h3>{t("One dollar token,")}<br />{t("from deposit to fill.")}</h3>
                   <p>{t("Buys lock USDG, a dollar stablecoin, until the call. Whatever is not filled comes back as a note you can spend again.")}</p>
-                  <small>{t("Testnet: mint free test USDG with Add funds. Yield-bearing treasury collateral is planned for later.")}</small>
+                  <small>{t("Testnet: mint free test USDG with Add funds. Treasury collateral that follows a fund NAV is planned for later.")}</small>
                   <button className="text-link" onClick={() => setProtocol(true)}>{t("Understand settlement ")}<ArrowUpRight size={15} /></button>
                 </section>
               </div>

@@ -485,10 +485,24 @@ contract AuctionPoolTest is Test {
 
         bytes32[2] memory fills = [bytes32(uint256(11)), bytes32(uint256(12))];
         bytes32[2] memory refunds = [bytes32(uint256(21)), bytes32(uint256(22))];
+        uint256 before = pool.commitmentCount();
         desk.settle(id, fills, refunds, bytes32(uint256(31)), 1e6, "", "");
-        assertEq(rfqV.input(4), bytes32(uint256(252e6)));
-        assertEq(rfqV.input(8), bytes32(uint256(1)));
-        assertEq(rfqV.input(14), FEE_OWNER);
+        // every rfq_cross public input, in circuit order
+        bytes32[16] memory want = [
+            bytes32(uint256(uint160(address(tsla)))), bytes32(uint256(1e12)), bytes32(uint256(uint160(address(tq)))),
+            bytes32(uint256(1)), bytes32(uint256(252e6)), bytes32(uint256(1e6)), bytes32(uint256(5)), bytes32(uint256(1e6)),
+            bytes32(uint256(1)), bytes32(uint256(2)), fills[0], fills[1], refunds[0], refunds[1], FEE_OWNER, bytes32(uint256(31))
+        ];
+        assertEq(rfqV.count(), 16);
+        for (uint256 i; i < 16; i++) {
+            assertEq(rfqV.input(i), want[i]);
+        }
+        // the pool queues each order's fill and refund, then the fee note
+        assertEq(pool.commitmentCount(), before + 5);
+        bytes32[5] memory queued = [fills[0], refunds[0], fills[1], refunds[1], bytes32(uint256(31))];
+        for (uint256 i; i < 5; i++) {
+            assertEq(pool.commitments(before + i), queued[i]);
+        }
         PrintRegistry.Print memory p = registry.get(0);
         assertEq(p.pStar, 252e6);
         assertEq(p.crossedQty, 1e6);
@@ -957,6 +971,11 @@ contract AuctionPoolTest is Test {
         vm.prank(operator);
         tslaFeed.push(250e8);
         pool.pin(rfq);
+        bytes32[2] memory big = [bytes32(type(uint256).max), bytes32(0)];
+        vm.expectRevert(RfqDesk.NotInField.selector);
+        desk.settle(rfq, big, z, 0, 0, "", "");
+        vm.expectRevert(RfqDesk.NotInField.selector);
+        desk.settle(rfq, z, z, 0, type(uint256).max, "", "");
         rfqV.setAccept(false);
         vm.expectRevert(RfqDesk.InvalidProof.selector);
         desk.settle(rfq, z, z, 0, 0, "", "");

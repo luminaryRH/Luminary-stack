@@ -175,10 +175,6 @@
     "什么是国债结算？",
     "国債による決済とは？"
   ],
-  "Luminary is designed to settle in tokenized treasuries. Resting collateral can accrue the underlying fund’s NAV yield while waiting. Yield is variable and is never guaranteed.": [
-    "Luminary 计划以代币化国债结算。闲置抵押品在等待期间可累积底层基金净值收益。收益会变化，且不作保证。",
-    "Luminary はトークン化国債による決済を想定しています。待機中の担保には、裏付けファンドの純資産価額（NAV）に基づく収益が反映される場合があります。収益は変動し、保証されません。"
-  ],
   "Can I trade between auctions?": [
     "能否在两场竞价之间交易？",
     "オークションの合間にも取引できますか？"
@@ -359,9 +355,9 @@
     "感知日历的运营",
     "カレンダーに対応した運用"
   ],
-  "The specification accounts for daylight saving changes, market holidays, corporate actions and ex-date pauses. Cancellations are not yield-gated.": [
-    "规范考虑夏令时变化、市场假期、公司行动及除权除息日暂停。取消订单不受收益条件限制。",
-    "仕様は夏時間、市場の休場日、コーポレートアクション、権利落ち日の停止を考慮します。注文の取り消しに利回り条件は設けません。"
+  "The specification accounts for daylight saving changes, market holidays, corporate actions and ex-date pauses. Cancellations are never gated.": [
+    "规范考虑夏令时变化、市场假期、公司行动及除权除息日暂停。取消订单从不受限制。",
+    "仕様は夏時間、市場の休場日、コーポレートアクション、権利落ち日の停止を考慮します。注文の取り消しが制限されることはありません。"
   ],
   "The intended stack": [
     "计划采用的技术栈",
@@ -403,9 +399,9 @@
     "密封您的意向。",
     "意図を封じる。"
   ],
-  "Choose a limit order or an order at the auction price. Orders collect privately ahead of the scheduled call. Resting treasury collateral can accrue its underlying NAV yield.": [
-    "选择限价订单或竞价价格订单。订单在预定场次前私密收集。闲置国债抵押品可累积其底层净值收益。",
-    "指値注文またはオークション価格での注文を選びます。注文は予定された回の前に非公開で収集されます。待機中の国債担保には裏付け資産の NAV 収益が反映される場合があります。"
+  "Choose a limit order or an order at the auction price. Orders collect privately ahead of the scheduled call. Resting treasury collateral follows the NAV accrual of its underlying fund.": [
+    "选择限价订单或竞价价格订单。订单在预定场次前私密收集。闲置国债抵押品随其底层基金的净值累积变化。",
+    "指値注文またはオークション価格での注文を選びます。注文は予定された回の前に非公開で収集されます。待機中の国債担保は、裏付けファンドの NAV の増減に連動します。"
   ],
   "Meet at one price.": [
     "以同一价格相遇。",
@@ -527,9 +523,9 @@
     "未成交的意向",
     "未約定の意図"
   ],
-  "Unfilled orders can roll into the next eligible call or cancel. The specification says cancellations are not yield-gated; reserved collateral is released when an order is cancelled.": [
-    "未成交订单可顺延至下一场符合条件的竞价或取消。规范说明取消不受收益条件限制；本网站中取消订单会释放预留抵押品。",
-    "未約定の注文は次の対象回へ繰り越すか取り消せます。仕様では取り消しに利回り条件を設けません。では取り消し時に確保した担保を解放します。"
+  "Unfilled orders can roll into the next eligible call or cancel. The specification says cancellations are never gated; reserved collateral is released when an order is cancelled.": [
+    "未成交订单可顺延至下一场符合条件的竞价或取消。规范说明取消从不受限制；取消订单会释放预留抵押品。",
+    "未約定の注文は次の対象回へ繰り越すか取り消せます。仕様では取り消しが制限されることはなく、取り消し時に確保した担保を解放します。"
   ],
   "Calendar-aware by design": [
     "将日历纳入设计",
@@ -742,10 +738,6 @@
   "Treasury settlement": [
     "国债结算",
     "国債による決済"
-  ],
-  "Tokenized treasury collateral settles the auction. Resting collateral can earn its underlying NAV yield; returns vary and are not guaranteed.": [
-    "竞价以代币化国债抵押品结算。闲置抵押品可获得底层净值收益；回报会变化，且不作保证。",
-    "オークションはトークン化国債の担保で決済します。待機中の担保には裏付け資産の NAV 収益が反映される場合がありますが、変動し、保証されません。"
   ],
   "Public prints, private orders": [
     "公开成交记录，私密订单",
@@ -1699,14 +1691,6 @@
     "在等待中发挥作用。",
     "待つ間にも活かす。"
   ],
-  "Luminary is designed to settle in tokenized treasuries. Their underlying NAV yield can accrue while your order waits for its call.": [
-    "Luminary 计划以代币化国债结算。在订单等待竞价时，底层净值收益可继续累积。",
-    "Luminary はトークン化国債での決済を想定しています。注文が実行を待つ間、裏付け資産の NAV 収益が反映される場合があります。"
-  ],
-  "Yield is variable, not guaranteed. No investment returns accrue here.": [
-    "收益会变化且不作保证。本本网站不累积投资回报。",
-    "収益は変動し、保証されません。このでは投資収益は発生しません。"
-  ],
   "Understand treasury settlement": [
     "了解国债结算",
     "国債決済について知る"
@@ -1927,13 +1911,13 @@
     "金融信息与结果",
     "金融情報と結果"
   ],
-  "This website is informational and does not provide personalized investment, legal or tax advice. It is not an offer or solicitation to purchase securities or a guarantee of execution, price quality, liquidity or yield.": [
-    "本网站仅供信息参考，不提供个性化投资、法律或税务建议；不构成证券购买要约或招揽，也不保证成交、价格质量、流动性或收益。",
-    "このサイトは情報提供を目的とし、個別の投資、法律、税務助言を提供しません。証券購入の申込みや勧誘ではなく、約定、価格の質、流動性、利回りを保証しません。"
+  "This website is informational and does not provide personalized investment, legal or tax advice. It is not an offer or solicitation to purchase securities or a guarantee of execution, price quality, liquidity or any rate of return.": [
+    "本网站仅供信息参考，不提供个性化投资、法律或税务建议；不构成证券购买要约或招揽，也不保证成交、价格质量、流动性或任何回报率。",
+    "このサイトは情報提供を目的とし、個別の投資、法律、税務助言を提供しません。証券購入の申込みや勧誘ではなく、約定、価格の質、流動性、いかなる収益率も保証しません。"
   ],
-  "Treasury yield in the product documents refers to underlying published NAV accrual. It is variable. No investment return accrues on this site. Read the Risk & Eligibility page alongside these terms.": [
-    "产品文档中的国债收益指底层公布净值的累积变化，且会变化。本网站不累积投资回报。请同时阅读风险与资格页面。",
-    "文書の国債収益は、裏付け資産の公表 NAV の増加を指し、変動します。では投資収益は発生しません。この規約とあわせて「リスクと参加資格」をお読みください。"
+  "Where the product documents discuss treasury collateral, they refer to the published NAV accrual of the underlying fund, which varies. No investment return accrues on this site. Read the Risk & Eligibility page alongside these terms.": [
+    "产品文档提及国债抵押品时，指的是底层基金公布净值的累积变化，且会变化。本网站不累积投资回报。请同时阅读风险与资格页面。",
+    "製品文書が国債担保に触れる場合、裏付けファンドの公表 NAV の増減を指し、変動します。本サイトでは投資収益は発生しません。この規約とあわせて「リスクと参加資格」をお読みください。"
   ],
   "Artwork and third-party services": [
     "画作与第三方服务",
@@ -2079,17 +2063,17 @@
     "拟议参考区间约束竞价价格相对于外部股票参考值或基金净值的范围，但不能确保参考值及时、无误或持续可用。市场失序及标的资产事件可能影响代币价格与流动性。",
     "参照価格帯は外部株価やファンド NAV に対する価格範囲を制約しますが、参照値の適時性、正確性、継続提供を保証できません。市場の混乱や原資産の事象は価格と流動性に影響します。"
   ],
-  "Treasury collateral and yield": [
-    "国债抵押品与收益",
-    "国債担保と利回り"
+  "Treasury collateral and NAV accrual": [
+    "国债抵押品与净值累积",
+    "国債担保と NAV の増減"
   ],
   "The design uses tokenized treasuries as settlement collateral. Such instruments can carry issuer, custody, redemption, liquidity, valuation and market risks. A tokenized treasury should not be assumed to be equivalent to a cash deposit or protected bank account.": [
     "设计以代币化国债作为结算抵押品。此类工具可能承受发行方、托管、赎回、流动性、估值及市场风险。不应假定代币化国债等同于现金存款或受保护的银行账户。",
     "設計ではトークン化国債を決済担保に用います。発行者、保管、償還、流動性、評価、市場のリスクを伴う場合があります。現金預金や保護対象の銀行口座と同等とは限りません。"
   ],
-  "Published NAV accrual can vary, and the documents do not establish a guaranteed rate or return. This site displays balances without accruing real yield. Fees, redemption terms and issuer documentation for any live collateral asset would require separate disclosure.": [
-    "公布净值的累积变化可能波动，文档不确立任何保证利率或回报。本网站仅显示余额，不累积真实收益。正式抵押品资产的费用、赎回条款与发行方文件须另行披露。",
-    "公表 NAV の増加は変動し、文書は利率や収益を保証していません。は残高を表示するだけで、実収益は発生しません。実際の担保資産の手数料、償還条件、発行者資料には別途開示が必要です。"
+  "Published NAV accrual can vary, and the documents set no fixed rate or return. This site displays balances without any real accrual. Fees, redemption terms and issuer documentation for any live collateral asset would require separate disclosure.": [
+    "公布净值的累积变化可能波动，文档不设定任何固定利率或回报。本网站仅显示余额，不产生真实累积。正式抵押品资产的费用、赎回条款与发行方文件须另行披露。",
+    "公表 NAV の増減は変動し、文書は固定の利率や収益を定めていません。本サイトは残高を表示するだけで、実際の増加は発生しません。実際の担保資産の手数料、償還条件、発行者資料には別途開示が必要です。"
   ],
   "Timing and corporate actions": [
     "时间与公司行动",
@@ -3011,10 +2995,6 @@
     "买单锁定 TreasuryQuote 份额。订单等待竞价期间净值持续累积，闲置抵押品也能产生收益。",
     "買い注文は TreasuryQuote の持分をロックします。コールを待つ間も NAV が積み上がるため、待機中の担保も収益を生みます。"
   ],
-  "Testnet: MockUSDG backs TQ and NAV accrues at a fixed 4.5% APY.": [
-    "测试网：TQ 由 MockUSDG 支持，净值按固定 4.5% 年化累积。",
-    "テストネット：TQ は MockUSDG で裏付けられ、NAV は年率 4.5% 固定で積み上がります。"
-  ],
   "Balances": [
     "余额",
     "残高"
@@ -3331,9 +3311,9 @@
     "买单锁定美元稳定币 USDG，直至竞价。未成交的部分会以可再次使用的票据返还。",
     "買い注文はコールまでドル建てステーブルコインの USDG をロックします。約定しなかった分は、再び使えるノートとして戻ります。"
   ],
-  "Testnet: mint free test USDG with Add funds. Yield-bearing treasury collateral is planned for later.": [
-    "测试网：通过“添加资金”免费铸造测试 USDG。带收益的国债抵押品计划稍后推出。",
-    "テストネット：「資金を追加」から無料のテスト用 USDG をミントできます。利回りのある国債担保は今後提供予定です。"
+  "Testnet: mint free test USDG with Add funds. Treasury collateral that follows a fund NAV is planned for later.": [
+    "测试网：通过“添加资金”免费铸造测试 USDG。跟随基金净值的国债抵押品计划稍后推出。",
+    "テストネット：「資金を追加」から無料のテスト用 USDG をミントできます。ファンドの NAV に連動する国債担保は今後提供予定です。"
   ],
   "Understand settlement ": [
     "了解结算",
@@ -3347,17 +3327,17 @@
     "美元结算",
     "ドル建て決済"
   ],
-  "Buys lock USDG, a dollar stablecoin, and the auction settles in it. Yield-bearing treasury collateral is planned for later.": [
-    "买单锁定美元稳定币 USDG，竞价也以其结算。带收益的国债抵押品计划稍后推出。",
-    "買い注文はドル建てステーブルコインの USDG をロックし、オークションも USDG で決済します。利回りのある国債担保は今後提供予定です。"
+  "Buys lock USDG, a dollar stablecoin, and the auction settles in it. Treasury collateral that follows a fund NAV is planned for later.": [
+    "买单锁定美元稳定币 USDG，竞价也以其结算。跟随基金净值的国债抵押品计划稍后推出。",
+    "買い注文はドル建てステーブルコインの USDG をロックし、オークションも USDG で決済します。ファンドの NAV に連動する国債担保は今後提供予定です。"
   ],
   "What do auctions settle in?": [
     "竞价以什么结算？",
     "オークションは何で決済されますか？"
   ],
-  "Auctions settle in USDG, a dollar stablecoin: buys lock it until the call, and whatever is not filled comes back. Tokenized treasury collateral, where resting cash could earn yield, is planned for later and would never be guaranteed.": [
-    "竞价以美元稳定币 USDG 结算：买单在竞价前锁定 USDG，未成交的部分会返还。可让闲置资金获得收益的代币化国债抵押品计划稍后推出，收益绝不作保证。",
-    "オークションはドル建てステーブルコインの USDG で決済されます。買い注文はコールまで USDG をロックし、約定しなかった分は戻ります。待機中の資金が利回りを得られるトークン化国債担保は今後提供予定で、利回りが保証されることはありません。"
+  "Auctions settle in USDG, a dollar stablecoin: buys lock it until the call, and whatever is not filled comes back. Tokenized treasury collateral, where resting cash would follow a fund NAV at no fixed rate, is planned for later.": [
+    "竞价以美元稳定币 USDG 结算：买单在竞价前锁定 USDG，未成交的部分会返还。让闲置资金跟随基金净值、且无固定利率的代币化国债抵押品计划稍后推出。",
+    "オークションはドル建てステーブルコインの USDG で決済されます。買い注文はコールまで USDG をロックし、約定しなかった分は戻ります。待機中の資金がファンドの NAV に連動する（固定利率なし）トークン化国債担保は今後提供予定です。"
   ],
   "share": [
     "股",

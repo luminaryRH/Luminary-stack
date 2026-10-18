@@ -38,6 +38,7 @@ dist-ssr
 # Foundry
 contracts/lib
 contracts/out
+contracts/out-halmos
 contracts/cache
 contracts/broadcast
 
