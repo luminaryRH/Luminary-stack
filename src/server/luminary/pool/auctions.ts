@@ -8,7 +8,7 @@
 //             are refunded instead of rolled when no collecting auction of the pair has room for them.
 // Clearing and proving run in one step, so the plaintext orders never reach the database. The chain is the state:
 // every step recomputes from it (and from the indexed events), and a send still in flight is skipped by its key.
-import { hexlify, toBeHex, toUtf8Bytes } from "ethers";
+import { Interface, hexlify, toBeHex, toUtf8Bytes } from "ethers";
 import auctionClear from "@/shielded/circuits/auction_clear.json";
 import rfqCross from "@/shielded/circuits/rfq_cross.json";
 import { seal } from "@/shielded/crypto";
@@ -125,6 +125,10 @@ async function settleOne(a: OpenAuction) {
   const c = pool();
   const s = await c.getFunction("auctions")(a.id);
   if (s.settled || s.voided) return { indexing: true };
+  // an issuer pause, or a registry block on the pool, would hand buyers notes they cannot withdraw: do not settle. The
+  // auction is abandoned after SETTLE_DEADLINE and every lock is reclaimed.
+  const frozen = await frozenToken([s.asset, s.quote]);
+  if (frozen) return { error: `${frozen} cannot leave the pool (issuer pause or block): not settling auction ${a.id}` };
   const [market, quoteMarket, feeOwner, list] = await Promise.all([
     c.getFunction("markets")(s.asset),
     c.getFunction("markets")(s.quote),
@@ -184,12 +188,13 @@ async function settleOne(a: OpenAuction) {
   let rollInto = 0;
   let rolls = r.results.filter((x) => x.rolled);
   if (rolls.length) {
-    // the next collecting auction of the same asset and quote token with room for every rolled order (AuctionPool
-    // rejects any other roll target); without one, every leftover is refunded instead
+    // the next collecting auction of the same asset and quote token where the rolled orders take at most half the slots
+    // (AuctionPool rejects any other pair or a full auction); without one, every leftover is refunded instead. The half
+    // keeps room for new orders, so orders that never fill cannot roll along and hold every auction of an asset.
     const after = Math.max(Number(s.callTime), Date.now() / 1000 + MIN_LEAD_SEC);
     const target = (await rpc<OpenAuction[]>("lum_pool_open_auctions", {}))
       .filter((x) => !x.pinned && x.asset === a.asset && x.quote === a.quote && x.kind !== KINDS.indexOf("RFQ") && x.callTime > after)
-      .filter((x) => x.orders.length + rolls.length <= ORDERS)
+      .filter((x) => x.orders.length + rolls.length <= ORDERS / 2)
       .sort((x, y) => x.callTime - y.callTime)[0];
     if (!target) {
       r = settleAuction(pinned, slots, feeBlinding, false, excluded);
@@ -262,6 +267,20 @@ async function settleBlock(a: OpenAuction, pinned: PinnedAuction, slots: (OrderO
   const data = DESK_ABI.encodeFunctionData("settle", [a.id, r.onchain.fills.map(hex), r.onchain.residuals.map(hex), hex(r.onchain.feeNote), r.crossedQty, proof, hexlify(toUtf8Bytes(JSON.stringify(notes)))]);
   const tx = await sendOperator(deployment().RfqDesk, data, `settle:${a.id}`);
   return tx ? { settled: true, rfq: true, crossedQty: String(r.crossedQty), tx } : { waiting: "an operator transaction is still pending" };
+}
+
+const TRANSFER = new Interface(["function transfer(address to, uint256 amount) returns (bool)"]);
+
+/** The first token the pool cannot send right now (a zero transfer from the pool to itself reverts), or null. */
+async function frozenToken(tokens: string[]) {
+  const from = deployment().AuctionPool;
+  for (const token of tokens) {
+    const moves = await provider()
+      .call({ from, to: token, data: TRANSFER.encodeFunctionData("transfer", [from, 0n]) })
+      .then(() => true, () => false);
+    if (!moves) return token;
+  }
+  return null;
 }
 
 /** Settles pinned auctions, oldest first, within a time budget. */

@@ -27,19 +27,25 @@ const fr = (v: bigint) => {
 };
 const flag = (x: boolean) => (x ? 1n : 0n);
 
+/** A field element as 32-byte hex. */
 export const hex = (v: bigint) => "0x" + v.toString(16).padStart(64, "0");
 const toBig = (b: Uint8Array) => BigInt("0x" + Array.from(b, (x) => x.toString(16).padStart(2, "0")).join(""));
 
+/** Poseidon2 hash of field elements (the circuits' hash). */
 export function H(...xs: bigint[]): bigint {
   if (!bb) throw new Error("shielded protocol: await ready() before hashing");
   return toBig(bb.poseidon2Hash({ inputs: xs.map(fr) }).hash);
 }
 
+/** A Merkle node of the note tree. */
 export const node = (l: bigint, r: bigint) => H(1n, l, r);
+/** The owner key of a secret. */
 export const ownerPub = (secret: bigint) => H(2n, secret);
 /** `label`: the deposit the value descends from (association sets); kept through transactions, orders and settlement. */
 export const note = (owner: bigint, asset: bigint, amount: bigint, blinding: bigint, label: bigint) => H(3n, owner, asset, amount, blinding, label);
+/** The nullifier of the note at `index` (circuits/lib nullifier). */
 export const nullifier = (secret: bigint, commitment: bigint, index: bigint) => H(4n, secret, commitment, index);
+/** An order commitment (circuits/lib order). */
 export const order = (
   owner: bigint,
   asset: bigint,
@@ -62,7 +68,9 @@ export interface OrderTerms {
   rfq: bigint;
 }
 export const PLAIN: OrderTerms = { minQty: 0n, display: 0n, peg: 0n, rfq: 0n };
+/** A derived blinding: settlement outputs use blind(salt, 0..3). */
 export const blind = (salt: bigint, k: bigint) => H(6n, salt, k);
+/** The nullifier that reclaims an order's lock. */
 export const orderNullifier = (secret: bigint, commitment: bigint) => H(7n, secret, commitment);
 /** Leaf of the association-set tree for an approved label. */
 export const aspLeaf = (label: bigint) => H(8n, label);
@@ -114,6 +122,7 @@ function levels(leaves: bigint[]) {
   return out;
 }
 
+/** The note tree root over `leaves`. */
 export const rootOf = (leaves: bigint[]) => levels(leaves)[DEPTH]![0] ?? emptyRoots()[DEPTH]!;
 
 /** Sibling at every height for the leaf at `index` (circuits/lib root_from_path). */

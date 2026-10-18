@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {CommonBase} from "forge-std/Base.sol";
 import {StdUtils} from "forge-std/StdUtils.sol";
 import {AuctionPool} from "../src/AuctionPool.sol";
+import {FeeVault} from "../src/FeeVault.sol";
 import {PrintRegistry} from "../src/PrintRegistry.sol";
 import {IPrintRegistry} from "../src/Interfaces.sol";
 import {MockAggregator} from "../src/mocks/MockAggregator.sol";
@@ -257,5 +258,75 @@ contract AuctionPoolInvariants is Test {
             if (a.callBlock == 0) assertEq(pool.excludedSlots(id), 0);
         }
         assertEq(registry.count(), handler.settled());
+    }
+}
+
+/// Drives FeeVault through random fee inflows (ETH and a token), share changes and distributions.
+contract VaultHandler is CommonBase, StdUtils {
+    FeeVault public vault;
+    MockStock public token;
+    address public treasury;
+    address public share = address(0x5A4E);
+    address public owner;
+    uint256 public ethIn;
+    uint256 public tokenIn;
+
+    constructor(FeeVault vault_, MockStock token_, address treasury_, address owner_) {
+        vault = vault_;
+        token = token_;
+        treasury = treasury_;
+        owner = owner_;
+    }
+
+    function feeEth(uint256 amount) external {
+        amount = bound(amount, 0, 100 ether);
+        vm.deal(address(this), amount);
+        (bool ok,) = address(vault).call{value: amount}("");
+        require(ok);
+        ethIn += amount;
+    }
+
+    function feeToken(uint256 amount) external {
+        amount = bound(amount, 0, 1e30);
+        token.mint(address(vault), amount);
+        tokenIn += amount;
+    }
+
+    function setShare(uint256 bps) external {
+        vm.prank(owner);
+        vault.setShare(share, uint16(bound(bps, 0, vault.MAX_SHARE_BPS())));
+    }
+
+    function distribute(bool eth) external {
+        vault.distribute(eth ? address(0) : address(token));
+    }
+}
+
+contract FeeVaultInvariants is Test {
+    FeeVault vault;
+    MockStock token;
+    VaultHandler handler;
+    address treasury = makeAddr("treasury");
+
+    function setUp() public {
+        vault = new FeeVault(address(this), treasury);
+        token = new MockStock();
+        handler = new VaultHandler(vault, token, treasury, address(this));
+        vault.transferOwnership(address(handler));
+        vm.prank(address(handler));
+        vault.acceptOwnership();
+        targetContract(address(handler));
+    }
+
+    /// Conservation: every fee that came in sits in the vault or was paid to the treasury or the share recipient.
+    function invariant_fees_are_conserved() public view {
+        assertEq(address(vault).balance + treasury.balance + handler.share().balance, handler.ethIn());
+        assertEq(token.balanceOf(address(vault)) + token.balanceOf(treasury) + token.balanceOf(handler.share()), handler.tokenIn());
+    }
+
+    /// The share recipient never gets more than MAX_SHARE_BPS of what was distributed.
+    function invariant_share_is_bounded() public view {
+        uint256 paidEth = treasury.balance + handler.share().balance;
+        assertLe(handler.share().balance * 10_000, paidEth * vault.MAX_SHARE_BPS());
     }
 }

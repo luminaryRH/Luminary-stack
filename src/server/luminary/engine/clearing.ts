@@ -10,6 +10,7 @@
 // All quantities are raw integer units: asset micro-units, micro-USD, quote micro-units.
 
 export const BPS = 10_000n;
+/** The largest u128: every product in the clearing must stay below it, as in the circuit. */
 export const U128_MAX = (1n << 128n) - 1n;
 
 export interface ClearOrder {

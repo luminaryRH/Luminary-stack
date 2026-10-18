@@ -1,6 +1,7 @@
 import postgres from "postgres";
 import { env } from "./env";
 
+/** A database call that failed; the message never carries query values. */
 export class DbError extends Error {
   constructor(
     message: string,

@@ -9,6 +9,7 @@ import { operatorCiphertext } from "@/shielded/orders";
 import { rpc } from "../db";
 import { env } from "../env";
 
+/** The threshold committee configuration from COMMITTEE, or null when the operator key opens orders alone (testnet). */
 export function committee(): Committee | null {
   const raw = process.env["COMMITTEE"]?.trim();
   return raw ? (JSON.parse(raw) as Committee) : null;

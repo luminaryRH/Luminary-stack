@@ -26,6 +26,7 @@ export const warm = () => (noirReady ??= Promise.all([initAcvm({ module_or_path:
 // Threads need SharedArrayBuffer, which needs a cross-origin isolated document (COOP + COEP); otherwise one thread.
 const threads = () => (typeof crossOriginIsolated !== "undefined" && crossOriginIsolated ? Math.max(1, Math.min(navigator.hardwareConcurrency || 1, 8)) : 1);
 
+/** Proves one of the bundled circuits by name (runs inside the browser's proving worker). */
 export async function proveNamed(name: BrowserCircuit, inputs: Inputs) {
   await warm();
   const circuit = (await circuits[name]()).default as CompiledCircuit;

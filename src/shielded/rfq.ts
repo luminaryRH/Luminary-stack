@@ -22,11 +22,13 @@ export interface RfqIntent {
   nonce: string; // the requester's, echoed by replies; binds the rfq commitment
 }
 
+/** A fresh RFQ session key pair. */
 export const newSession = (): RfqSession => {
   const key = new SigningKey(hexlify(randomBytes(32)));
   return { priv: key.privateKey, pub: key.compressedPublicKey };
 };
 
+/** The mailbox inbox of a session public key. */
 export const inboxOf = (pub: string) => keccak256(pub);
 
 /** The commitment both agreed orders carry: asset, block size, buyer and seller session keys, nonce. */

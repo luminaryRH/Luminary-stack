@@ -108,6 +108,7 @@ export async function refreshFeed(symbol: string, now: bigint, busy: Set<string>
   return (await sendOperator(address, FEED_ABI.encodeFunctionData("push", [answer]), `push:${symbol}`)) ? "pending" : "current";
 }
 
+/** Every 5 minutes: records price marks, mirrors feeds of auctions calling soon, and records the TreasuryQuote NAV. */
 export async function watchPrices() {
   const d = deployment();
   const p = provider();

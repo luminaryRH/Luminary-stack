@@ -1,6 +1,7 @@
 // Monitoring (every 5 minutes, from the nav job): posts an alert to ALERT_WEBHOOK_URL when an admin power is used on the
 // pool, gate, vault or desk, when a large amount leaves the pool, when the operator wallet runs low on gas, when the
-// note tree passes 80% of its 2^20 leaves, or when a worker step has stalled. The runbook for each alert is in SECURITY.md. Without ALERT_WEBHOOK_URL it only logs.
+// note tree passes 80% of its 2^20 leaves, when an auction holding orders is voided (a stale price, a halted or
+// re-scaled token, or nobody settled it), or when a worker step has stalled. The runbook for each alert is in SECURITY.md. Without ALERT_WEBHOOK_URL it only logs.
 import { Interface, formatEther } from "ethers";
 import { provider } from "./chain";
 import { rpc } from "./db";
@@ -22,6 +23,7 @@ const ADMIN = new Interface([
   "event ShareSet(address recipient, uint16 shareBps)",
   "event TreasurySet(address treasury)",
 ]);
+const VOIDED = new Interface(["event AuctionVoided(uint256 indexed id)"]);
 const OUTFLOW = new Interface(["event Transacted(bytes32 indexed nullifier0, bytes32 indexed nullifier1, address indexed asset, address to, uint256 released, address relayer, uint256 fee, bytes memo)"]);
 
 const LOW_GAS_WEI = 2_000_000_000_000_000n; // 0.002 ETH: about a day of settlements
@@ -46,6 +48,7 @@ async function post(lines: string[]) {
   return res.ok;
 }
 
+/** Checks the chain and the workers since the last run and posts any alert (see the header); returns what it saw. */
 export async function watchAlerts() {
   const p = provider();
   const d = deployment();
@@ -71,6 +74,14 @@ export async function watchAlerts() {
       const out = BigInt(e.args[4]) + BigInt(e.args[6]);
       if (out >= LARGE_OUTFLOW_UNITS * scale) lines.push(`large outflow: ${out} base units of ${asset} to ${e.args[3]} in tx ${l.transactionHash}`);
     }
+    // an empty auction voids at every call; one holding orders voids only when its price was stale, its token was
+    // halted, paused or re-scaled, or nobody settled it in time: each is worth a look
+    const voids = await p.getLogs({ address: d.AuctionPool, fromBlock: from, toBlock: head, topics: [VOIDED.getEvent("AuctionVoided")!.topicHash] });
+    for (const l of voids) {
+      const id = VOIDED.parseLog(l)!.args[0] as bigint;
+      const a = await pool().getFunction("auctions")(id);
+      if (Number(a.live) > 0) lines.push(`auction #${id} voided with ${a.live} orders (stale price, halted or re-scaled token, or not settled in time) in tx ${l.transactionHash}`);
+    }
   }
 
   const wei = await p.getBalance(operator().address);
@@ -89,7 +100,10 @@ export async function watchAlerts() {
     }
   }
 
-  const sent = await post(lines);
-  await rpc("lum_pool_put_state", { p_name: "alerts", p_value: { block: head, lowGasSent: low, treeSent: treeFull } satisfies AlertState });
+  const sent = await post(lines).catch((e) => (console.error("alert webhook failed", String(e)), false));
+  // a webhook that failed keeps the cursor where it was, so the same alerts go out again next run
+  const delivered = sent || lines.length === 0 || !process.env["ALERT_WEBHOOK_URL"]?.trim();
+  const next: AlertState = delivered ? { block: head, lowGasSent: low, treeSent: treeFull } : state;
+  await rpc("lum_pool_put_state", { p_name: "alerts", p_value: next });
   return { alerts: lines.length, sent, from, to: head };
 }

@@ -1,2 +1,4 @@
 date	commit	mode	rubric	grade	cap_applied	crit	high	med	low	A	B	C	D	E	F	G	policy_pass
 2026-10-16	ce3d192	full	v2	0.9	5.0 (not binding)	0	6	16	10	0.0	0.0	1.9	2.5	7.5	0.5	0.0	4/8
+2026-10-17	b19067d	rescore	v2	6.0	6.0 (live leaked token, open High)	0	1	0	0	8.3	5.1	7.8	9.0	10.0	7.0	10.0	6/8
+2026-10-18	f6592cd	rescore	v2	8.7	none	0	0	0	0	8.3	8.6	7.8	9.0	10.0	10.0	10.0	6/8

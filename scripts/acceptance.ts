@@ -314,7 +314,7 @@ async function main() {
       {
         auctionId: a1.id,
         side: "buy",
-        sizeText: "0.1",
+        sizeText: "0.2", // the lock (~0.1 × ref) clears the 25 USDG market minimum
         limitText: (r * 0.5).toFixed(2),
         roll: false,
         selfSubmit: true,
@@ -325,15 +325,15 @@ async function main() {
       "cancellable order visible",
       async () => (
         await B.sync(),
-        orderOf(B, a1.id).some((o) => o.size === "0.1" && o.status === "open")
+        orderOf(B, a1.id).some((o) => o.size === "0.2" && o.status === "open")
       ),
     );
-    await B.cancel(orderOf(B, a1.id).find((o) => o.size === "0.1")!.id, (s) => log("B", s));
+    await B.cancel(orderOf(B, a1.id).find((o) => o.size === "0.2")!.id, (s) => log("B", s));
     await until(
       "cancel indexed",
       async () => (
         await B.sync(),
-        orderOf(B, a1.id).find((o) => o.size === "0.1")?.status === "cancelled"
+        orderOf(B, a1.id).find((o) => o.size === "0.2")?.status === "cancelled"
       ),
     );
     check(
@@ -614,9 +614,9 @@ async function main() {
   }
 
   if (FROM <= 8) {
-    // ---- 8. reclaim from an abandoned auction: an order sealed to the wrong key cannot be opened, so the operator
-    // cannot settle; past SETTLE_DEADLINE the owner abandons the auction and takes the lock back (about an hour) ----
-    await until("buyer USDG spendable", spendable(B, "USDG", 20));
+    // ---- 8. an order sealed to the wrong key cannot be opened: the operator settles the auction without it (a left-out
+    // slot) and the owner reclaims the lock at once, with no hour-long wait for an abandon ----
+    await until("buyer USDG spendable", spendable(B, "USDG", 40));
     const a8 = await schedule(d.tokens.TSLA, d.tokens.USDG, KIND.CLOSE, 300);
     await until("auction 8 indexed", indexed(B, a8.id));
     const r = await ref("TSLA");
@@ -629,26 +629,24 @@ async function main() {
     });
     try {
       await B.placeOrder(
-        { auctionId: a8.id, side: "buy", sizeText: "0.1", limitText: (r * 0.5).toFixed(2), roll: false, selfSubmit: true },
+        { auctionId: a8.id, side: "buy", sizeText: "0.2", limitText: (r * 0.5).toFixed(2), roll: false, selfSubmit: true },
         (s) => log("B", s),
       );
     } finally {
       Object.defineProperty(B, "config", { configurable: true, enumerable: true, writable: true, value: cfg });
     }
     const status8 = async () => (await B.sync(), orderOf(B, a8.id)[0]?.status);
-    await until("order 8 pinned, not settled", async () => (await status8()) === "pinned", 900_000);
-    const pinnedAt = Number((await new Contract(d.AuctionPool, POOL_ABI, chain).getFunction("auctions")(a8.id)).pinnedAt);
-    log(`auction #${a8.id} pinned; abandonable after ${new Date((pinnedAt + 3_600) * 1000).toISOString()}`);
-    await until("settle deadline passed", async () => (await chain.getBlock("latest"))!.timestamp > pinnedAt + 3_630, 5_400_000);
+    await until("order 8 left out of the settlement", async () => (await status8()) === "void", 900_000);
+    const excluded = BigInt(await new Contract(d.AuctionPool, POOL_ABI, chain).getFunction("excludedSlots")(a8.id));
     const before8 = Number(B.view().balances.find((b) => b.symbol === "USDG")?.spendable ?? 0);
     await B.cancel(orderOf(B, a8.id)[0]!.id, (s) => log("B", s));
     await until("lock reclaimed", async () => (await status8()) === "reclaimed");
-    await until("refund in the tree", spendable(B, "USDG", before8 + 0.1 * r * 0.5 * 0.99));
+    await until("refund in the tree", spendable(B, "USDG", before8 + 0.2 * r * 0.5 * 0.99));
     const row8 = await auctionRow(a8.id);
     check(
-      "8 abandoned auction: owner reclaims the lock",
-      row8?.status === "void",
-      `auction #${a8.id} ${row8?.status}; lock of ~${(0.1 * r * 0.5).toFixed(2)} USDG back as a spendable note`,
+      "8 unreadable order: settled without it, owner reclaims the lock",
+      row8?.status === "cleared" && excluded !== 0n,
+      `auction #${a8.id} ${row8?.status} with slots ${excluded.toString(2)} left out; lock of ~${(0.2 * r * 0.5).toFixed(2)} USDG back as a spendable note`,
     );
   }
 }

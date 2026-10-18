@@ -12,6 +12,7 @@ export interface Association {
   labels: string[]; // decimal, in leaf order
 }
 
+/** Posts a new association root when the approved deposit labels changed (ScreeningGate.postAssociationRoot). */
 export async function publishAssociation() {
   const g = gate();
   const deposits = await rpc<{ from: string; label: string }[]>("lum_pool_deposit_labels", {});

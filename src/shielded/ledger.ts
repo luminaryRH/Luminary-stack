@@ -168,6 +168,7 @@ const PAGE = 5_000;
 /** Past every log index: a cursor at (block, LAST_LOG) resumes at the next block, so `from` means a whole block. */
 export const LAST_LOG = 2_147_483_647;
 
+/** Every pool event named in `names` after block `from`, page by page from /api/pool/events. */
 export async function loadEvents(get: <T>(path: string) => Promise<T>, names: string[], from = -1) {
   const events: PoolEvent[] = [];
   // the cursor is the last row's (block, log_index), so a page that cuts inside a block resumes inside it

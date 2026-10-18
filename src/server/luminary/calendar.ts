@@ -56,6 +56,7 @@ export function nyDate(at: Date): string {
   return `${p["year"]}-${p["month"]}-${p["day"]}`;
 }
 
+/** The lum_auctions key of a planned auction: '<SYMBOL>:<KIND>:<call time ISO>'. */
 export const auctionKey = (symbol: string, kind: string, callTime: Date) => `${symbol}:${kind}:${callTime.toISOString()}`;
 
 /** Auctions with a call after `from`, for trading days from `from`'s New York date through `days` days later. */

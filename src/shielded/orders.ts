@@ -18,6 +18,7 @@ export interface OrderOpening {
   viewPub: string; // owner's viewing key for the sealed results
 }
 
+/** An order's commitment in auctions of `asset` (circuits/lib order). */
 export const commitmentOf = (asset: bigint, o: OrderOpening) =>
   order(o.owner, asset, o.buy, o.qty, o.hasLimit, o.limitUsd, o.roll, o.rollsLeft, o.lock, o.salt, o.label, o.terms);
 

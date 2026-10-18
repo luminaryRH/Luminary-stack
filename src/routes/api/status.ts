@@ -13,7 +13,15 @@ export const Route = createFileRoute("/api/status")({
         handle(async () => {
           const [cron, wei] = await Promise.all([rpc<unknown>("lum_cron_status", {}), provider().getBalance(operator().address)]);
           // worker errors are public here: keep their shape, drop any long number they quote (amounts, keys, salts)
-          const redacted = JSON.parse(JSON.stringify(cron), (k, v) => (k === "error" && typeof v === "string" ? v.replace(/\d{7,}/g, "#") : v));
+          const scrub = (v: unknown, inError: boolean): unknown =>
+            typeof v === "string"
+              ? inError ? v.replace(/\d{7,}/g, "#") : v
+              : Array.isArray(v)
+                ? v.map((x) => scrub(x, inError))
+                : v && typeof v === "object"
+                  ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, scrub(x, inError || k === "error" || k === "errors")]))
+                  : v;
+          const redacted = scrub(cron, false);
           return ok({ cron: redacted, operator: { address: operator().address, eth: formatEther(wei) } });
         }),
     },

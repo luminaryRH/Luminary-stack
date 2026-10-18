@@ -12,6 +12,7 @@ const CURSOR = "pool_events";
 
 const plain = (v: unknown): unknown => (typeof v === "bigint" ? v.toString() : typeof v === "string" ? v.toLowerCase() : v);
 
+/** Records pool, desk and registry events from the cursor up to `maxBlocks` further into the chain mirror. */
 export async function indexPool(maxBlocks = 20_000) {
   const d = deployment();
   await rpc("lum_init_cursor", { p_name: CURSOR, p_block: d.deployBlock - 1 });

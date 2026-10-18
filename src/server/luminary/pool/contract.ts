@@ -76,7 +76,11 @@ export function deployment(): Deployment {
   return DEPLOYMENT;
 }
 
+/** The AuctionPool address of the bundled deployment. */
 export const poolAddress = () => deployment().AuctionPool;
+/** A read-only AuctionPool contract on the testnet provider. */
 export const pool = () => new Contract(poolAddress(), POOL_ABI, provider());
+/** A read-only ScreeningGate contract on the testnet provider. */
 export const gate = () => new Contract(deployment().ScreeningGate, GATE_ABI, provider());
+/** The operator wallet (OPERATOR_PRIVATE_KEY): scheduler, root poster, price pusher and relayer. */
 export const operator = () => new Wallet(env("OPERATOR_PRIVATE_KEY"));

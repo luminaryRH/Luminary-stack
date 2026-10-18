@@ -19,6 +19,7 @@ const toInput = (v: Input): InputMap[string] =>
 
 let api: Promise<Barretenberg> | undefined;
 
+/** Proves `circuit` with bb.js (UltraHonk, keccak transcript for the EVM verifiers). */
 export async function prove(circuit: CompiledCircuit, inputs: Record<string, Input>, threads = 1) {
   // a browser that reports cross-origin isolation but cannot start bb.js's thread workers still proves, on one thread
   api ??= Barretenberg.new({ threads }).catch((e) => (threads > 1 ? Barretenberg.new({ threads: 1 }) : Promise.reject(e)));

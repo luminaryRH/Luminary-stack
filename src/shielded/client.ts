@@ -292,6 +292,7 @@ export interface OrderTicket {
   selfSubmit?: boolean;
 }
 
+/** One user's shielded account: keys from a wallet signature, notes and orders rebuilt from public events, and every action (deposit, transact, order, cancel, ragequit, RFQ, disclosure). */
 export class ShieldedAccount {
   config!: PoolConfig;
   leaves: bigint[] = [];

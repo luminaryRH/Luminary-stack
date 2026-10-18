@@ -142,17 +142,32 @@ export async function relayStatus(idParam: unknown) {
   return { status: r.status, tx: r.hashes.at(-1) ?? r.tx };
 }
 
-/** One claim per spent note: the same nullifiers relayed twice (in parallel, or again after an on-chain revert) send once. */
-const noteKey = (nullifiers: string[]) => keccak256(solidityPacked(["bytes32[]"], [[...nullifiers].sort()])).slice(2, 34);
+/** One claim per spent note: a note relayed twice (in parallel, or paired with another note) sends once. */
+const noteKey = (nullifier: string) => "n" + keccak256(solidityPacked(["bytes32"], [nullifier])).slice(2, 33);
+
+/** A claim whose transaction (any signed version) reverted or was replaced by a filler: the notes were not spent. */
+async function staleClaim(key: string) {
+  const r = await rpc<RelayRow | null>("lum_relay_status", { p_client_id: key });
+  if (!r || r.status === "submitting") return false;
+  for (const hash of [...r.hashes].reverse()) {
+    const receipt = await provider().getTransactionReceipt(hash).catch(() => null);
+    if (receipt) return receipt.status === 0 || (r.filler && receipt.hash === r.hashes.at(-1));
+  }
+  return false;
+}
 
 async function submit(kind: RelayKind, fee: bigint, fn: string, args: unknown[], id: string | null, nullifiers: string[]) {
-  const keys = [noteKey(nullifiers), ...(id ? [id] : [])];
+  const keys = [...nullifiers.filter((n) => BigInt(n) !== 0n).map(noteKey), ...(id ? [id] : [])];
   const claimed: string[] = [];
   // nothing reached the chain on any path that throws below, so the claims are freed for an honest retry
   const release = () => Promise.all(claimed.map((k) => rpc("lum_relay_release", { p_client_id: k }).catch((e) => console.error("relay release failed", String(e)))));
   for (const k of keys) {
     // two requests with one key race here; the loser gets the winner's tx, or null while the winner is still sending
-    const claim = await rpc<{ claimed: boolean; tx?: string | null }>("lum_relay_claim", { p_client_id: k, p_kind: kind, p_fee: String(fee) });
+    let claim = await rpc<{ claimed: boolean; tx?: string | null }>("lum_relay_claim", { p_client_id: k, p_kind: kind, p_fee: String(fee) });
+    if (!claim.claimed && (await staleClaim(k))) {
+      await rpc("lum_relay_forget", { p_client_id: k });
+      claim = await rpc<{ claimed: boolean; tx?: string | null }>("lum_relay_claim", { p_client_id: k, p_kind: kind, p_fee: String(fee) });
+    }
     if (!claim.claimed) {
       await release();
       return { tx: claim.tx ?? null };
@@ -236,7 +251,8 @@ export async function relay(body: Record<string, unknown>) {
     };
     await checkFee("order", placement.relayer, placement.fee);
     const auctionId = uint(String(body["auctionId"] ?? ""), "auctionId");
-    return submit("order", placement.fee, "placeOrder", [auctionId, Object.values(placement), proof, hexBytes(body["sealedOrder"], "sealedOrder", 4_096)], id, [placement.nullifier, placement.feeNullifier]);
+    // two sealed copies (committee and owner), each padded to 512-byte blocks: about 4.5 KB
+    return submit("order", placement.fee, "placeOrder", [auctionId, Object.values(placement), proof, hexBytes(body["sealedOrder"], "sealedOrder", 16_384)], id, [placement.nullifier, placement.feeNullifier]);
   }
 
   throw new UserError('kind must be "transact" or "order"');

@@ -1,6 +1,8 @@
 import { DbError } from "./db";
 
+/** A JSON success response: { ok: true, data }. */
 export const ok = (data: unknown, status = 200) => Response.json({ ok: true, data }, { status });
+/** A JSON error response: { ok: false, error } with `status`. */
 export const fail = (error: string, status = 400) => Response.json({ ok: false, error }, { status });
 
 /** A message that is safe to show the user. */
@@ -18,5 +20,6 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
   }
 }
 
+/** The request body as a JSON object, or a 400 error when it is not one. */
 export const readJson = (request: Request): Promise<Record<string, unknown>> =>
   request.json().then((b) => (b && typeof b === "object" ? b : {}), () => ({}));

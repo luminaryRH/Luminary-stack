@@ -22,6 +22,7 @@ interface TreeCache {
   frontier: string[];
 }
 
+/** Appends the next batch of queued commitments to the note tree with a TreeUpdateProof. */
 export async function advancePoolTree() {
   const c = pool();
   const [count, size] = (await Promise.all([c.getFunction("commitmentCount")(), c.getFunction("treeSize")()])).map(Number) as [number, number];

@@ -4,6 +4,7 @@ import { env } from "./env";
 
 let cached: JsonRpcProvider | undefined;
 
+/** The chain the app serves (46630, Robinhood Chain testnet). */
 export const chainId = () => CONFIG.chainId;
 
 /** Robinhood Chain testnet. RPC_URL (server) overrides the public RPC, e.g. with an Alchemy endpoint. */

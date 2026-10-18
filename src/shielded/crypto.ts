@@ -30,6 +30,7 @@ export function keysFromSignature(signature: string): ShieldedKeys {
 const ADDRESS_BYTES = 32 + 33 + 4;
 const checksum = (body: string) => keccak256(body).slice(0, 10);
 
+/** The address others pay this account at: its owner key and viewing key, nothing that can spend. */
 export function shieldedAddress(keys: Pick<ShieldedKeys, "owner" | "viewPub">): string {
   const body = concat([toBeHex(keys.owner, 32), keys.viewPub]);
   return "lm" + encodeBase58(concat([body, checksum(body)]));

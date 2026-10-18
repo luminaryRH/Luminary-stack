@@ -95,6 +95,7 @@ export async function sendOperator(to: string, data: string, key: string | null 
   return hash;
 }
 
+/** Sends an AuctionPool call from the operator through the send queue (keyed sends never race themselves). */
 export const sendPool = (fn: string, args: unknown[], key: string | null = null, maxGas: bigint | null = null) =>
   sendOperator(poolAddress(), POOL_ABI.encodeFunctionData(fn, args), key, maxGas);
 
@@ -151,6 +152,8 @@ export async function tendSends() {
     try {
       gasLimit = ((await p.estimateGas({ from: op.address, to, data })) * 6n) / 5n;
       if (BigInt(s.gas_limit ?? "0") > gasLimit) gasLimit = BigInt(s.gas_limit!);
+      // a relayed call (unkeyed) was priced for its first gas limit: a resend never burns more than that
+      if (!s.key && s.gas_limit && gasLimit > BigInt(s.gas_limit)) gasLimit = BigInt(s.gas_limit);
     } catch {
       // the call would now revert (its work was done another way): spend the nonce on nothing instead
       to = op.address;
