@@ -172,6 +172,20 @@ contract PostDeployCheckTest is Test {
         checker.check(json);
     }
 
+    /// The verifiers' linked libraries hold verification logic: other code at a linked address fails the check.
+    function test_a_swapped_verifier_library_fails() public {
+        bytes memory code = address(d.pool.depositVerifier()).code;
+        string memory art = vm.readFile(string.concat(vm.projectRoot(), "/out/DepositVerifier.sol/HonkVerifier.json"));
+        string[] memory files = vm.parseJsonKeys(art, ".deployedBytecode.linkReferences");
+        string[] memory libs = vm.parseJsonKeys(art, string.concat(".deployedBytecode.linkReferences['", files[0], "']"));
+        uint256 start = vm.parseJsonUint(art, string.concat(".deployedBytecode.linkReferences['", files[0], "'].", libs[0], "[0].start"));
+        uint160 lib;
+        for (uint256 k; k < 20; k++) lib = (lib << 8) | uint160(uint8(code[start + k]));
+        vm.etch(address(lib), address(d.gate).code);
+        vm.expectRevert();
+        checker.check(json);
+    }
+
     function test_other_bytecode_at_a_manifest_address_fails() public {
         vm.etch(vm.parseJsonAddress(json, ".DisclosureRegistry"), address(d.gate).code);
         vm.expectRevert();

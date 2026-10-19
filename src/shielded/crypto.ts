@@ -72,11 +72,16 @@ const padded = (plain: string) => {
 
 /** Encrypts `plain` to a secp256k1 public key: ephemeral key (33 B) ‖ iv (12 B) ‖ AES-GCM ciphertext. */
 export async function seal(toPub: string, plain: string): Promise<string> {
+  return (await sealKeyed(toPub, plain)).sealed;
+}
+
+/** seal, also returning the ephemeral private key (an order proves knowledge of it to the committee). */
+export async function sealKeyed(toPub: string, plain: string): Promise<{ sealed: string; ephemeral: string }> {
   const eph = new SigningKey(hexlify(randomBytes(32)));
   const iv = buf(randomBytes(12));
   const key = await aesKey(eph.computeSharedSecret(toPub), "encrypt");
   const ct = new Uint8Array(await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, padded(plain)));
-  return hexlify(concat([eph.compressedPublicKey, iv, ct]));
+  return { sealed: hexlify(concat([eph.compressedPublicKey, iv, ct])), ephemeral: eph.privateKey };
 }
 
 /** The plaintext, or null when `sealed` was not made for this key (or was tampered with). */

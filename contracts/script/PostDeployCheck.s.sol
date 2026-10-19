@@ -22,7 +22,8 @@ interface IDecimals {
 /// @notice Read-only check that a live deployment is this build, owned and wired as intended. It never broadcasts.
 ///   forge build && forge script script/PostDeployCheck.s.sol --rpc-url robinhood
 /// Reads deployments/<chainId>.json (written by Deploy.s.sol). Every failed check is logged; any failure reverts.
-///   1. bytecode: every contract, verifier and the timelock match this build (immutable values masked)
+///   1. bytecode: every contract, verifier (and each verifier's linked libraries) and the timelock match this build
+///      (immutable values and library addresses masked; the libraries are checked at the addresses linked in)
 ///   2. ownership: the pool and the gate are owned by the timelock, with no pending transfer; the timelock waits
 ///      48 hours, the Safe is its only proposer, canceller and executor, the deployer holds no role; the Safe is the
 ///      official SafeL2 with the manifest's signers and a threshold of 2
@@ -186,12 +187,39 @@ contract PostDeployCheck is Script {
         }
         bytes memory local = vm.parseBytes(object);
         if (local.length != live.length) return _fail(string.concat(file, ": runtime size differs from this build"), a);
+        // a library's runtime code starts with PUSH20 <its own address> (call protection), zero in the artifact
+        if (local.length > 21 && local[0] == 0x73) {
+            bool placeholder = true;
+            for (uint256 k = 1; k <= 20; k++) placeholder = placeholder && local[k] == 0;
+            if (placeholder) for (uint256 k = 1; k <= 20; k++) live[k] = 0;
+        }
         _mask(art, ".deployedBytecode.immutableReferences", live, local);
         string[] memory files = _keys(art, ".deployedBytecode.linkReferences");
         for (uint256 i; i < files.length; i++) {
-            _mask(art, string.concat(".deployedBytecode.linkReferences['", files[i], "']"), live, local); // keys are file paths
+            string memory path = string.concat(".deployedBytecode.linkReferences['", files[i], "']"); // keys are file paths
+            _sameLibraries(live, art, path, files[i]); // the linked libraries hold verification logic too
+            _mask(art, path, live, local);
         }
         _check(keccak256(live) == keccak256(local), string.concat(file, ": bytecode differs from this build"), a);
+    }
+
+    /// Each library linked into `live` (read from its first link position) has this build's code. Libraries link nothing.
+    function _sameLibraries(bytes memory live, string memory art, string memory path, string memory sourcePath) internal {
+        string[] memory libs = _keys(art, path);
+        string memory file = _basename(sourcePath);
+        for (uint256 i; i < libs.length; i++) {
+            ImmutableRef[] memory refs = abi.decode(vm.parseJson(art, string.concat(path, ".", libs[i])), (ImmutableRef[]));
+            uint160 at;
+            for (uint256 k; k < 20; k++) at = (at << 8) | uint160(uint8(live[refs[0].start + k]));
+            _same(address(at), file, libs[i]);
+        }
+    }
+
+    function _basename(string memory path) internal pure returns (string memory) {
+        bytes memory b = bytes(path);
+        uint256 from;
+        for (uint256 i; i < b.length; i++) if (b[i] == "/") from = i + 1;
+        return _slice(path, from, b.length - from);
     }
 
     /// Zeroes, in both codes, every {start, length} range listed under each key of the object at `path`.

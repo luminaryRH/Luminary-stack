@@ -8,7 +8,8 @@
 // relayed order pays its ETH relayer fee from a separate ETH note.
 import { AbiCoder, Interface, ZeroAddress, formatUnits, getAddress, hexlify, isHexString, keccak256, toUtf8Bytes } from "ethers";
 import { CHAIN_HEX, CONFIG, DEPLOYMENT } from "@/lib/luminary-config";
-import { KEY_MESSAGE, keysFromSignature, parseShieldedAddress, seal, shieldedAddress, type ShieldedKeys } from "./crypto";
+import { orderKeyContext, proveEphemeral } from "./committee";
+import { KEY_MESSAGE, keysFromSignature, parseShieldedAddress, seal, sealKeyed, shieldedAddress, type ShieldedKeys } from "./crypto";
 import { DEPOSIT_DOMAIN, loadPool, memoOpener, rebuild, type Activity, type Grant, type MyOrder, type Note, type Opener, type OrderMemo, type PoolAuction, type PoolEvent, type PoolSnapshot, type TransactMemo } from "./ledger";
 import { FEE_NOTE_ORDERS, commitmentOf, feeNoteSource, openingToJson, type OrderOpening } from "./orders";
 import { CAPACITY, DEPTH, ETH, ETH_UNIT, FIELD, PLAIN, aspLeaf, blind, currentBase, depositLabel, hex, note, nullifier, orderNullifier, pathOf, ready, rootOf, treeOf } from "./protocol";
@@ -803,7 +804,10 @@ export class ShieldedAccount {
           }
         : {}),
     };
-    const envelope = JSON.stringify({ o: await seal(this.config.sealPublic, openingToJson(opening)), u: await seal(viewPub, JSON.stringify(memo)) });
+    // the committee opens `o` only for this order: a proof of its ephemeral key, bound to the auction and commitment
+    const o = await sealKeyed(this.config.sealPublic, openingToJson(opening));
+    const k = proveEphemeral(o.ephemeral, orderKeyContext(this.config.chainId, this.config.pool, auction.id, hex(commitment)));
+    const envelope = JSON.stringify({ o: o.sealed, u: await seal(viewPub, JSON.stringify(memo)), k });
     const sealedOrder = utf8Hex(envelope);
     const relayer = relayed ? this.config.relayer : ZeroAddress;
 

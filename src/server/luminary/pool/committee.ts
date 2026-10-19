@@ -3,11 +3,13 @@
 // committee's group key instead and the operator can open a pinned auction's orders only from members' partial
 // decryptions, which members release once the auction is pinned on chain.
 import { keccak256 } from "ethers";
-import { openWithPartials, partialable, verifyPartial, type Committee, type Partial } from "@/shielded/committee";
+import { openWithPartials, orderKeyContext, partialable, verifyEphemeral, verifyPartial, type Committee, type Partial } from "@/shielded/committee";
 import { open } from "@/shielded/crypto";
-import { operatorCiphertext } from "@/shielded/orders";
+import { operatorCiphertext, operatorKeyProof } from "@/shielded/orders";
+import { chainId } from "../chain";
 import { rpc } from "../db";
 import { env } from "../env";
+import { poolAddress } from "./contract";
 
 /** The threshold committee configuration from COMMITTEE, or null when the operator key opens orders alone. */
 export function committee(): Committee | null {
@@ -39,12 +41,24 @@ export async function orderCiphertexts(a: OpenAuction) {
   return a.orders.map((o) => ({ ...o, ciphertext: o.sealed === "0x" ? (rolled[o.commitment.toLowerCase()] ?? null) : operatorCiphertext(o.sealed) }));
 }
 
-/** Every openable order ciphertext of pinned, unsettled auctions that the committee has not yet opened. */
+/** Every openable order ciphertext of pinned, unsettled auctions that the committee has not yet opened. An order whose
+ * envelope does not prove its ephemeral key for this exact order (a copy of someone's ciphertext, a related key, a
+ * missing proof) is left out: members refuse it, so settlement does not wait for it and leaves the order out (its owner
+ * reclaims the lock). A rolled order has no envelope on chain, so members never serve it either. */
 export async function pendingForCommittee() {
   const c = committee();
   if (!c) return [];
   const auctions = (await rpc<OpenAuction[]>("lum_pool_open_auctions", {})).filter((a) => a.pinned);
-  const items = (await Promise.all(auctions.map(async (a) => (await orderCiphertexts(a)).map((o) => ({ id: a.id, commitment: o.commitment, sealed: o.ciphertext })))))
+  const items = (
+    await Promise.all(
+      auctions.map(async (a) =>
+        (await orderCiphertexts(a))
+          // the same check members make (scripts/committee-member.ts): a ciphertext they will not serve is not waited on
+          .filter((o) => o.sealed !== "0x" && verifyEphemeral(o.ciphertext ?? "0x", operatorKeyProof(o.sealed), orderKeyContext(chainId(), poolAddress(), a.id, o.commitment)))
+          .map((o) => ({ id: a.id, commitment: o.commitment, sealed: o.ciphertext })),
+      ),
+    )
+  )
     .flat()
     // a malformed ciphertext gets no partials from anyone: settlement leaves it out instead of waiting on it
     .filter((x): x is { id: number; commitment: string; sealed: string } => x.sealed !== null && partialable(x.sealed));

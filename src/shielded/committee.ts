@@ -11,7 +11,7 @@
 // ponytail: plain Feldman DKG lets the last member to publish bias the group key's distribution (not learn it); use
 // Pedersen-commitment DKG (Gennaro et al.) if key bias matters for the chosen committee.
 import { secp256k1 } from "@noble/curves/secp256k1";
-import { concat, getBytes, hexlify, keccak256, randomBytes, sha256, toUtf8String } from "ethers";
+import { AbiCoder, concat, getBytes, hexlify, keccak256, randomBytes, sha256, toUtf8String } from "ethers";
 
 type Point = { add(p: Point): Point; subtract(p: Point): Point; multiply(k: bigint): Point; equals(p: Point): boolean } & Record<string, any>;
 const curve = secp256k1 as any;
@@ -102,6 +102,44 @@ export interface Partial {
 }
 
 const ephemeralOf = (sealed: string) => hexlify(getBytes(sealed).slice(0, 33));
+
+// --- the order's proof of its ephemeral key -------------------------------------------------------------------------
+// A member's partial x·R depends only on the ciphertext's ephemeral key R, so a partial for any ciphertext whose key is
+// R (a copy) or a known multiple of R (k·R, −R) would open the original. An order therefore proves it knows r with
+// R = r·G (Schnorr), bound to the chain, the pool, its auction and its commitment; members serve only orders whose proof
+// verifies for that exact order. Nobody but the sealer knows r, so copies and related keys get nothing.
+
+export interface KeyProof {
+  c: string;
+  z: string;
+}
+
+/** What an order's key proof is bound to: chain, pool, auction id and order commitment. */
+export const orderKeyContext = (chainId: bigint | number, pool: string, auctionId: bigint | number, commitment: string) =>
+  keccak256(AbiCoder.defaultAbiCoder().encode(["string", "uint256", "address", "uint256", "bytes32"], ["luminary-order-key-v1", chainId, pool, auctionId, commitment]));
+
+const keyChallenge = (r: Point, a: Point, context: string) => mod(BigInt(keccak256(concat([bytesOf(G, true), bytesOf(r, true), bytesOf(a, true), context]))));
+
+/** Proof that the sealer knows the ephemeral private key behind its ciphertext, bound to `context`. */
+export function proveEphemeral(ephemeralPriv: string, context: string): KeyProof {
+  const r = mod(BigInt(ephemeralPriv));
+  const k = scalar();
+  const c = keyChallenge(mul(G, r), mul(G, k), context);
+  return { c: "0x" + c.toString(16), z: "0x" + mod(k + c * r).toString(16) };
+}
+
+/** Whether `proof` shows knowledge of the ephemeral key of `sealed`, for this `context`. */
+export function verifyEphemeral(sealed: string, proof: KeyProof | null | undefined, context: string): boolean {
+  try {
+    if (!proof || typeof proof.c !== "string" || typeof proof.z !== "string") return false;
+    const r = pointOf(ephemeralOf(sealed));
+    const [c, z] = [mod(BigInt(proof.c)), mod(BigInt(proof.z))];
+    const a = mul(G, z).subtract(mul(r, c));
+    return !r.equals(P.ZERO) && keyChallenge(r, a, context) === c;
+  } catch {
+    return false;
+  }
+}
 
 function challenge(xj: Point, r: Point, d: Point, a: Point, b: Point): bigint {
   return mod(BigInt(keccak256(concat([bytesOf(G, true), bytesOf(xj, true), bytesOf(r, true), bytesOf(d, true), bytesOf(a, true), bytesOf(b, true)]))));

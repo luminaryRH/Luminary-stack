@@ -16,6 +16,7 @@ let app: {
   relay: typeof import("@/server/luminary/pool/relay");
   committee: typeof import("@/shielded/committee");
   poolCommittee: typeof import("@/server/luminary/pool/committee");
+  orders: typeof import("@/shielded/orders");
 };
 type Account = import("@/shielded/client").ShieldedAccount;
 let B: Account;
@@ -100,6 +101,7 @@ beforeAll(async () => {
     relay: await import("@/server/luminary/pool/relay"),
     committee: await import("@/shielded/committee"),
     poolCommittee: await import("@/server/luminary/pool/committee"),
+    orders: await import("@/shielded/orders"),
   };
   await cron("calendar");
   await cron("nav");
@@ -131,7 +133,7 @@ test("deposits join the tree and become spendable", async () => {
   await B.deposit("ETH", "0.05");
   await S.deposit("TSLA", "2.5");
   await S.deposit("ETH", "0.02");
-  await until("deposits spendable", async () => (await spendable(B, "USDG", 1500)()) && (await spendable(B, "ETH", 0.05)()) && (await spendable(S, "TSLA", 2.5)()));
+  await until("deposits spendable", async () => (await spendable(B, "USDG", 1500)()) && (await spendable(B, "ETH", 0.05)()) && (await spendable(S, "TSLA", 2.5)()) && (await spendable(S, "ETH", 0.02)()));
   // withdrawals and orders prove their deposit is in the screened set: the fee label and the four deposits
   await until("deposits screened into the association set", async () => (await associationLabels()).length >= 5);
   expect(balance(S, "ETH")).toBeCloseTo(0.02);
@@ -175,7 +177,7 @@ test("a CLOSE auction clears at one p* inside the band; a cancel before the call
   const events = await api<{ events: { args: { sealedOrder: string } }[] }>(`/api/pool/events?names=OrderResting&after=0`);
   for (const e of events.events) {
     const text = Buffer.from(e.args.sealedOrder.slice(2), "hex").toString("utf8");
-    if (text) expect(Object.keys(JSON.parse(text)).sort().join()).toBe("o,u");
+    if (text) expect(Object.keys(JSON.parse(text)).sort().join()).toBe("k,o,u"); // operator ciphertext, memo, proof of the ciphertext's key
   }
 }, 300_000);
 
@@ -302,11 +304,20 @@ test("committee mode: orders open only from members' partials, posted after the 
     const envelope = hexlify(toUtf8Bytes(JSON.stringify({ o: "0x" + "ff".repeat(80), u: "0x" })));
     await (await placeOrder(a.id, [root, rand(), zero, rand(), zero, rand(), "0x" + "00".repeat(20), 0, aspRoot], "0x", envelope)).wait();
     expect(app.committee.partialable("0x" + "ff".repeat(80))).toBe(false);
+    // a victim's order rests in a later auction; someone copies its ciphertext into this one, which pins first, hoping the
+    // members' partials for the copy open the victim's order before its own call
+    const later = await schedule(L.deployment.tokens.TSLA, KIND.CLOSE, 1800);
+    await until("buyer USDG for the victim order", spendable(B, "USDG", 30));
+    await until("later auction indexed", indexed(B, later.id));
+    await B.placeOrder({ auctionId: later.id, side: "buy", sizeText: "0.2", limitText: (r * 0.5).toFixed(2), roll: false, selfSubmit: true });
+    const resting = await app.contract.pool().queryFilter(app.contract.pool().filters["OrderResting"]!(later.id));
+    const victimEnvelope = String((resting[0] as unknown as { args: unknown[] }).args[3]);
+    await (await placeOrder(a.id, [root, rand(), zero, rand(), zero, rand(), "0x" + "00".repeat(20), 0, aspRoot], "0x", victimEnvelope)).wait();
     await warpTo(a.callTime);
     // after the pin the operator waits for partials instead of settling without the orders
     const pending = await until("orders pending for the committee", async () => {
       const p = (await app.poolCommittee.pendingForCommittee()).filter((x) => x.id === a.id);
-      return p.length === 2 && p;
+      return p.length === 2 && p; // the two real orders: the junk one is not decryptable, the copy's proof is for the victim's auction
     });
     expect(await printOf(a.id)).toBeUndefined();
     // a forged partial (member 1's share under member 2's index) is dropped by the route
@@ -317,8 +328,7 @@ test("committee mode: orders open only from members' partials, posted after the 
     // members 1 and 3 run scripts/committee-member.ts: each checks the chain itself, and two of three partials open each order
     const { round } = await import("../scripts/committee-member");
     const member = (m: number) => ({ member: m, keyShare: keyShareOf(m, dealings), base: "", rpcUrl: L.url, pool: L.deployment.AuctionPool, fromBlock: L.deployment.deployBlock });
-    // a dishonest operator slips in a ciphertext that is not on chain and one of an auction that is not pinned: refused
-    const later = await schedule(L.deployment.tokens.TSLA, KIND.CLOSE, 900);
+    // a dishonest operator also slips in a ciphertext that is not on chain and one of an auction that is not pinned
     const smuggled = await app.crypto.seal(c.groupKey, "an order the operator wants opened early");
     const lying: typeof fetch = async (input, init) => {
       const res = await fetch(input, init);
@@ -327,11 +337,36 @@ test("committee mode: orders open only from members' partials, posted after the 
       body.data.pending.push({ id: a.id, sealed: smuggled }, { id: later.id, sealed: pending[0]!.sealed });
       return Response.json(body);
     };
-    expect(await round(member(1), lying)).toEqual({ accepted: 2, skipped: 2 });
+    // even if a dishonest operator lists the copy, the members refuse it (its key proof is bound to the victim's auction and
+    // commitment), as well as the smuggled ciphertext and the unpinned auction's order; the two real orders are opened
+    const copy = { id: a.id, sealed: app.orders.operatorCiphertext(victimEnvelope)! };
+    const lyingAboutCopy: typeof fetch = async (input, init) => {
+      const res = await lying(input, init);
+      if (init?.method === "POST") return res;
+      const body = (await res.json()) as { data: { pending: unknown[] } };
+      body.data.pending.push(copy);
+      return Response.json(body);
+    };
+    expect(await round(member(1), lyingAboutCopy)).toEqual({ accepted: 2, skipped: 3 });
     expect(await round(member(3))).toEqual({ accepted: 2, skipped: 0 });
     const p = await until("committee auction printed", () => printOf(a.id));
     expect(p.crossedQty).toBe("300000");
-    expect(BigInt(await app.contract.pool().getFunction("excludedSlots")(a.id))).toBe(4n); // slot 2, the junk order
+    expect(BigInt(await app.contract.pool().getFunction("excludedSlots")(a.id))).toBe(12n); // slots 2 and 3: the junk order and the copy
+    // the copy cost the victim nothing: once its own auction pins, the original is served and opens
+    for (const token of [L.deployment.tokens.TSLA, L.deployment.tokens.USDG]) {
+      const feed = (await app.contract.pool().getFunction("markets")(token))[0] as string; // no one pushes the mocks: keep them fresh
+      const [, answer] = await new Contract(feed, ["function latestRoundData() view returns (uint80, int256, uint256, uint256, uint80)"], L.chain).getFunction("latestRoundData")();
+      await asOperator(feed, "function push(int256)", answer);
+    }
+    await warpTo(later.callTime);
+    const original = await until("the victim's order pending in its own auction", async () => {
+      const p = (await app.poolCommittee.pendingForCommittee()).filter((x) => x.id === later.id);
+      return p.length === 1 && p[0]!;
+    });
+    expect(original.sealed).toBe(copy.sealed);
+    expect(await round(member(1))).toEqual({ accepted: 1, skipped: 0 });
+    expect(await round(member(3))).toEqual({ accepted: 1, skipped: 0 });
+    expect(await app.poolCommittee.openOrder(original.sealed)).not.toBeNull();
   } finally {
     delete process.env["COMMITTEE"];
   }

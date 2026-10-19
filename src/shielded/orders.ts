@@ -78,18 +78,29 @@ export function openingFromJson(text: string): OrderOpening | null {
 export interface SealedOrderEnvelope {
   o: string;
   u: string;
+  k?: { c: string; z: string }; // proof of `o`'s ephemeral key, bound to the order (committee members require it)
 }
 
-/** The operator's ciphertext from placeOrder's sealedOrder bytes (hex), or null when malformed. */
-export function operatorCiphertext(sealedOrderHex: string): string | null {
+const envelopeOf = (sealedOrderHex: string): Partial<SealedOrderEnvelope> | null => {
   try {
     const bytes = sealedOrderHex.replace(/^0x/, "");
-    const text = new TextDecoder().decode(Uint8Array.from(bytes.match(/../g) ?? [], (h) => parseInt(h, 16)));
-    const env = JSON.parse(text) as Partial<SealedOrderEnvelope>;
-    return typeof env.o === "string" && /^0x[0-9a-fA-F]+$/.test(env.o) ? env.o : null;
+    const env = JSON.parse(new TextDecoder().decode(Uint8Array.from(bytes.match(/../g) ?? [], (h) => parseInt(h, 16))));
+    return env && typeof env === "object" ? env : null;
   } catch {
     return null;
   }
+};
+
+/** The operator's ciphertext from placeOrder's sealedOrder bytes (hex), or null when malformed. */
+export function operatorCiphertext(sealedOrderHex: string): string | null {
+  const o = envelopeOf(sealedOrderHex)?.o;
+  return typeof o === "string" && /^0x[0-9a-fA-F]+$/.test(o) ? o : null;
+}
+
+/** The proof of the operator ciphertext's ephemeral key (committee/proveEphemeral), or null when absent. */
+export function operatorKeyProof(sealedOrderHex: string): { c: string; z: string } | null {
+  const k = envelopeOf(sealedOrderHex)?.k;
+  return k && typeof k.c === "string" && typeof k.z === "string" ? k : null;
 }
 
 /** What an owner learns about their order from a settlement (sealed to their viewing key in `notes`). */

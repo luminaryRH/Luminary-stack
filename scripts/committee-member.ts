@@ -1,16 +1,18 @@
 // A sealing-committee member: posts this member's partial decryptions (src/shielded/committee.ts) of the order
 // ciphertexts of pinned auctions. A member trusts the operator for nothing: the app only proposes work, and before
 // computing a partial the member checks on chain, through its own RPC, that the auction is pinned (and neither voided nor
-// settled) and that the ciphertext is the one that auction's OrderResting event carries. Anything else is skipped, so an
-// operator cannot get an order opened before its call. A rolled order rests without a ciphertext on chain, so members
-// skip it; the settlement leaves it out and its owner reclaims the lock. Run one per member, on a host the operator does
-// not control:
+// settled), that the ciphertext is the one an order in that auction rests with, and that the order's envelope proves
+// knowledge of the ciphertext's ephemeral key, bound to this chain, pool, auction and commitment. A partial depends only
+// on that key, so without the proof a copy of someone's ciphertext (or a related key such as k·R) placed in an auction
+// that pins earlier would open the original; with it, only the sealer's own order can be served. A rolled order rests
+// without a ciphertext on chain, so members skip it; the settlement leaves it out and its owner reclaims the lock.
+// Run one per member, on a host the operator does not control:
 //   MEMBER=<index> KEY_SHARE=<0x… from the DKG> RPC_URL=<your own Robinhood Chain RPC> BASE_URL=https://luminariesrh.com \
 //     bun scripts/committee-member.ts [--once]
 import { Contract, JsonRpcProvider } from "ethers";
 import { DEPLOYMENT } from "@/lib/luminary-config";
-import { partialOf } from "@/shielded/committee";
-import { operatorCiphertext } from "@/shielded/orders";
+import { orderKeyContext, partialOf, verifyEphemeral, type KeyProof } from "@/shielded/committee";
+import { operatorCiphertext, operatorKeyProof } from "@/shielded/orders";
 
 export interface Member {
   member: number; // 1..n
@@ -28,17 +30,20 @@ const POOL = [
 const LOG_CHUNK = 5_000_000; // public RPCs cap a log query's block range
 const POLL_MS = 15_000;
 
-/** The operator ciphertexts auction `id` rests on chain, if it is pinned and still unsettled; null otherwise. */
-async function onChainCiphertexts(pool: Contract, provider: JsonRpcProvider, id: number, fromBlock: number) {
+type Resting = Map<string, { commitment: string; proof: KeyProof | null }>; // operator ciphertext → its order
+
+/** The orders auction `id` rests on chain (by operator ciphertext), if it is pinned and unsettled; null otherwise. */
+async function restingIn(pool: Contract, provider: JsonRpcProvider, id: number, fromBlock: number): Promise<Resting | null> {
   const a = await pool.getFunction("auctions")(id);
   if (a.callBlock === 0n || a.voided || a.settled) return null;
   const head = await provider.getBlockNumber();
-  const filter = pool.filters["OrderResting"]!(id);
-  const out = new Set<string>();
+  const out: Resting = new Map();
   for (let from = fromBlock; from <= head; from += LOG_CHUNK) {
-    for (const log of await pool.queryFilter(filter, from, Math.min(head, from + LOG_CHUNK - 1))) {
-      const sealed = operatorCiphertext(String((log as unknown as { args: unknown[] }).args[3]));
-      if (sealed) out.add(sealed.toLowerCase());
+    for (const log of await pool.queryFilter(pool.filters["OrderResting"]!(id), from, Math.min(head, from + LOG_CHUNK - 1))) {
+      const args = (log as unknown as { args: unknown[] }).args;
+      const envelope = String(args[3]);
+      const sealed = operatorCiphertext(envelope);
+      if (sealed) out.set(sealed.toLowerCase(), { commitment: String(args[2]).toLowerCase(), proof: operatorKeyProof(envelope) });
     }
   }
   return out;
@@ -53,8 +58,9 @@ export async function round(m: Member, fetchImpl: typeof fetch = (...a) => fetch
   const poolAddress = m.pool ?? DEPLOYMENT?.AuctionPool;
   if (!poolAddress) throw new Error("no AuctionPool address");
   const provider = new JsonRpcProvider(m.rpcUrl, undefined, { staticNetwork: true });
+  const chainId = (await provider.getNetwork()).chainId;
   const pool = new Contract(poolAddress, POOL, provider);
-  const verified = new Map<number, Set<string> | null>();
+  const resting = new Map<number, Resting | null>();
   const items: { sealed: string; partial: ReturnType<typeof partialOf> }[] = [];
   let skipped = 0;
   for (const x of body.data!.pending) {
@@ -62,9 +68,10 @@ export async function round(m: Member, fetchImpl: typeof fetch = (...a) => fetch
       skipped++;
       continue;
     }
-    if (!verified.has(x.id)) verified.set(x.id, await onChainCiphertexts(pool, provider, x.id, m.fromBlock ?? DEPLOYMENT?.deployBlock ?? 0));
-    if (!verified.get(x.id)?.has(x.sealed.toLowerCase())) {
-      skipped++; // not pinned, already settled, or not this auction's ciphertext on chain
+    if (!resting.has(x.id)) resting.set(x.id, await restingIn(pool, provider, x.id, m.fromBlock ?? DEPLOYMENT?.deployBlock ?? 0));
+    const order = resting.get(x.id)?.get(x.sealed.toLowerCase());
+    if (!order || !verifyEphemeral(x.sealed, order.proof, orderKeyContext(chainId, poolAddress, x.id, order.commitment))) {
+      skipped++; // not pinned, settled, not on chain in this auction, or no proof of the key for this order
       continue;
     }
     items.push({ sealed: x.sealed, partial: partialOf(m.member, m.keyShare, x.sealed) });

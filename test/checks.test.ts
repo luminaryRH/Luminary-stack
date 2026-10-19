@@ -8,5 +8,6 @@ const CHECKS = [
   "../src/shielded/ledger.check.ts",
   "../src/shielded/buylock.check.ts",
   "../src/shielded/rfq-settle.check.ts",
+  "../src/shielded/committee.check.ts",
 ];
 for (const c of CHECKS) test(c, () => import(c), 120_000);
