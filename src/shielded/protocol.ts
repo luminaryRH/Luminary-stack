@@ -166,19 +166,5 @@ export function appendLeaves(frontier: bigint[], size: number, batch: bigint[]) 
   return { frontier: next, root };
 }
 
-/** TreeUpdateProof inputs appending leaves[size .. size + count) to the tree of the first `size` leaves. */
-export function treeUpdateInputs(leaves: bigint[], size: number, count: number) {
-  if (count < 1 || count > BATCH || size + count > leaves.length) throw new Error(`cannot append ${count} of ${leaves.length - size} queued`);
-  const batch = leaves.slice(size, size + count);
-  return {
-    frontier: frontierOf(leaves.slice(0, size)),
-    old_root: rootOf(leaves.slice(0, size)),
-    next_index: size,
-    leaves: [...batch, ...Array<bigint>(BATCH - count).fill(0n)],
-    count,
-    new_root: rootOf(leaves.slice(0, size + count)),
-  };
-}
-
 /** Base units of a token per micro-unit (the pool's market unit). */
 export const unitOf = (decimals: number) => 10n ** BigInt(decimals - 6);

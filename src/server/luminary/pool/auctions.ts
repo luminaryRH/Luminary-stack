@@ -20,7 +20,7 @@ import { provider } from "../chain";
 import { rpc } from "../db";
 import { env } from "../env";
 import { feedsOf, refreshFeed } from "../nav";
-import { openOrder, orderCiphertexts, sealingPublicKey, type OpenAuction } from "./committee";
+import { committee, openOrder, orderCiphertexts, pendingForCommittee, sealingPublicKey, type OpenAuction } from "./committee";
 import { DESK_ABI, deployment, pool } from "./contract";
 import { inFlightKeys, sendOperator, sendPool } from "./sends";
 
@@ -136,6 +136,9 @@ async function settleOne(a: OpenAuction) {
     c.getFunction("orderList")(a.id) as Promise<string[]>,
   ]);
   const asset = BigInt(s.asset);
+  // with a committee, orders open only from members' partials, posted after the pin: settling before they arrive would
+  // leave every order out. Members who never post leave the auction to be abandoned, and every lock is reclaimed.
+  if (committee() && (await pendingForCommittee()).some((x) => x.id === a.id)) return { waiting: `committee partials for auction ${a.id}` };
 
   // slot order is the chain's; a cancelled slot is 0 there
   const ciphertexts = new Map((await orderCiphertexts(a)).map((o) => [o.slot, o]));
