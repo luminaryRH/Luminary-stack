@@ -3,7 +3,6 @@
 //   OPEN      09:30 America/New_York on each NYSE trading day
 //   CLOSE     16:00 New York (13:00 on early-close days)
 //   MIDNIGHT  00:00 UTC on each trading day's date: the overnight call leading into that session
-//   NAV       TreasuryQuote's fund auction, requested by an admin (not on the calendar)
 // No auctions on weekends or NYSE holidays; an asset's auctions pause on its Ex-Date. Every New York time is converted
 // with the offset in force at that instant, so DST switch days are exact.
 

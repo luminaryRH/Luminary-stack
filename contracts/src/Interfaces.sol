@@ -17,7 +17,7 @@ interface IScreeningGate {
     function isAssociationRoot(bytes32 root) external view returns (bool);
 }
 
-/// Chainlink AggregatorV3 shape (8 decimals): MockAggregator, and TreasuryQuote for its NAV.
+/// Chainlink AggregatorV3 shape (8 decimals).
 interface IPriceFeed {
     /// (roundId, answer, startedAt, updatedAt, answeredInRound); answer has 8 decimals.
     function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80);

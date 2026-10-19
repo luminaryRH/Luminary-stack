@@ -1,7 +1,9 @@
-// Monitoring (every 5 minutes, from the nav job): posts an alert to ALERT_WEBHOOK_URL when an admin power is used on the
-// pool, gate, vault or desk, when a large amount leaves the pool, when the operator wallet runs low on gas, when the
-// note tree passes 80% of its 2^20 leaves, when an auction holding orders is voided (a stale price, a halted or
-// re-scaled token, or nobody settled it), or when a worker step has stalled. The runbook for each alert is in SECURITY.md. Without ALERT_WEBHOOK_URL it only logs.
+// Monitoring (every 5 minutes, from the nav job): posts an alert to ALERT_WEBHOOK_URL when the Safe queues, executes or
+// cancels anything on the timelock (48 hours before it can take effect), when the timelock's roles or delay or the
+// Safe's signers or threshold change, when an admin power is used on the pool, gate or desk, when a large amount leaves
+// the pool, when the operator wallet runs low on gas, when an auction holding orders is voided (a stale price, a
+// halted or re-scaled token, or nobody settled it), or when a worker step has stalled. The runbook for each alert is
+// in SECURITY.md. Without ALERT_WEBHOOK_URL it only logs.
 import { Interface, formatEther } from "ethers";
 import { provider } from "./chain";
 import { rpc } from "./db";
@@ -10,18 +12,33 @@ import { deployment, operator, pool } from "./pool/contract";
 const ADMIN = new Interface([
   "event OwnershipTransferStarted(address indexed from, address indexed to)",
   "event OwnershipTransferred(address indexed from, address indexed to)",
-  "event MarketSet(address indexed token, address feed, uint256 unit, bool listed, uint256 capBps)",
+  "event MarketSet(address indexed token, address feed, uint256 unit, bool listed, uint256 capBps, uint256 maxAge)",
+  "event MinLockSet(address indexed token, uint256 minLock)",
   "event FeeSet(bytes32 feeOwner, uint16 feeBps)",
   "event DepositsPausedSet(bool paused)",
   "event DepositFeeSet(address recipient, uint256 fee)",
   "event GateSet(address gate)",
+  "event GuardianSet(address guardian)",
   "event DeskSet(address desk)",
   "event SchedulerSet(address indexed account, bool allowed)",
   "event AssociationRequiredSet(bool required)",
   "event PosterSet(address poster)",
   "event SanctionsSet(address sanctions)",
-  "event ShareSet(address recipient, uint16 shareBps)",
-  "event TreasurySet(address treasury)",
+  "event Blocked(address indexed account, bool blocked)",
+]);
+// the owner chain: OpenZeppelin TimelockController and the Safe (v1.4.1) that controls it
+const GOVERNANCE = new Interface([
+  "event CallScheduled(bytes32 indexed id, uint256 indexed index, address target, uint256 value, bytes data, bytes32 predecessor, uint256 delay)",
+  "event CallExecuted(bytes32 indexed id, uint256 indexed index, address target, uint256 value, bytes data)",
+  "event Cancelled(bytes32 indexed id)",
+  "event MinDelayChange(uint256 oldDuration, uint256 newDuration)",
+  "event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender)",
+  "event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender)",
+  "event AddedOwner(address indexed owner)",
+  "event RemovedOwner(address indexed owner)",
+  "event ChangedThreshold(uint256 threshold)",
+  "event ChangedGuard(address indexed guard)",
+  "event EnabledModule(address indexed module)",
 ]);
 const VOIDED = new Interface(["event AuctionVoided(uint256 indexed id)"]);
 const OUTFLOW = new Interface(["event Transacted(bytes32 indexed nullifier0, bytes32 indexed nullifier1, address indexed asset, address to, uint256 released, address relayer, uint256 fee, bytes memo)"]);
@@ -29,12 +46,10 @@ const OUTFLOW = new Interface(["event Transacted(bytes32 indexed nullifier0, byt
 const LOW_GAS_WEI = 2_000_000_000_000_000n; // 0.002 ETH: about a day of settlements
 const LARGE_OUTFLOW_UNITS = 10n ** 6n * 10_000n; // 10,000 tokens of a 6-decimal asset; 18-decimal assets scale below
 const MAX_RANGE = 50_000;
-const TREE_WARN = (2 ** 20 * 8) / 10; // AuctionPool CAPACITY: no rollover yet (SECURITY.md, accepted risk 4)
 
 interface AlertState {
   block: number;
   lowGasSent?: boolean;
-  treeSent?: boolean;
 }
 
 async function post(lines: string[]) {
@@ -58,7 +73,7 @@ export async function watchAlerts() {
   const lines: string[] = [];
 
   if (from <= head) {
-    const watched = [d.AuctionPool, d.ScreeningGate, d.FeeVault, d.RfqDesk];
+    const watched = [d.AuctionPool, d.ScreeningGate, d.RfqDesk];
     const adminTopics: string[] = [];
     ADMIN.forEachEvent((ev) => adminTopics.push(ev.topicHash));
     const logs = await p.getLogs({ address: watched, fromBlock: from, toBlock: head, topics: [adminTopics] });
@@ -66,11 +81,20 @@ export async function watchAlerts() {
       const e = ADMIN.parseLog(l);
       if (e) lines.push(`admin: ${e.name}(${e.args.map(String).join(", ")}) on ${l.address} in tx ${l.transactionHash}`);
     }
+    const govTopics: string[] = [];
+    GOVERNANCE.forEachEvent((ev) => govTopics.push(ev.topicHash));
+    const gov = await p.getLogs({ address: [d.owner, d.safe], fromBlock: from, toBlock: head, topics: [govTopics] });
+    for (const l of gov) {
+      const e = GOVERNANCE.parseLog(l);
+      if (!e) continue;
+      const what = e.name === "CallScheduled" ? `${e.name}: ${e.args[2]} call ${String(e.args[4]).slice(0, 10)}, executable in ${Number(e.args[6]) / 3600} h` : `${e.name}(${e.args.map(String).join(", ")})`;
+      lines.push(`governance: ${what} on ${l.address} in tx ${l.transactionHash}`);
+    }
     const outs = await p.getLogs({ address: d.AuctionPool, fromBlock: from, toBlock: head, topics: [OUTFLOW.getEvent("Transacted")!.topicHash] });
     for (const l of outs) {
       const e = OUTFLOW.parseLog(l)!;
       const asset = String(e.args[2]).toLowerCase();
-      const scale = asset === "0x0000000000000000000000000000000000000000" || Object.entries(d.tokens).some(([s, t]) => t.toLowerCase() === asset && !["USDG", "TQ"].includes(s)) ? 10n ** 12n : 1n;
+      const scale = asset === "0x0000000000000000000000000000000000000000" || Object.entries(d.tokens).some(([s, t]) => t.toLowerCase() === asset && s !== "USDG") ? 10n ** 12n : 1n;
       const out = BigInt(e.args[4]) + BigInt(e.args[6]);
       if (out >= LARGE_OUTFLOW_UNITS * scale) lines.push(`large outflow: ${out} base units of ${asset} to ${e.args[3]} in tx ${l.transactionHash}`);
     }
@@ -88,10 +112,6 @@ export async function watchAlerts() {
   const low = wei < LOW_GAS_WEI;
   if (low && !state.lowGasSent) lines.push(`operator ${operator().address} holds ${formatEther(wei)} ETH (below ${formatEther(LOW_GAS_WEI)}): top it up, or relays, pins and settlements stop`);
 
-  const leaves = Number(await pool().getFunction("commitmentCount")());
-  const treeFull = leaves >= TREE_WARN;
-  if (treeFull && !state.treeSent) lines.push(`the note tree holds ${leaves} of ${2 ** 20} leaves: plan the rollover before it fills (withdrawals stop at capacity)`);
-
   const cron = await rpc<Record<string, Record<string, { status: string; at: string }>>>("lum_cron_status", {});
   for (const [job, steps] of Object.entries(cron ?? {})) {
     for (const [step, r] of Object.entries(steps)) {
@@ -103,7 +123,7 @@ export async function watchAlerts() {
   const sent = await post(lines).catch((e) => (console.error("alert webhook failed", String(e)), false));
   // a webhook that failed keeps the cursor where it was, so the same alerts go out again next run
   const delivered = sent || lines.length === 0 || !process.env["ALERT_WEBHOOK_URL"]?.trim();
-  const next: AlertState = delivered ? { block: head, lowGasSent: low, treeSent: treeFull } : state;
+  const next: AlertState = delivered ? { block: head, lowGasSent: low } : state;
   await rpc("lum_pool_put_state", { p_name: "alerts", p_value: next });
   return { alerts: lines.length, sent, from, to: head };
 }

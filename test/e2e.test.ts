@@ -21,6 +21,7 @@ type Account = import("@/shielded/client").ShieldedAccount;
 let B: Account;
 let S: Account;
 let ticking = true;
+let tickerNav = true; // the ticker's own alert runs would consume the events the alerts test watches
 let ticker: Promise<void>;
 let ticks = 0;
 const errors: string[] = [];
@@ -105,7 +106,7 @@ beforeAll(async () => {
   ticker = (async () => {
     while (ticking) {
       await tick().catch((e) => errors.push(String(e)));
-      if (ticks % 20 === 0) await cron("nav").catch(() => {});
+      if (tickerNav && ticks % 20 === 0) await cron("nav").catch(() => {});
       await Bun.sleep(100);
     }
   })();
@@ -121,13 +122,18 @@ afterAll(async () => {
   L?.stop();
 });
 
+/** The labels in the published association set (the fee label plus every screened deposit). */
+const associationLabels = async () => (await api<{ association: { labels: string[] } | null }>("/api/pool/association")).association?.labels ?? [];
+
 test("deposits join the tree and become spendable", async () => {
-  await B.mintUsdg("2000");
+  await asOperator(L.deployment.tokens.USDG, "function mint(address,uint256)", B.wallet, 2_000_000_000n);
   await B.deposit("USDG", "1500");
   await B.deposit("ETH", "0.05");
   await S.deposit("TSLA", "2.5");
   await S.deposit("ETH", "0.02");
   await until("deposits spendable", async () => (await spendable(B, "USDG", 1500)()) && (await spendable(B, "ETH", 0.05)()) && (await spendable(S, "TSLA", 2.5)()));
+  // withdrawals and orders prove their deposit is in the screened set: the fee label and the four deposits
+  await until("deposits screened into the association set", async () => (await associationLabels()).length >= 5);
   expect(balance(S, "ETH")).toBeCloseTo(0.02);
   await B.prepareFeeNote();
   expect(B.notes.filter((n) => !n.spent && n.asset === 0n && n.amount > 0n).length).toBeGreaterThanOrEqual(2);
@@ -292,8 +298,9 @@ test("committee mode: orders open only from members' partials, posted after the 
     const rand = () => "0x00" + hexlify(randomBytes(31)).slice(2); // below the field modulus
     const root = await app.contract.pool().getFunction("root")();
     const zero = "0x" + "00".repeat(32);
+    const aspRoot = await app.contract.gate().getFunction("latestAssociationRoot")();
     const envelope = hexlify(toUtf8Bytes(JSON.stringify({ o: "0x" + "ff".repeat(80), u: "0x" })));
-    await (await placeOrder(a.id, [root, rand(), zero, rand(), zero, rand(), "0x" + "00".repeat(20), 0, zero], "0x", envelope)).wait();
+    await (await placeOrder(a.id, [root, rand(), zero, rand(), zero, rand(), "0x" + "00".repeat(20), 0, aspRoot], "0x", envelope)).wait();
     expect(app.committee.partialable("0x" + "ff".repeat(80))).toBe(false);
     await warpTo(a.callTime);
     // after the pin the operator waits for partials instead of settling without the orders
@@ -302,16 +309,34 @@ test("committee mode: orders open only from members' partials, posted after the 
       return p.length === 2 && p;
     });
     expect(await printOf(a.id)).toBeUndefined();
-    // members 1 and 3 publish; a forged partial (member 1's share under member 2's index) is dropped
-    const posts = pending.flatMap((x) => [1, 3].map((m) => ({ sealed: x.sealed, partial: partialOf(m, keyShareOf(m, dealings), x.sealed) })));
+    // a forged partial (member 1's share under member 2's index) is dropped by the route
     const forged = { sealed: pending[0]!.sealed, partial: { ...partialOf(1, keyShareOf(1, dealings), pending[0]!.sealed), member: 2 } };
-    expect(await app.poolCommittee.acceptPartials([...posts, forged])).toEqual({ accepted: 4, rejected: 1 });
+    const post = async (body: unknown) => (await (await fetch("/api/pool/partials", { method: "POST", body: JSON.stringify(body) })).json()) as { ok: boolean; data?: { accepted: number; rejected: number }; error?: string };
+    expect((await post({ items: [forged, { sealed: "nope", partial: {} }] })).data).toEqual({ accepted: 0, rejected: 2 });
+    expect((await post({ items: [] })).ok).toBe(false);
+    // members 1 and 3 run scripts/committee-member.ts: each checks the chain itself, and two of three partials open each order
+    const { round } = await import("../scripts/committee-member");
+    const member = (m: number) => ({ member: m, keyShare: keyShareOf(m, dealings), base: "", rpcUrl: L.url, pool: L.deployment.AuctionPool, fromBlock: L.deployment.deployBlock });
+    // a dishonest operator slips in a ciphertext that is not on chain and one of an auction that is not pinned: refused
+    const later = await schedule(L.deployment.tokens.TSLA, KIND.CLOSE, 900);
+    const smuggled = await app.crypto.seal(c.groupKey, "an order the operator wants opened early");
+    const lying: typeof fetch = async (input, init) => {
+      const res = await fetch(input, init);
+      if (init?.method === "POST") return res;
+      const body = (await res.json()) as { data: { pending: unknown[] } };
+      body.data.pending.push({ id: a.id, sealed: smuggled }, { id: later.id, sealed: pending[0]!.sealed });
+      return Response.json(body);
+    };
+    expect(await round(member(1), lying)).toEqual({ accepted: 2, skipped: 2 });
+    expect(await round(member(3))).toEqual({ accepted: 2, skipped: 0 });
     const p = await until("committee auction printed", () => printOf(a.id));
     expect(p.crossedQty).toBe("300000");
     expect(BigInt(await app.contract.pool().getFunction("excludedSlots")(a.id))).toBe(4n); // slot 2, the junk order
   } finally {
     delete process.env["COMMITTEE"];
   }
+  // without a committee the member route is closed
+  expect((await (await fetch("/api/pool/partials")).json()).ok).toBe(false);
 }, 240_000);
 
 test("the relayer refuses malformed, underpaid and replayed calls", async () => {
@@ -371,7 +396,7 @@ test("the relayer refuses malformed, underpaid and replayed calls", async () => 
 
 test("revert reasons become sentences the user can act on", () => {
   const { rejection, outOfGas } = app.relay;
-  const names = ["NoteSpent", "UnknownRoot", "AuctionFull", "NotCollecting", "BadAuction", "UnknownAssociationRoot", "BadFee", "TreeFull", "TransferFailed", "Reentrancy", "BadAmount", "InvalidProof"];
+  const names = ["NoteSpent", "UnknownRoot", "AuctionFull", "NotCollecting", "BadAuction", "UnknownAssociationRoot", "BadFee", "TransferFailed", "Reentrancy", "BadAmount", "InvalidProof"];
   const iface = new Interface(names.map((n) => `error ${n}()`));
   const messages = names.map((n) => rejection({ data: iface.encodeErrorResult(n, []) })?.message);
   expect(new Set(messages).size).toBe(names.length); // one sentence per reason
@@ -386,20 +411,46 @@ test("alerts reach the webhook, and a failed delivery is retried", async () => {
   const op = await L.operator.getAddress();
   const funds = await L.chain.getBalance(op);
   process.env["ALERT_WEBHOOK_URL"] = "http://hook.local/fail";
+  tickerNav = false;
   try {
     await asOperator(L.deployment.AuctionPool, "function setScheduler(address,bool)", Wallet.createRandom().address, true);
+    // the Safe queues a change on the timelock: alerted at once, 48 hours before it could run on mainnet
+    await asOperator(L.deployment.owner, "function schedule(address,uint256,bytes,bytes32,bytes32,uint256)", L.deployment.AuctionPool, 0, "0x", "0x" + "00".repeat(32), "0x" + "11".repeat(32), 0);
+    // the app's provider caches the block number for 250 ms: let the head move past these transactions
+    await L.chain.send("anvil_mine", ["0x1"]);
+    await Bun.sleep(300);
     await L.chain.send("anvil_setBalance", [op, "0x" + parseUnits("0.001", 18).toString(16)]);
     expect((await cron("nav"))["alerts"].sent).toBe(false);
     process.env["ALERT_WEBHOOK_URL"] = "http://hook.local";
     expect((await cron("nav"))["alerts"].sent).toBe(true); // the failed run kept its cursor: the same alerts go out now
     const text = L.webhook.join("\n");
     expect(text).toContain("admin: SchedulerSet");
+    expect(text).toContain("governance: CallScheduled");
     expect(text).toContain("top it up");
   } finally {
     delete process.env["ALERT_WEBHOOK_URL"];
+    tickerNav = true;
     await L.chain.send("anvil_setBalance", [op, "0x" + funds.toString(16)]);
   }
 }, 60_000);
+
+test("a sanctioned depositor is kept out of the association set, and can still ragequit", async () => {
+  const w = new Wallet(account(4).privateKey);
+  L.sanctioned.add(w.address.toLowerCase());
+  const X = await app.client.ShieldedAccount.open(eth(w, L.chain));
+  await X.deposit("ETH", "0.01");
+  await until("deposit spendable", spendable(X, "ETH", 0.01));
+  const labels = await until("the publisher screened it", async () => {
+    const st = await app.db.rpc<Record<string, { ok: boolean }> | null>("lum_pool_get_state", { p_name: "screening" });
+    return st?.[w.address.toLowerCase()] && (await associationLabels());
+  });
+  const label = String(X.notes.find((n) => !n.spent && n.amount > 0n)!.label);
+  expect(labels).not.toContain(label);
+  await expect(X.withdraw("ETH", "0.005", Wallet.createRandom().address, true)).rejects.toThrow(/association set/);
+  const before = await L.chain.getBalance(w.address);
+  await X.ragequit("ETH", "0.005"); // the exit no screening can stop (studio rule P1)
+  expect(await L.chain.getBalance(w.address)).toBeGreaterThan(before);
+}, 180_000);
 
 test("status, calendar and the public read routes answer", async () => {
   const status = await api<Record<string, unknown>>("/api/status");

@@ -4,7 +4,7 @@ import { fail, handle, ok } from "@/server/luminary/http";
 import { watchAlerts } from "@/server/luminary/alerts";
 import { watchPrices } from "@/server/luminary/nav";
 
-// Every 5 minutes: mirror mainnet prices into the testnet feeds, then check the alert conditions (alerts.ts).
+// Every 5 minutes: record the Chainlink price marks for the dashboard, then check the alert conditions (alerts.ts).
 export const Route = createFileRoute("/api/cron/nav")({
   server: {
     handlers: {

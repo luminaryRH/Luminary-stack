@@ -1,4 +1,4 @@
-// A local Luminary for the end-to-end test: anvil (chain 46630) with the contracts deployed behind a verifier that
+// A local Luminary for the end-to-end test: anvil (chain 4663) with the contracts deployed behind a verifier that
 // accepts every proof, the Supabase schema in PGlite behind a fake `postgres` driver, and the API routes answering the
 // client's fetch() in-process. Proving runs prove.ts for real up to the witness (so every circuit's constraints are
 // checked on the inputs the app builds); only bb.js's proof itself is faked. The real proofs are checked in forge
@@ -57,6 +57,7 @@ export interface Local {
   db: PGlite;
   webhook: string[];
   relayed: Record<string, unknown>[]; // every body the client POSTed to /api/pool/relay
+  sanctioned: Set<string>; // lower-case addresses the fake Chainalysis API identifies
   stop(): void;
 }
 
@@ -66,9 +67,9 @@ export async function startLocal(): Promise<Local> {
   if (build.status !== 0) throw Error(`forge build failed: ${build.stderr}`);
 
   const port = 18_545 + Math.floor(Math.random() * 1000);
-  const anvil: ChildProcess = spawn(foundry("anvil"), ["--port", String(port), "--chain-id", "46630", "--silent", "--code-size-limit", "100000"], { stdio: "ignore" });
+  const anvil: ChildProcess = spawn(foundry("anvil"), ["--port", String(port), "--chain-id", "4663", "--silent", "--code-size-limit", "100000"], { stdio: "ignore" });
   const url = `http://127.0.0.1:${port}`;
-  const chain = new JsonRpcProvider(url, 46630, { staticNetwork: true, pollingInterval: 50, cacheTimeout: -1 });
+  const chain = new JsonRpcProvider(url, 4663, { staticNetwork: true, pollingInterval: 50, cacheTimeout: -1 });
   for (let i = 0; ; i++) {
     if (await chain.getBlockNumber().then(() => true, () => false)) break;
     if (i > 100) throw Error("anvil did not start");
@@ -102,62 +103,45 @@ export async function startLocal(): Promise<Local> {
   const gate = await deploy("ScreeningGate.sol", "ScreeningGate", opAddress, opAddress);
   await send(pool, "setGate", await gate.getAddress());
   const disclosure = await deploy("DisclosureRegistry.sol", "DisclosureRegistry");
-  const vault = await deploy("FeeVault.sol", "FeeVault", opAddress, opAddress);
-  const lumi = await deploy("LUMI.sol", "LUMI", "Luminary", "LUMI", opAddress, 10n ** 27n);
+  // withdrawals and orders must prove their deposit is in the screened association set, as on mainnet
+  await send(gate, "setAssociationRequired", true);
+  // the owner chain the alerts watch: an OpenZeppelin timelock (no delay here) with the operator as proposer and
+  // executor, standing in for the Safe
+  const timelock = await deploy("TimelockController.sol", "TimelockController", 0, [opAddress], [opAddress], opAddress);
 
   const usdg = await deploy("MockUSDG.sol", "MockUSDG");
-  const tq = await deploy("TreasuryQuote.sol", "TreasuryQuote", await usdg.getAddress(), opAddress);
-  await send(usdg, "setMinter", await tq.getAddress());
-  await send(pool, "setMarket", await tq.getAddress(), await tq.getAddress(), 1, true, 100);
-  await send(pool, "setMinLock", await tq.getAddress(), 25_000_000);
-  const PRICES = { ETH: 2_500e8, USDG: 1e8, TSLA: 250e8, AMZN: 200e8, AMD: 150e8, PLTR: 30e8, NFLX: 700e8 } as const;
+  await send(usdg, "setMinter", opAddress);
+  const PRICES = { ETH: 2_500e8, USDG: 1e8, TSLA: 250e8, AMZN: 200e8, AMD: 150e8, PLTR: 30e8 } as const;
   const feeds: Record<string, string> = {};
-  const tokens: Record<string, string> = { USDG: await usdg.getAddress(), TQ: await tq.getAddress() };
+  const tokens: Record<string, string> = { USDG: await usdg.getAddress() };
   for (const [symbol, price] of Object.entries(PRICES)) {
     const feed = await deploy("MockAggregator.sol", "MockAggregator", `${symbol} / USD`, opAddress, BigInt(price));
     feeds[symbol] = await feed.getAddress();
     if (symbol === "ETH") continue;
     if (symbol === "USDG") {
-      await send(pool, "setMarket", tokens["USDG"], feeds[symbol], 1, false, 0);
+      await send(pool, "setMarket", tokens["USDG"], feeds[symbol], 1, false, 0, 25 * 3_600);
       await send(pool, "setMinLock", tokens["USDG"], 25_000_000);
       continue;
     }
     const stock = await deploy("AuctionPool.t.sol", "MockStock");
     tokens[symbol] = await stock.getAddress();
-    await send(pool, "setMarket", tokens[symbol], feeds[symbol], 10n ** 12n, true, 500);
+    await send(pool, "setMarket", tokens[symbol], feeds[symbol], 10n ** 12n, true, 500, 3_600);
     await send(pool, "setMinLock", tokens[symbol], 50_000);
   }
 
-  // the "mainnet" Chainlink feeds nav.ts reads (MAINNET_RPC_URL points here too): a MockAggregator's code at each address,
-  // with the operator as its pusher (slot 2)
-  const MAINNET: Record<string, string> = {
-    TSLA: "0x4A1166a659A55625345e9515b32adECea5547C38",
-    AMZN: "0xD5a1508ceD74c084eBf3cBe853e2C968fB2a651C",
-    AMD: "0x943A29E7ae51A4798823ca9eEd2ed533B2A22C72",
-    PLTR: "0x820ABedFF239034956B7A9d2F0a331f9F075eB4c",
-    ETH: "0x78F3556b67E17Df817D51Ef5a990cDaF09E8d3A9",
-    USDG: "0x61B7e5650328764B076A108EFF5fa7282a1B9aD2",
-  };
-  const feedCode = await chain.getCode(feeds["TSLA"]!);
-  for (const [symbol, at] of Object.entries(MAINNET)) {
-    await chain.send("anvil_setCode", [at, feedCode]);
-    await chain.send("anvil_setStorageAt", [at, "0x2", "0x" + opAddress.slice(2).toLowerCase().padStart(64, "0")]);
-    const { abi } = artifact("MockAggregator.sol", "MockAggregator");
-    const { Contract } = await import("ethers");
-    await send(new Contract(at, abi, op), "push", BigInt(PRICES[symbol as keyof typeof PRICES]) + 1_000_000n);
-  }
-
   const deployment: Deployment = {
-    chainId: 46630,
+    chainId: 4663,
     deployBlock,
     operator: opAddress,
+    deployer: opAddress,
+    owner: await timelock.getAddress(),
+    safe: opAddress,
+    safeSigners: [opAddress],
     AuctionPool: poolAddress,
     PrintRegistry: await prints.getAddress(),
     RfqDesk: await desk.getAddress(),
     ScreeningGate: await gate.getAddress(),
     DisclosureRegistry: await disclosure.getAddress(),
-    FeeVault: await vault.getAddress(),
-    LUMI: await lumi.getAddress(),
     feeds: feeds as Deployment["feeds"],
     tokens: tokens as Deployment["tokens"],
   };
@@ -166,7 +150,7 @@ export async function startLocal(): Promise<Local> {
   const seal = Wallet.createRandom();
   Object.assign(process.env, {
     RPC_URL: url,
-    MAINNET_RPC_URL: url,
+    CHAINALYSIS_API_KEY: "local-key",
     DATABASE_URL: "postgres://local:5432/luminary",
     OPERATOR_PRIVATE_KEY: account(0).privateKey,
     SEAL_KEY: seal.privateKey,
@@ -187,15 +171,15 @@ export async function startLocal(): Promise<Local> {
   }
   mock.module("@aztec/bb.js", () => ({ ...bbjs, Barretenberg: { new: async () => ({}) }, UltraHonkBackend: FakeBackend }));
 
-  const [webhook, relayed]: [string[], Record<string, unknown>[]] = [[], []];
-  await routeFetch(webhook, relayed);
+  const [webhook, relayed, sanctioned]: [string[], Record<string, unknown>[], Set<string>] = [[], [], new Set()];
+  await routeFetch(webhook, relayed, sanctioned);
 
-  return { url, chain, operator: op, deployment, db, webhook, relayed, stop: () => anvil.kill() };
+  return { url, chain, operator: op, deployment, db, webhook, relayed, sanctioned, stop: () => anvil.kill() };
 }
 
 /** fetch() of "/api/..." goes to the route handlers in-process; the alert webhook (http://hook.local, /fail answers 500)
- * and the Robinhood quote are faked. */
-async function routeFetch(webhook: string[], relayed: Record<string, unknown>[]) {
+ * and the Chainalysis sanctions API are faked. */
+async function routeFetch(webhook: string[], relayed: Record<string, unknown>[], sanctioned: Set<string>) {
   const native = globalThis.fetch;
   const routes = new Map<string, Record<string, (ctx: { request: Request }) => Promise<Response>>>();
   const handlers = async (path: string) => {
@@ -222,9 +206,10 @@ async function routeFetch(webhook: string[], relayed: Record<string, unknown>[])
       webhook.push(String(init?.body ?? ""));
       return new Response("ok");
     }
-    if (href.startsWith("https://api.robinhood.com/")) {
-      const quote = { bid: "699.9", ask: "700.1", isTradingHalt: false, generatedAt: new Date().toISOString() };
-      return Response.json({ quotes: [quote] });
+    if (href.startsWith("https://public.chainalysis.com/api/v1/address/")) {
+      const address = href.split("/").pop()!.toLowerCase();
+      if (new Headers(init?.headers).get("X-API-Key") !== "local-key") return new Response("unauthorized", { status: 403 });
+      return Response.json({ identifications: sanctioned.has(address) ? [{ category: "sanctions", name: "test" }] : [] });
     }
     return native(input, init);
   }) as typeof fetch;

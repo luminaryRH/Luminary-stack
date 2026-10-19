@@ -5,9 +5,8 @@ import {Test} from "forge-std/Test.sol";
 import {AuctionPool} from "../src/AuctionPool.sol";
 import {PrintRegistry} from "../src/PrintRegistry.sol";
 import {IPrintRegistry, IProofVerifier} from "../src/Interfaces.sol";
-import {MockAggregator} from "../src/mocks/MockAggregator.sol";
-import {MockUSDG} from "../src/mocks/MockUSDG.sol";
-import {TreasuryQuote} from "../src/mocks/TreasuryQuote.sol";
+import {MockAggregator} from "./mocks/MockAggregator.sol";
+import {MockUSDG} from "./mocks/MockUSDG.sol";
 import {MockStock} from "./AuctionPool.t.sol";
 // Every bb-generated verifier is named HonkVerifier; aliases keep them apart.
 import {HonkVerifier as DepositHonk} from "../src/verifiers/DepositVerifier.sol";
@@ -52,13 +51,14 @@ contract AuctionFlowTest is Test {
         registry.setWriter(POOL);
         pool.setScheduler(address(this), true);
 
-        usdg = new MockUSDG();
-        deployCodeTo("TreasuryQuote.sol:TreasuryQuote", abi.encode(address(usdg), address(this)), TQ);
-        usdg.setMinter(TQ);
+        // the quote token: any 6-decimal token at TQ (the proofs bind its address and unit), priced at $1
+        deployCodeTo("MockUSDG.sol:MockUSDG", "", TQ);
+        usdg = MockUSDG(TQ);
+        MockAggregator quoteFeed = new MockAggregator("TQ / USD", address(this), 1e8);
         deployCodeTo("AuctionPool.t.sol:MockStock", "", TSLA);
         tslaFeed = new MockAggregator("TSLA / USD", address(this), 250e8);
-        pool.setMarket(TSLA, address(tslaFeed), 1e12, true, 500);
-        pool.setMarket(TQ, TQ, 1, true, 100);
+        pool.setMarket(TSLA, address(tslaFeed), 1e12, true, 500, 1 hours);
+        pool.setMarket(TQ, address(quoteFeed), 1, true, 100, 25 hours);
         pool.setMinLock(TSLA, 1e6); // the proofs were made with these minimums (auction.fixture.ts)
         pool.setMinLock(TQ, 100e6);
     }
@@ -74,9 +74,7 @@ contract AuctionFlowTest is Test {
     function _deposits() internal {
         vm.startPrank(DEPOSITOR);
         usdg.mint(DEPOSITOR, 1000e6);
-        usdg.approve(TQ, 1000e6);
-        TreasuryQuote(TQ).deposit(1000e6, DEPOSITOR);
-        TreasuryQuote(TQ).approve(POOL, type(uint256).max);
+        usdg.approve(POOL, type(uint256).max);
         MockStock(TSLA).mint(DEPOSITOR, 7e18);
         MockStock(TSLA).approve(POOL, type(uint256).max);
         for (uint256 i; i < 3; i++) {
@@ -152,7 +150,7 @@ contract AuctionFlowTest is Test {
         gas = gasleft();
         pool.transact(t, _proof("flow_withdraw"), "");
         emit log_named_uint("transact gas", gas - gasleft());
-        assertEq(TreasuryQuote(TQ).balanceOf(TO), 489_755_000, "2 TSLA at $245 less 5 bps");
+        assertEq(usdg.balanceOf(TO), 489_755_000, "2 TSLA at $245 less 5 bps");
 
         pool.reclaim(1, 0, _b32(".cancel.spent"), _b32(".cancel.refund"), _proof("flow_cancel"));
         assertEq(pool.auctions(1).live, 0);
@@ -162,11 +160,11 @@ contract AuctionFlowTest is Test {
         t.outputs = [_b32(".ragequit.output0"), _b32(".ragequit.output1")];
         t.released = uint256(_b32(".payoutA"));
         t.to = DEPOSITOR;
-        uint256 before = TreasuryQuote(TQ).balanceOf(DEPOSITOR);
+        uint256 before = usdg.balanceOf(DEPOSITOR);
         vm.expectRevert(); // the verifier rejects it
         pool.ragequit(t, 0, _proof("flow_ragequit"), ""); // the label of another deposit
         pool.ragequit(t, 1, _proof("flow_ragequit"), "");
-        assertEq(TreasuryQuote(TQ).balanceOf(DEPOSITOR) - before, 244_877_500, "1 TSLA at $245 less 5 bps");
+        assertEq(usdg.balanceOf(DEPOSITOR) - before, 244_877_500, "1 TSLA at $245 less 5 bps");
     }
 
     function test_an_order_proof_is_bound_to_its_sealed_order() public {

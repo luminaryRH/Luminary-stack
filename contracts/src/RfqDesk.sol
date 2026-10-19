@@ -78,8 +78,8 @@ contract RfqDesk {
 
     /// rfq_cross public inputs, in circuit order (outputs and fee note filled in by the caller).
     function _inputs(AuctionPool.Auction memory a, bytes32[] memory list, uint256 crossedQty) private view returns (bytes32[] memory inputs) {
-        (, uint88 unit,,) = pool.markets(a.asset);
-        (, uint88 quoteUnit,,) = pool.markets(a.quote);
+        (, uint88 unit,,,) = pool.markets(a.asset);
+        (, uint88 quoteUnit,,,) = pool.markets(a.quote);
         inputs = new bytes32[](16);
         inputs[0] = bytes32(uint256(uint160(a.asset)));
         inputs[1] = bytes32(uint256(unit));

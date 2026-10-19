@@ -4,14 +4,14 @@
 // ETH transactions and every order go through the relayer by default, so the connected wallet is only ever linked to
 // its own deposits. Every note carries its deposit's label: withdrawals prove that label is in the association set.
 //
-// Orders rest in AuctionPool auctions: a buy locks the auction's quote token (USDG; TQ in auctions scheduled
-// before 2026-10-16), a sell locks the stock. A relayed order pays its ETH relayer fee from a separate ETH note.
+// Orders rest in AuctionPool auctions: a buy locks the auction's quote token (USDG), a sell locks the stock. A
+// relayed order pays its ETH relayer fee from a separate ETH note.
 import { AbiCoder, Interface, ZeroAddress, formatUnits, getAddress, hexlify, isHexString, keccak256, toUtf8Bytes } from "ethers";
 import { CHAIN_HEX, CONFIG, DEPLOYMENT } from "@/lib/luminary-config";
 import { KEY_MESSAGE, keysFromSignature, parseShieldedAddress, seal, shieldedAddress, type ShieldedKeys } from "./crypto";
 import { DEPOSIT_DOMAIN, loadPool, memoOpener, rebuild, type Activity, type Grant, type MyOrder, type Note, type Opener, type OrderMemo, type PoolAuction, type PoolEvent, type PoolSnapshot, type TransactMemo } from "./ledger";
 import { FEE_NOTE_ORDERS, commitmentOf, feeNoteSource, openingToJson, type OrderOpening } from "./orders";
-import { DEPTH, ETH, ETH_UNIT, FIELD, PLAIN, aspLeaf, blind, depositLabel, hex, note, nullifier, orderNullifier, pathOf, ready, rootOf } from "./protocol";
+import { CAPACITY, DEPTH, ETH, ETH_UNIT, FIELD, PLAIN, aspLeaf, blind, currentBase, depositLabel, hex, note, nullifier, orderNullifier, pathOf, ready, rootOf, treeOf } from "./protocol";
 import type { Input } from "./prove";
 import type { BrowserCircuit } from "./prove.worker";
 import { rfqCommitment } from "./rfq";
@@ -80,8 +80,6 @@ const ERC20 = new Interface([
   "function allowance(address owner, address spender) view returns (uint256)",
   "function balanceOf(address) view returns (uint256)",
 ]);
-const USDG = new Interface(["function mint(address to, uint256 amount)"]);
-const TQ = new Interface(["function redeem(uint256 shares, address receiver, address holder) returns (uint256)"]);
 const CHAIN = {
   chainId: CHAIN_HEX,
   chainName: CONFIG.chainName,
@@ -354,7 +352,7 @@ export class ShieldedAccount {
   private matchesChain(d: { config: PoolConfig; leaves: bigint[] }) {
     const size = d.config.tree.size;
     if (size === this.verifiedSize || d.leaves.length < size) return true;
-    const ok = hex(rootOf(d.leaves.slice(0, size))) === d.config.tree.root.toLowerCase();
+    const ok = hex(rootOf(d.leaves.slice(currentBase(size), size))) === d.config.tree.root.toLowerCase();
     if (ok) this.verifiedSize = size;
     return ok;
   }
@@ -419,11 +417,13 @@ export class ShieldedAccount {
     throw Error(fee > 0n ? `Not enough shielded ${sym}: this needs ${fmt(need)} ${sym}, including the relayer fee of ${fmt(fee)} ${sym}, and you have ${fmt(total)} ${sym}.` : `Not enough shielded ${sym}.`);
   }
 
-  /** Two notes with the same label: the pair meeting `ok` with the smallest or largest total. Notes arrive largest first. */
+  /** Two notes with the same label in the same tree (one proof, one root): the pair meeting `ok` with the smallest or
+   * largest total. Notes arrive largest first. */
   private bestPair(notes: Note[], ok: (sum: bigint) => boolean, prefer: "smallest" | "largest") {
     let best: [Note, Note] | undefined;
-    for (const label of new Set(notes.map((n) => n.label))) {
-      const [a, b] = notes.filter((n) => n.label === label);
+    const group = (n: Note) => `${n.label}:${treeOf(n.index).base}`;
+    for (const key of new Set(notes.map(group))) {
+      const [a, b] = notes.filter((n) => group(n) === key);
       if (!a || !b || !ok(a.amount + b.amount)) continue;
       const sum = a.amount + b.amount;
       const bestSum = best ? best[0].amount + best[1].amount : undefined;
@@ -432,14 +432,22 @@ export class ShieldedAccount {
     return best;
   }
 
-  /** Current tree as the contract has it; refuses to prove against a tree this client cannot reproduce. */
-  private tree() {
+  /**
+   * The tree holding every note in `notes` (one proof proves against one root), as the contract has it: its leaves and
+   * root. The current tree must reproduce the on-chain root; a full earlier tree's final root stays known on chain.
+   */
+  private tree(notes: { index: number }[]) {
     const size = this.config.tree.size;
-    const leaves = this.leaves.slice(0, size);
-    if (leaves.length < size) throw Error("The pool index is catching up. Try again in a minute.");
+    const base = treeOf(notes[0]!.index).base;
+    if (notes.some((n) => treeOf(n.index).base !== base)) {
+      throw Error("These notes sit in two different note trees (the pool started a new one). Merge or send them to yourself first, then try again.");
+    }
+    const end = Math.min(base + CAPACITY, size);
+    const leaves = this.leaves.slice(base, end);
+    if (leaves.length < end - base) throw Error("The pool index is catching up. Try again in a minute.");
     const root = rootOf(leaves);
-    if (hex(root) !== this.config.tree.root.toLowerCase()) throw Error("The pool tree just changed. Try again in a moment.");
-    return { leaves, root };
+    if (base === currentBase(size) && hex(root) !== this.config.tree.root.toLowerCase()) throw Error("The pool tree just changed. Try again in a moment.");
+    return { leaves, root, at: (n: { index: number }) => treeOf(n.index).position };
   }
 
   /** AuctionPool.context: binds a transaction proof to this pool, its recipient, relayer and fee. */
@@ -456,7 +464,7 @@ export class ShieldedAccount {
     return (await this.eth.request({ method: "eth_call", params: [{ to, data }, "latest"] })) as string;
   }
 
-  /** Switches the wallet to Robinhood Chain testnet, adding it when the wallet does not know it. */
+  /** Switches the wallet to Robinhood Chain, adding it when the wallet does not know it. */
   async ensureChain() {
     try {
       await this.eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN.chainId }] });
@@ -541,13 +549,13 @@ export class ShieldedAccount {
     const relayed = asset === ETH && !selfSubmit && ragequitNonce === undefined;
     const fee = relayed ? BigInt(this.config.relayFees.transactWei) : 0n;
     const relayer = relayed ? this.config.relayer : ZeroAddress;
-    const { leaves, root } = this.tree();
+    const { leaves, root, at } = this.tree(ins);
     const { secret, owner, viewPub } = this.keys;
     const label = ins[0]!.label;
     if (ins.some((n) => n.label !== label)) throw Error("Notes from different deposits cannot be spent together.");
     const first = ins[0]!.nullifier!;
     const dummy = { amount: 0n, blinding: blind(secret, (first + 7n) % FIELD), index: 0 };
-    const spentOf = (i: { amount: bigint; blinding: bigint; index: number }) => nullifier(secret, note(owner, asset, i.amount, i.blinding, label), BigInt(i.index));
+    const spentOf = (i: { amount: bigint; blinding: bigint; index: number }) => nullifier(secret, note(owner, asset, i.amount, i.blinding, label), BigInt(at(i)));
     const slots = ins.length === 2 ? ins : [ins[0]!, dummy];
     const outAmounts = [outs[0] ?? 0n, outs[1] ?? 0n];
     const available = ins.reduce((s, n) => s + n.amount, 0n);
@@ -574,8 +582,8 @@ export class ShieldedAccount {
       label,
       in_amounts: slots.map((i) => i.amount),
       in_blindings: slots.map((i) => i.blinding),
-      in_indexes: slots.map((i) => i.index),
-      in_paths: slots.map((i) => (i.amount === 0n ? zeroPath() : pathOf(leaves, i.index))),
+      in_indexes: slots.map((i) => at(i)),
+      in_paths: slots.map((i) => (i.amount === 0n ? zeroPath() : pathOf(leaves, at(i)))),
       out_owners: outOwners,
       out_amounts: outAmounts,
       out_blindings: outBlindings,
@@ -742,7 +750,7 @@ export class ShieldedAccount {
     const fee = relayed ? BigInt(this.config.relayFees.orderWei) : 0n;
     let feeNote: Note | undefined;
     if (relayed) {
-      feeNote = this.spendableNotes(ETH, [n!]).reverse().find((x) => x.amount >= fee);
+      feeNote = this.spendableNotes(ETH, [n!]).reverse().find((x) => x.amount >= fee && treeOf(x.index).base === treeOf(n!.index).base);
       if (!feeNote) {
         if (this.notes.some((x) => !x.spent && x.asset === ETH && x.amount >= fee && x.index >= this.config.tree.size)) {
           throw Error("An ETH note that can pay the relayer fee is still joining the pool tree. Place the order again in about a minute.");
@@ -756,7 +764,7 @@ export class ShieldedAccount {
         );
       }
     }
-    const { leaves, root } = this.tree();
+    const { leaves, root, at } = this.tree(feeNote ? [n!, feeNote] : [n!]);
     const { secret, owner, viewPub } = this.keys;
 
     const opening: OrderOpening = {
@@ -824,14 +832,14 @@ export class ShieldedAccount {
       label: n!.label,
       blinding: n!.blinding,
       note_amount: n!.amount,
-      leaf_index: n!.index,
-      path: pathOf(leaves, n!.index),
+      leaf_index: at(n!),
+      path: pathOf(leaves, at(n!)),
       change_blinding: changeBlinding,
       fee_label: feeNote?.label ?? 0n,
       fee_note_amount: feeNote?.amount ?? 0n,
       fee_blinding: feeNote?.blinding ?? 0n,
-      fee_index: feeNote?.index ?? 0,
-      fee_path: feeNote ? pathOf(leaves, feeNote.index) : zeroPath(),
+      fee_index: feeNote ? at(feeNote) : 0,
+      fee_path: feeNote ? pathOf(leaves, at(feeNote)) : zeroPath(),
       fee_change_blinding: feeChangeBlinding,
       buy,
       qty,
@@ -959,22 +967,6 @@ export class ShieldedAccount {
     if (!DEPLOYMENT) throw Error("No deployment.");
     progress("Open the RFQ auction in your wallet…");
     return this.send(DEPLOYMENT.RfqDesk, DESK.encodeFunctionData("open", [this.marketBySymbol(symbol).token, this.marketBySymbol("USDG").token, delaySec]));
-  }
-
-  /** Testnet faucet: mint up to 10,000 MockUSDG to the wallet. */
-  async mintUsdg(amountText: string, progress: (s: string) => void = () => {}) {
-    const amount = toUnits(amountText, 6);
-    if (!amount || amount <= 0n || amount > 10_000_000_000n) throw Error("Mint from 0.000001 to 10,000 USDG at a time.");
-    progress("Confirm the mint in your wallet…");
-    return this.send(this.marketBySymbol("USDG").token, USDG.encodeFunctionData("mint", [this.wallet, amount]));
-  }
-
-  /** TQ shares (left from before auctions quoted in USDG) → USDG in the wallet, at the current NAV. */
-  async fromTreasury(sharesText: string, progress: (s: string) => void = () => {}) {
-    const shares = toUnits(sharesText, 6);
-    if (!shares || shares <= 0n) throw Error("Enter an amount.");
-    progress("Confirm the redemption in your wallet…");
-    return this.send(this.marketBySymbol("TQ").token, TQ.encodeFunctionData("redeem", [shares, this.wallet, this.wallet]));
   }
 
   /** The wallet's own (public) balances: ETH and every market token, formatted. */

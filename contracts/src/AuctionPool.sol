@@ -8,7 +8,9 @@ import {IPriceFeed, IPrintRegistry, IProofVerifier, IScreeningGate} from "./Inte
 /// state change is backed by a proof checked against a bb-generated verifier.
 ///   deposit        — DepositProof: the queued commitment holds exactly the asset and amount the pool received.
 ///   advanceTree    — TreeUpdateProof: the next queued commitments were appended to the root. No Poseidon runs on
-///                    chain, so notes become spendable once their batch is appended (anyone may advance).
+///                    chain, so notes become spendable once their batch is appended (anyone may advance). A tree holds
+///                    2^20 leaves; when one is full the next batch starts a new tree, and every root of the old one
+///                    stays known, so its notes remain spendable.
 ///   transact       — TransactProof: up to two unspent notes become two new notes, releasing an amount to a recipient
 ///                    and a fee to a relayer (withdrawals, merging, splitting, private transfers).
 ///   ragequit       — TransactProof with the label public: a depositor takes value of their own deposit back to their own
@@ -82,6 +84,7 @@ contract AuctionPool {
         uint88 unit; // token base units per micro-unit, fixed once set
         bool listed; // may be auctioned (as opposed to only quoting)
         uint16 capBps; // price band half-width around the reference
+        uint32 maxAge; // a feed round older than this (seconds) is stale: the feed's heartbeat plus a margin
     }
 
     struct Auction {
@@ -104,11 +107,11 @@ contract AuctionPool {
     uint256 internal constant BATCH = 16; // circuits/tree_update M
     uint256 public constant ORDERS = 64; // circuits/auction_clear N
     uint256 public constant RFQ_ORDERS = 2; // circuits/rfq_cross
-    uint256 internal constant CAPACITY = 1 << 20; // circuits/lib DEPTH
+    uint256 public constant CAPACITY = 1 << 20; // leaves per tree: circuits/lib DEPTH
     /// circuits/lib zeros()[DEPTH]
     bytes32 public constant EMPTY_ROOT = 0x01da7c268b18dfc969f3ae497fff3fef7909905d6bd3d40b212d1d1544e1be88;
     address public constant ETH = address(0);
-    uint256 public constant MAX_STALENESS = 1 hours; // the nav-watcher pushes every 5 minutes
+    uint256 public constant MAX_STALENESS = 26 hours; // upper bound of a market's maxAge (Chainlink heartbeats are at most 24 h)
     uint16 public constant MAX_FEE_BPS = 100;
     uint16 public constant MAX_CAP_BPS = 2000;
     uint256 public constant SETTLE_DEADLINE = 1 hours; // after the pin; past it the auction can be abandoned
@@ -126,6 +129,8 @@ contract AuctionPool {
 
     address public owner;
     address public pendingOwner;
+    // Stops without the owner's delay: pauses deposits or halts a market at once. Only the owner resumes either.
+    address public guardian;
     bool public depositsPaused;
     IScreeningGate public gate; // deposit screening; 0 = none
     address public desk; // RfqDesk: opens and settles RFQ auctions
@@ -136,10 +141,10 @@ contract AuctionPool {
     uint256 public depositFee; // wei on top of every deposit, to feeRecipient (pays for appending it to the tree)
     address public feeRecipient;
 
-    bytes32[] public commitments; // every queued commitment, in leaf order
-    uint256 public treeSize; // how many of them are in the tree
-    bytes32 public root;
-    // The tree is append-only, so every past root stays valid; nullifiers are what stop a second spend.
+    bytes32[] public commitments; // every queued commitment, in leaf order; leaf i sits in tree i / CAPACITY
+    uint256 public treeSize; // how many of them are appended, over all trees
+    bytes32 public root; // the root of the tree holding leaf treeSize - 1 (EMPTY_ROOT before the first append)
+    // Trees are append-only, so every past root of every tree stays valid; nullifiers are what stop a second spend.
     mapping(bytes32 root => bool) public knownRoot;
     mapping(bytes32 nullifier => bool) public spent;
 
@@ -169,10 +174,11 @@ contract AuctionPool {
     event AuctionSettled(uint256 indexed id, uint256 pStar, uint256 crossedQty, uint64 excluded, bytes notes);
     event AuctionVoided(uint256 indexed id);
     event OrderReclaimed(uint256 indexed id, uint256 slot, bytes32 commitment, bool cancelled);
-    event MarketSet(address indexed token, address feed, uint256 unit, bool listed, uint256 capBps);
+    event MarketSet(address indexed token, address feed, uint256 unit, bool listed, uint256 capBps, uint256 maxAge);
     event MinLockSet(address indexed token, uint256 minLock);
     event FeeSet(bytes32 feeOwner, uint16 feeBps);
     event DepositsPausedSet(bool paused);
+    event GuardianSet(address guardian);
     event GateSet(address gate);
     event DeskSet(address desk);
     event SchedulerSet(address indexed account, bool allowed);
@@ -180,6 +186,7 @@ contract AuctionPool {
     event OwnershipTransferred(address indexed from, address indexed to);
 
     error NotOwner();
+    error NotGuardian();
     error NotPendingOwner();
     error NotScheduler();
     error NotDesk();
@@ -197,7 +204,6 @@ contract AuctionPool {
     error InvalidProof();
     error UnknownRoot();
     error NoteSpent();
-    error TreeFull();
     error AuctionFull();
     error NotCollecting();
     error NotPinned();
@@ -283,14 +289,16 @@ contract AuctionPool {
         if (label < 2) label += 2;
     }
 
-    /// @notice Append the next `count` queued commitments. Permissionless.
+    /// @notice Append the next `count` queued commitments. Permissionless. A batch stays inside one tree: the first
+    /// batch after a full tree starts the next one from the empty root.
     function advanceTree(uint256 count, bytes32 newRoot, bytes calldata proof) external {
         uint256 size = treeSize;
-        if (count == 0 || count > BATCH || size + count > commitments.length) revert BadCount();
+        uint256 index = size % CAPACITY; // the next leaf's position in its tree
+        if (count == 0 || count > BATCH || size + count > commitments.length || index + count > CAPACITY) revert BadCount();
 
         bytes32[] memory inputs = new bytes32[](BATCH + 4);
-        inputs[0] = root;
-        inputs[1] = bytes32(size);
+        inputs[0] = index == 0 ? EMPTY_ROOT : root;
+        inputs[1] = bytes32(index);
         for (uint256 i; i < count; i++) {
             inputs[2 + i] = commitments[size + i];
         }
@@ -360,7 +368,7 @@ contract AuctionPool {
         return bytes32(uint256(keccak256(abi.encode(block.chainid, address(this), id, relayer, fee, sealedHash))) % FIELD);
     }
 
-    /// Every commitment queued so far (the tree holds the first `treeSize`).
+    /// Every commitment queued so far (the trees hold the first `treeSize`).
     function commitmentCount() external view returns (uint256) {
         return commitments.length;
     }
@@ -569,12 +577,15 @@ contract AuctionPool {
 
     // --- owner ---------------------------------------------------------------
 
-    /// A market's unit can never change: open orders and notes are denominated in it.
-    function setMarket(address token, address feed, uint88 unit, bool listed, uint16 capBps) external onlyOwner {
+    /// A market's unit can never change: open orders and notes are denominated in it. `maxAge` (1 s to MAX_STALENESS)
+    /// follows the feed's heartbeat: a stock feed that updates every minute gets an hour, a stablecoin feed with a 24 h
+    /// heartbeat about 25 hours.
+    function setMarket(address token, address feed, uint88 unit, bool listed, uint16 capBps, uint32 maxAge) external onlyOwner {
         uint88 current = markets[token].unit;
         if (token == ETH || feed == address(0) || unit == 0 || (current != 0 && current != unit) || capBps > MAX_CAP_BPS) revert BadMarket();
-        markets[token] = Market({feed: feed, unit: unit, listed: listed, capBps: capBps});
-        emit MarketSet(token, feed, unit, listed, capBps);
+        if (maxAge == 0 || maxAge > MAX_STALENESS) revert BadMarket();
+        markets[token] = Market({feed: feed, unit: unit, listed: listed, capBps: capBps, maxAge: maxAge});
+        emit MarketSet(token, feed, unit, listed, capBps, maxAge);
     }
 
     /// The smallest lock of an order on either side of `token`'s markets, in its micro-units (0 = none).
@@ -607,6 +618,29 @@ contract AuctionPool {
     function setDepositsPaused(bool paused_) external onlyOwner {
         depositsPaused = paused_;
         emit DepositsPausedSet(paused_);
+    }
+
+    /// Who may stop deposits or halt a market without the owner's delay (0 = nobody but the owner).
+    function setGuardian(address guardian_) external onlyOwner {
+        guardian = guardian_;
+        emit GuardianSet(guardian_);
+    }
+
+    /// @notice Guardian (or owner): pause deposits now. Every exit stays open; only the owner resumes deposits.
+    function pauseDeposits() external {
+        if (msg.sender != guardian && msg.sender != owner) revert NotGuardian();
+        depositsPaused = true;
+        emit DepositsPausedSet(true);
+    }
+
+    /// @notice Guardian (or owner): halt `token`'s market now. It takes no new orders and its auctions void at the pin, so
+    /// every lock in them is reclaimable; only the owner lists it again (setMarket).
+    function haltMarket(address token) external {
+        if (msg.sender != guardian && msg.sender != owner) revert NotGuardian();
+        Market storage m = markets[token];
+        if (!m.listed) revert MarketNotListed();
+        m.listed = false;
+        emit MarketSet(token, m.feed, m.unit, false, m.capBps, m.maxAge);
     }
 
     /// The ETH fee on top of every deposit (at most MAX_DEPOSIT_FEE), paid to `recipient` for appending it.
@@ -715,7 +749,6 @@ contract AuctionPool {
 
     function _queue(bytes32 commitment) private {
         uint256 index = commitments.length;
-        if (index == CAPACITY) revert TreeFull();
         commitments.push(commitment);
         emit Committed(index, commitment);
     }
@@ -764,10 +797,12 @@ contract AuctionPool {
         if (success && ret.length >= 32) return (true, abi.decode(ret, (uint256)));
     }
 
-    /// The token's USD price in micro-USD from its feed, or not ok when stale, non-positive or failing.
+    /// The token's USD price in micro-USD from its feed, or not ok when older than the market's maxAge, non-positive or
+    /// failing.
     function _price(address token) private view returns (uint256 usd, bool ok) {
-        try IPriceFeed(markets[token].feed).latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
-            ok = answer > 0 && updatedAt <= block.timestamp && block.timestamp - updatedAt <= MAX_STALENESS
+        Market storage m = markets[token];
+        try IPriceFeed(m.feed).latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80) {
+            ok = answer > 0 && updatedAt <= block.timestamp && block.timestamp - updatedAt <= m.maxAge
                 && uint256(answer) / 100 <= type(uint64).max && uint256(answer) >= 100;
             if (ok) usd = uint256(answer) / 100; // 8 → 6 decimals
         } catch {

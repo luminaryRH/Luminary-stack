@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, stdStorage, StdStorage} from "forge-std/Test.sol";
 import {AuctionPool} from "../src/AuctionPool.sol";
 import {RfqDesk} from "../src/RfqDesk.sol";
 import {PrintRegistry} from "../src/PrintRegistry.sol";
 import {IPrintRegistry, IProofVerifier, IScreeningGate} from "../src/Interfaces.sol";
 import {ScreeningGate} from "../src/ScreeningGate.sol";
-import {MockAggregator} from "../src/mocks/MockAggregator.sol";
-import {MockUSDG} from "../src/mocks/MockUSDG.sol";
-import {TreasuryQuote} from "../src/mocks/TreasuryQuote.sol";
-import {ERC20} from "../src/mocks/ERC20.sol";
+import {MockAggregator} from "./mocks/MockAggregator.sol";
+import {MockUSDG} from "./mocks/MockUSDG.sol";
+import {ERC20} from "./mocks/ERC20.sol";
 
 /// Accepts (or rejects) every proof and records the public inputs it was asked to check. The real verifiers and proof
 /// fixtures are covered in the circuit tests.
@@ -80,6 +79,7 @@ contract RevertingGate is IScreeningGate {
 }
 
 contract AuctionPoolTest is Test {
+    using stdStorage for StdStorage;
     AuctionPool pool;
     RfqDesk desk;
     PrintRegistry registry;
@@ -92,7 +92,8 @@ contract AuctionPoolTest is Test {
     RecordingVerifier rfqV;
     MockStock tsla;
     MockUSDG usdg;
-    TreasuryQuote tq;
+    MockUSDG tq; // a second quote token, auctionable (kind NAV in the tests)
+    MockAggregator tqFeed;
     MockAggregator tslaFeed;
     MockAggregator usdgFeed;
 
@@ -126,13 +127,13 @@ contract AuctionPoolTest is Test {
 
         tsla = new MockStock();
         usdg = new MockUSDG();
-        tq = new TreasuryQuote(usdg, operator);
-        usdg.setMinter(address(tq));
+        tq = new MockUSDG();
+        tqFeed = new MockAggregator("TQ / USD", operator, 1e8);
         tslaFeed = new MockAggregator("TSLA / USD", operator, 250e8);
         usdgFeed = new MockAggregator("USDG / USD", operator, 1e8);
-        pool.setMarket(address(tsla), address(tslaFeed), 1e12, true, 500);
-        pool.setMarket(address(tq), address(tq), 1, true, 100);
-        pool.setMarket(address(usdg), address(usdgFeed), 1, false, 0);
+        pool.setMarket(address(tsla), address(tslaFeed), 1e12, true, 500, 1 hours);
+        pool.setMarket(address(tq), address(tqFeed), 1, true, 100, 25 hours);
+        pool.setMarket(address(usdg), address(usdgFeed), 1, false, 0, 25 hours);
     }
 
     // --- helpers ---
@@ -332,7 +333,7 @@ contract AuctionPoolTest is Test {
         assertTrue(pool.auctions(id).voided);
     }
 
-    function test_nav_auction_uses_nav_as_reference() public {
+    function test_quote_token_auction_uses_its_feed_as_reference() public {
         vm.prank(operator);
         uint256 id = pool.schedule(address(tq), address(usdg), AuctionPool.Kind.NAV, uint64(block.timestamp + 600));
         _place(id, bytes32(uint256(5)), 100);
@@ -340,10 +341,138 @@ contract AuctionPoolTest is Test {
         vm.prank(operator);
         usdgFeed.push(1e8);
         vm.prank(operator);
-        tq.raiseNav(1_004_000);
+        tqFeed.push(1_004_000 * 100);
         pool.pin(id);
         assertEq(pool.auctions(id).refUsd, 1_004_000);
         assertEq(pool.auctions(id).quoteUsd, 1e6);
+    }
+
+    // --- guardian ---
+
+    /// The guardian stops deposits or a market at once and can do nothing else; only the owner resumes either.
+    function test_the_guardian_only_stops_and_the_owner_resumes() public {
+        address guardian = makeAddr("guardian");
+        vm.prank(alice);
+        vm.expectRevert(AuctionPool.NotOwner.selector);
+        pool.setGuardian(guardian);
+        pool.setGuardian(guardian);
+
+        vm.prank(alice);
+        vm.expectRevert(AuctionPool.NotGuardian.selector);
+        pool.pauseDeposits();
+        vm.prank(guardian);
+        pool.pauseDeposits();
+        assertTrue(pool.depositsPaused());
+        vm.prank(guardian);
+        vm.expectRevert(AuctionPool.NotOwner.selector);
+        pool.setDepositsPaused(false);
+
+        vm.prank(operator);
+        uint256 id = pool.schedule(address(tsla), address(tq), AuctionPool.Kind.CLOSE, uint64(block.timestamp + 600));
+        _place(id, bytes32(uint256(81)), 300);
+        vm.prank(alice);
+        vm.expectRevert(AuctionPool.NotGuardian.selector);
+        pool.haltMarket(address(tsla));
+        vm.prank(guardian);
+        pool.haltMarket(address(tsla));
+        (, uint88 unit, bool listed,, uint32 maxAge) = pool.markets(address(tsla));
+        assertTrue(!listed && unit == 1e12 && maxAge == 1 hours, "halted, nothing else changed");
+        vm.expectRevert(AuctionPool.MarketNotListed.selector);
+        pool.placeOrder(id, _placement(bytes32(uint256(82)), 310), "", "");
+        vm.warp(block.timestamp + 600);
+        pool.pin(id);
+        assertTrue(pool.auctions(id).voided, "its auction voids, so every lock is reclaimable");
+        vm.prank(guardian);
+        vm.expectRevert(AuctionPool.MarketNotListed.selector);
+        pool.haltMarket(address(tsla));
+
+        pool.setDepositsPaused(false);
+        pool.setMarket(address(tsla), address(tslaFeed), 1e12, true, 500, 1 hours);
+        assertFalse(pool.depositsPaused());
+    }
+
+    // --- per-market staleness ---
+
+    /// A daily-heartbeat quote feed (USDG/USD on mainnet) still prices an auction within its own limit, while a stock
+    /// round older than an hour voids it.
+    function test_each_market_has_its_own_staleness_limit() public {
+        pool.setMarket(address(usdg), address(usdgFeed), 1, false, 0, 25 hours);
+        vm.prank(operator);
+        uint256 id = pool.schedule(address(tsla), address(usdg), AuctionPool.Kind.CLOSE, uint64(block.timestamp + 600));
+        _place(id, bytes32(uint256(71)), 100);
+        vm.warp(block.timestamp + 600);
+        vm.prank(operator);
+        tslaFeed.push(250e8);
+        vm.warp(block.timestamp + 59 minutes); // the stock round is 59 min old, the quote round about 70 min
+        pool.pin(id);
+        assertFalse(pool.auctions(id).voided, "within both limits");
+        assertEq(pool.auctions(id).quoteUsd, 1e6);
+
+        vm.prank(operator);
+        uint256 id2 = pool.schedule(address(tsla), address(usdg), AuctionPool.Kind.CLOSE, uint64(block.timestamp + 600));
+        _place(id2, bytes32(uint256(72)), 200);
+        vm.warp(block.timestamp + 600); // the stock round is now 69 min old
+        pool.pin(id2);
+        assertTrue(pool.auctions(id2).voided, "a stock round over an hour old voids");
+    }
+
+    // --- tree rollover ---
+
+    /// Pretend `filled` leaves were queued and appended (only the counters: the leaves themselves read as 0). The slots
+    /// are found, not hard-coded: commitments (its length) sits right before treeSize, knownRoot right after root.
+    function _fillTree(uint256 filled, bytes32 currentRoot) internal {
+        uint256 sizeSlot = stdstore.target(address(pool)).sig("treeSize()").find();
+        uint256 rootSlot = stdstore.target(address(pool)).sig("root()").find();
+        vm.store(address(pool), bytes32(sizeSlot - 1), bytes32(filled)); // commitments.length
+        vm.store(address(pool), bytes32(sizeSlot), bytes32(filled));
+        vm.store(address(pool), bytes32(rootSlot), currentRoot);
+        vm.store(address(pool), keccak256(abi.encode(currentRoot, rootSlot + 1)), bytes32(uint256(1))); // knownRoot
+        assertEq(pool.commitmentCount(), filled);
+    }
+
+    function test_a_full_tree_rolls_over_and_its_notes_stay_spendable() public {
+        uint256 cap = pool.CAPACITY();
+        assertEq(cap, 1 << 20, "a tree holds 2^20 leaves, the circuits' DEPTH");
+        assertEq(pool.root(), EMPTY_ROOT, "a new pool starts from the empty root");
+        bytes32 oldRoot = bytes32(uint256(0xabc));
+        _fillTree(cap - 2, oldRoot);
+        // queue three notes: two finish tree 0, the third is the first leaf of tree 1
+        vm.deal(alice, 3 ether);
+        vm.startPrank(alice);
+        for (uint256 i = 1; i <= 3; i++) pool.deposit{value: 1 ether}(address(0), 1 ether, bytes32(i), "");
+        vm.stopPrank();
+        assertEq(pool.commitmentCount(), cap + 1);
+
+        // a batch may not straddle two trees
+        vm.expectRevert(AuctionPool.BadCount.selector);
+        pool.advanceTree(3, bytes32(uint256(0xdef)), "");
+
+        bytes32 fullRoot = bytes32(uint256(0xf011));
+        pool.advanceTree(2, fullRoot, "");
+        assertEq(treeV.input(0), oldRoot, "tree 0 continues from its root");
+        assertEq(treeV.input(1), bytes32(cap - 2));
+        assertEq(pool.treeSize(), cap);
+
+        bytes32 newRoot = bytes32(uint256(0x11e));
+        pool.advanceTree(1, newRoot, "");
+        assertEq(treeV.input(0), EMPTY_ROOT, "tree 1 starts empty");
+        assertEq(treeV.input(1), bytes32(0), "at position 0");
+        assertEq(treeV.input(2), bytes32(uint256(3)), "with the third note");
+        assertEq(pool.treeSize(), cap + 1);
+        assertEq(pool.root(), newRoot);
+        assertTrue(pool.knownRoot(fullRoot) && pool.knownRoot(oldRoot), "every root of the full tree stays known");
+
+        // a note of the full tree is still spent against its tree's root
+        AuctionPool.Transaction memory t;
+        t.root = fullRoot;
+        t.nullifiers = [bytes32(uint256(901)), bytes32(uint256(902))];
+        t.outputs = [bytes32(uint256(903)), bytes32(uint256(904))];
+        t.released = 1 ether;
+        t.to = alice;
+        uint256 before = alice.balance;
+        pool.transact(t, "", "");
+        assertEq(alice.balance - before, 1 ether);
+        assertEq(pool.commitmentCount(), cap + 3, "its outputs queue for the new tree");
     }
 
     // --- settle ---
@@ -516,28 +645,6 @@ contract AuctionPoolTest is Test {
         registry.record(0, address(tsla), 1, 1);
     }
 
-    function test_treasury_quote_nav_rises_and_is_backed() public {
-        usdg.mint(alice, 1000e6);
-        vm.startPrank(alice);
-        usdg.approve(address(tq), 1000e6);
-        tq.deposit(1000e6, alice);
-        vm.stopPrank();
-        assertEq(tq.balanceOf(alice), 1000e6);
-
-        vm.startPrank(operator);
-        vm.expectRevert(TreasuryQuote.BadNav.selector);
-        tq.raiseNav(1_020_000); // over the 1% step
-        tq.raiseNav(1_010_000);
-        vm.stopPrank();
-        (, int256 answer,,,) = tq.latestRoundData();
-        assertEq(answer, 1_010_000 * 100);
-
-        vm.prank(alice);
-        uint256 out = tq.redeem(1000e6, alice, alice);
-        assertEq(out, 1010e6);
-        assertEq(usdg.balanceOf(alice), 1010e6);
-    }
-
     function test_usdg_faucet_is_capped() public {
         vm.expectRevert(MockUSDG.TooMuch.selector);
         usdg.mint(alice, 10_001e6);
@@ -692,7 +799,7 @@ contract AuctionPoolTest is Test {
     function test_owner_setters_are_owner_only() public {
         vm.startPrank(alice);
         vm.expectRevert(AuctionPool.NotOwner.selector);
-        pool.setMarket(address(tsla), address(tslaFeed), 1e12, true, 500);
+        pool.setMarket(address(tsla), address(tslaFeed), 1e12, true, 500, 1 hours);
         vm.expectRevert(AuctionPool.NotOwner.selector);
         pool.setScheduler(alice, true);
         vm.expectRevert(AuctionPool.NotOwner.selector);
@@ -712,13 +819,17 @@ contract AuctionPoolTest is Test {
 
     function test_owner_setters_are_bounded() public {
         vm.expectRevert(AuctionPool.BadMarket.selector);
-        pool.setMarket(address(tsla), address(tslaFeed), 1e6, true, 500); // a unit never changes
+        pool.setMarket(address(tsla), address(tslaFeed), 1e6, true, 500, 1 hours); // a unit never changes
         vm.expectRevert(AuctionPool.BadMarket.selector);
-        pool.setMarket(address(tsla), address(tslaFeed), 1e12, true, 2001);
+        pool.setMarket(address(tsla), address(tslaFeed), 1e12, true, 2001, 1 hours);
         vm.expectRevert(AuctionPool.BadMarket.selector);
-        pool.setMarket(address(0), address(tslaFeed), 1e12, true, 500);
+        pool.setMarket(address(tsla), address(tslaFeed), 1e12, true, 500, 0); // a market needs a staleness limit
         vm.expectRevert(AuctionPool.BadMarket.selector);
-        pool.setMarket(address(tsla), address(0), 1e12, true, 500);
+        pool.setMarket(address(tsla), address(tslaFeed), 1e12, true, 500, 26 hours + 1);
+        vm.expectRevert(AuctionPool.BadMarket.selector);
+        pool.setMarket(address(0), address(tslaFeed), 1e12, true, 500, 1 hours);
+        vm.expectRevert(AuctionPool.BadMarket.selector);
+        pool.setMarket(address(tsla), address(0), 1e12, true, 500, 1 hours);
         vm.expectRevert(AuctionPool.BadFee.selector);
         pool.setFee(FEE_OWNER, 101);
         vm.expectRevert(AuctionPool.BadFee.selector);
@@ -763,7 +874,7 @@ contract AuctionPoolTest is Test {
     function _scaledAuction() internal returns (MockScaledStock s, uint256 id) {
         s = new MockScaledStock();
         MockAggregator feed = new MockAggregator("SCL / USD", operator, 100e8);
-        pool.setMarket(address(s), address(feed), 1e12, true, 500);
+        pool.setMarket(address(s), address(feed), 1e12, true, 500, 1 hours);
         vm.prank(operator);
         id = pool.schedule(address(s), address(tq), AuctionPool.Kind.CLOSE, uint64(block.timestamp + 600));
         _place(id, bytes32(uint256(5)), 100);
@@ -810,7 +921,7 @@ contract AuctionPoolTest is Test {
     function test_a_delisted_market_takes_no_orders_and_voids_at_pin() public {
         uint256 id = _schedule(600);
         _place(id, bytes32(uint256(5)), 100);
-        pool.setMarket(address(tsla), address(tslaFeed), 1e12, false, 500);
+        pool.setMarket(address(tsla), address(tslaFeed), 1e12, false, 500, 1 hours);
         vm.expectRevert(AuctionPool.MarketNotListed.selector);
         _place(id, bytes32(uint256(6)), 102);
         vm.warp(block.timestamp + 600);

@@ -1,7 +1,8 @@
 // The auction lifecycle from the operator side, run by the scheduler tick:
 //   plan      the calendar (calendar.ts) → planned rows in lum_auctions
 //   schedule  planned auctions due within the horizon → AuctionPool.schedule (stock auctions quote in USDG)
-//   pin       at the call time → AuctionPool.pin (permissionless; an auction without orders or prices voids itself)
+//   pin       at the call time → AuctionPool.pin (permissionless; it prices the auction from Chainlink, and an
+//             auction without orders or with a stale price voids itself)
 //   settle    pinned auctions → open each sealed order (committee.ts), clear (engine/clearing.ts via settle.ts), prove
 //             AuctionClearProof and send settleAuction with every owner's result sealed to their viewing key. An order
 //             whose sealed opening does not open its commitment is left out (its owner reclaims the lock), and leftovers
@@ -12,6 +13,7 @@ import { Interface, hexlify, toBeHex, toUtf8Bytes } from "ethers";
 import auctionClear from "@/shielded/circuits/auction_clear.json";
 import rfqCross from "@/shielded/circuits/rfq_cross.json";
 import { seal } from "@/shielded/crypto";
+import { STOCKS } from "@/lib/luminary-config";
 import { ORDERS, hex, ready } from "@/shielded/protocol";
 import { prove } from "@/shielded/prove";
 import { commitmentOf, feeBlindingOf, openingFromJson, openingToJson, settleAuction, settleRfq, type OrderOpening, type PinnedAuction, type SettledOrder } from "@/shielded/settle";
@@ -19,7 +21,6 @@ import { planAuctions, type CorporateAction, type MarketDay } from "../calendar"
 import { provider } from "../chain";
 import { rpc } from "../db";
 import { env } from "../env";
-import { feedsOf, refreshFeed } from "../nav";
 import { committee, openOrder, orderCiphertexts, pendingForCommittee, sealingPublicKey, type OpenAuction } from "./committee";
 import { DESK_ABI, deployment, pool } from "./contract";
 import { inFlightKeys, sendOperator, sendPool } from "./sends";
@@ -39,14 +40,11 @@ interface Asset {
 
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 
-/** lum_assets from the deployment file: the five stock tokens and the two quote tokens (TQ reads as its own feed). */
+/** lum_assets from the deployment file: the stock tokens and the quote token (USDG), each with its Chainlink feed. */
 export async function seedAssets() {
   const d = deployment();
-  const stocks = (["TSLA", "AMZN", "AMD", "PLTR", "NFLX"] as const).map((s) => ({ symbol: s, address: d.tokens[s], feed: d.feeds[s], decimals: 18, kind: "stock" }));
-  const quotes = [
-    { symbol: "TQ", address: d.tokens.TQ, feed: d.tokens.TQ, decimals: 6, kind: "quote" },
-    { symbol: "USDG", address: d.tokens.USDG, feed: d.feeds.USDG, decimals: 6, kind: "quote" },
-  ];
+  const stocks = STOCKS.map((s) => ({ symbol: s, address: d.tokens[s], feed: d.feeds[s], decimals: 18, kind: "stock" }));
+  const quotes = [{ symbol: "USDG", address: d.tokens.USDG, feed: d.feeds.USDG, decimals: 6, kind: "quote" }];
   await rpc("lum_assets_put", { p_rows: [...stocks, ...quotes] });
   return { assets: stocks.length + quotes.length };
 }
@@ -78,7 +76,8 @@ export async function scheduleAuctions() {
   for (const a of due.slice(0, MAX_SCHEDULE_SENDS)) {
     const key = `schedule:${a.key}`;
     if (busy.has(key)) continue;
-    const asset = a.kind === "NAV" ? d.tokens.TQ : d.tokens[a.symbol as keyof typeof d.tokens];
+    if (a.kind === "NAV") continue; // no NAV auctions on mainnet (the calendar plans none)
+    const asset = d.tokens[a.symbol as keyof typeof d.tokens];
     const quote = d.tokens.USDG;
     if (!asset) continue;
     const tx = await sendPool("schedule", [asset, quote, KINDS.indexOf(a.kind as (typeof KINDS)[number]), a.callTime], key);
@@ -88,10 +87,7 @@ export async function scheduleAuctions() {
   return { due: due.length, sent: sent.length, ...(due.length > MAX_SCHEDULE_SENDS ? { left: due.length - MAX_SCHEDULE_SENDS } : {}) };
 }
 
-/**
- * Pins every indexed auction whose call time has passed. A feed it reads that is near MAX_STALENESS (an RFQ opened at
- * short notice, between price-watcher runs) or off the source price is pushed first, and the pin waits a tick for it.
- */
+/** Pins every indexed auction whose call time has passed (the pool reads the Chainlink feeds itself). */
 export async function pinAuctions() {
   const open = await rpc<OpenAuction[]>("lum_pool_open_auctions", {});
   const now = (await provider().getBlock("latest"))!.timestamp;
@@ -103,10 +99,6 @@ export async function pinAuctions() {
   for (const a of due) {
     if (busy.has(`pin:${a.id}`)) continue;
     try {
-      // a feed whose source fails is not refreshed; the pin still runs and voids the auction if the feed is too old
-      const feeds = [...feedsOf([a], now)];
-      const states = await Promise.all(feeds.map((s) => refreshFeed(s, BigInt(now), busy, 50 * 60).catch(() => "stale" as const)));
-      if (states.includes("pending")) continue;
       const s = await c.getFunction("auctions")(a.id);
       if (s.callBlock !== 0n || s.voided || s.settled) continue; // the indexer has not caught up
       const tx = await sendPool("pin", [a.id], `pin:${a.id}`);

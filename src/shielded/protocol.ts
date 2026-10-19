@@ -7,6 +7,17 @@ import { AbiCoder, keccak256 } from "ethers";
 export const FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 export const DEPTH = 20;
 export const BATCH = 16; // circuits/tree_update M
+export const CAPACITY = 2 ** DEPTH; // leaves per tree (AuctionPool.CAPACITY): the pool starts a new tree when one fills
+
+/** A global leaf index's tree: where that tree starts in the leaf list, and the leaf's position inside it (what the
+ * circuits and the nullifier use). In the first tree the two are the same. */
+export const treeOf = (index: number) => {
+  const base = index - (index % CAPACITY);
+  return { base, position: index - base };
+};
+
+/** Where the tree holding the newest of `size` appended leaves starts: the tree the pool's current root belongs to. */
+export const currentBase = (size: number) => (size === 0 ? 0 : treeOf(size - 1).base);
 export const ORDERS = 64; // circuits/auction_clear N
 export const FEE_LABEL = 1n; // circuits/lib FEE_LABEL: settlement fee notes
 export const ETH_UNIT = 10n ** 12n; // wei per micro-ETH (relayer fees are paid from ETH notes)

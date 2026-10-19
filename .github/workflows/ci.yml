@@ -48,6 +48,7 @@ jobs:
           version: v1.5.1
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: git clone --depth 1 --branch v1.16.2 https://github.com/foundry-rs/forge-std contracts/lib/forge-std
+      - run: git clone --depth 1 --branch v5.7.0 https://github.com/OpenZeppelin/openzeppelin-contracts contracts/lib/openzeppelin-contracts
       # every test in test/ (anvil + PGlite + the API routes in-process), then the off-chain line coverage
       - run: bun scripts/coverage.ts
 
@@ -66,10 +67,11 @@ jobs:
         with:
           version: v1.5.1
       - run: git clone --depth 1 --branch v1.16.2 https://github.com/foundry-rs/forge-std lib/forge-std
+      - run: git clone --depth 1 --branch v5.7.0 https://github.com/OpenZeppelin/openzeppelin-contracts lib/openzeppelin-contracts # TimelockController (deploy script)
       - run: forge build --sizes
       - run: forge test -vv # includes the stateful invariants: 256 runs x 500 calls each
         env:
-          FORK_RPC_URL: https://rpc.testnet.chain.robinhood.com # Fork.t.sol: the live stock token
+          FORK_RPC_URL: https://rpc.mainnet.chain.robinhood.com # Fork.t.sol: the live tokens, Chainlink feeds and Safe factory on 4663
       # coverage builds unoptimized bytecode, so the bytecode-equality test of PostDeployCheck only runs in forge test
       - run: forge coverage --report summary --no-match-coverage "(test|script|mocks|verifiers)/" --no-match-contract PostDeployCheckTest
         env:

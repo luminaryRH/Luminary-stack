@@ -9,7 +9,7 @@ import json, os, queue, shutil, subprocess, sys, threading, time
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
-CONTRACTS = ["AuctionPool", "RfqDesk", "ScreeningGate", "PrintRegistry", "FeeVault", "LUMI", "DisclosureRegistry"]
+CONTRACTS = ["AuctionPool", "RfqDesk", "ScreeningGate", "PrintRegistry", "DisclosureRegistry"]
 HERE = os.path.dirname(os.path.abspath(__file__))
 FORGE = shutil.which("forge") or os.path.expanduser("~/.foundry/bin/forge")
 GAMBIT = shutil.which("gambit") or os.path.expanduser("~/.cargo/bin/gambit")
@@ -37,7 +37,7 @@ slots = queue.Queue()
 for i in range(workers):
     d = os.path.join(work, "copies", str(i))
     shutil.rmtree(d, ignore_errors=True)
-    shutil.copytree(HERE, os.path.join(d, "contracts"), ignore=shutil.ignore_patterns("broadcast", "out-halmos"))
+    shutil.copytree(HERE, os.path.join(d, "contracts"), ignore=shutil.ignore_patterns("broadcast", "out-halmos", "cache", "out"))
     shutil.copytree(os.path.join(HERE, "..", "circuits", "target"), os.path.join(d, "circuits", "target"))
     slots.put(os.path.join(d, "contracts"))
 lock = threading.Lock()

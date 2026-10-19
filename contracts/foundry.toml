@@ -1,12 +1,14 @@
-# Luminary contracts. Dependencies (not committed, test-only): git clone --depth 1 --branch v1.16.2 https://github.com/foundry-rs/forge-std lib/forge-std
+# Luminary contracts. Dependencies (not committed; cloned by tag, as in CI):
+#   git clone --depth 1 --branch v1.16.2 https://github.com/foundry-rs/forge-std lib/forge-std
+#   git clone --depth 1 --branch v5.7.0 https://github.com/OpenZeppelin/openzeppelin-contracts lib/openzeppelin-contracts  (TimelockController, deploy only)
 [profile.default]
 src = "src"
 test = "test"
 script = "script"
 libs = ["lib"]
-remappings = ["forge-std/=lib/forge-std/src/"]
+remappings = ["forge-std/=lib/forge-std/src/", "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"]
 solc_version = "0.8.28"
-evm_version = "cancun" # Robinhood Chain testnet supports PUSH0, TSTORE and MCOPY
+evm_version = "cancun" # Robinhood Chain mainnet runs PUSH0, TSTORE/TLOAD and MCOPY (checked 2026-10-19)
 optimizer = true
 optimizer_runs = 200
 via_ir = false
@@ -18,7 +20,7 @@ fs_permissions = [{ access = "read", path = "out" }, { access = "read", path = "
 runs = 1000
 
 [rpc_endpoints]
-robinhood_testnet = "https://rpc.testnet.chain.robinhood.com"
+robinhood = "${ROBINHOOD_RPC_URL}" # mainnet 4663; default public RPC: https://rpc.mainnet.chain.robinhood.com
 
 [lint]
 lint_on_build = false

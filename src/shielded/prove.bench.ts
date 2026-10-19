@@ -22,7 +22,7 @@ const toInput = (v: unknown): unknown =>
 await ready();
 const U = 1_000_000n;
 const TSLA = 0xc9f9n;
-const TQ = 0x7e7en;
+const USDG = 0x7e7en;
 // a full auction: 32 buys and 32 sells at scattered limits
 const slots: OrderOpening[] = Array.from({ length: 64 }, (_, i) => {
   const buy = i % 2 === 0;
@@ -31,7 +31,7 @@ const slots: OrderOpening[] = Array.from({ length: 64 }, (_, i) => {
   return { owner: ownerPub(BigInt(1000 + i)), salt: BigInt(5000 + i), buy, qty, hasLimit: i % 9 !== 0, limitUsd: i % 9 !== 0 ? limitUsd : 0n,
     lock: buy ? 2000n * U : qty, roll: i % 3 === 0, rollsLeft: i % 3 === 0 ? 5 : 0, label: BigInt(900 + i), terms: PLAIN, viewPub: "0x" };
 });
-const s = settleAuction({ asset: TSLA, unit: 10n ** 12n, quote: TQ, quoteUnit: 1n, refUsd: 250n * U, capBps: 500n, quoteUsd: U, feeBps: 5n, feeOwner: ownerPub(424242n) }, slots, 777n);
+const s = settleAuction({ asset: TSLA, unit: 10n ** 12n, quote: USDG, quoteUnit: 1n, refUsd: 250n * U, capBps: 500n, quoteUsd: U, feeBps: 5n, feeOwner: ownerPub(424242n) }, slots, 777n);
 console.log(`64-order auction: p* ${s.onchain.pStar}, crossed ${s.onchain.crossedQty}`);
 const circuit = auctionClear as never as { bytecode: string };
 const witness = await ms("witness (noir_js)", async () => (await new Noir(auctionClear as never).execute(toInput(s.inputs) as InputMap)).witness);

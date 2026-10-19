@@ -41,7 +41,7 @@ const hexBytes = (v: unknown, name: string, max: number) => {
 // The custom errors a relayed transact / placeOrder can revert with: AuctionPool's and the bb-generated verifiers'.
 const REVERTS = new Interface(
   [
-    ...["BadFee", "BadAmount", "BadCount", "BadAuction", "ZeroAddress", "NotInField", "InvalidProof", "UnknownRoot", "NoteSpent", "TreeFull"],
+    ...["BadFee", "BadAmount", "BadCount", "BadAuction", "ZeroAddress", "NotInField", "InvalidProof", "UnknownRoot", "NoteSpent"],
     ...["AuctionFull", "NotCollecting", "UnknownAssociationRoot", "AssociationRequired", "TransferFailed", "Reentrancy"],
     ...["ConsistencyCheckFailed", "GeminiChallengeInSubgroup", "InvertOfZero", "ModExpFailed", "NotPowerOfTwo", "PointAtInfinity", "ProofLengthWrong"],
     ...["PublicInputsLengthWrong", "ShpleminiFailed", "SumcheckFailed", "ValueGeFieldOrder", "ValueGeGroupOrder", "ValueGeLimbMax"],
@@ -82,8 +82,6 @@ export function rejection(e: unknown): UserError | null {
       return new UserError("The pool needs a current association set for this withdrawal. Refresh the page and try again.");
     case "BadFee":
       return new UserError("The relayer fee in this order does not match what the pool expects. Refresh the page and try again.");
-    case "TreeFull":
-      return new UserError("The pool's note tree is full, so it cannot create new notes.");
     case "TransferFailed":
       return new UserError("The pool could not complete the payout. Try again later.");
     case "Reentrancy":

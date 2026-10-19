@@ -1,4 +1,4 @@
-// Sealing committee, operator side. On testnet the operator is a 1-of-1 committee: orders are sealed to SEAL_PUBLIC and
+// Sealing committee, operator side. At launch the operator is a 1-of-1 committee: orders are sealed to SEAL_PUBLIC and
 // opened with SEAL_KEY. With COMMITTEE set (the Feldman DKG output, src/shielded/committee.ts), orders are sealed to the
 // committee's group key instead and the operator can open a pinned auction's orders only from members' partial
 // decryptions, which members release once the auction is pinned on chain.
@@ -9,7 +9,7 @@ import { operatorCiphertext } from "@/shielded/orders";
 import { rpc } from "../db";
 import { env } from "../env";
 
-/** The threshold committee configuration from COMMITTEE, or null when the operator key opens orders alone (testnet). */
+/** The threshold committee configuration from COMMITTEE, or null when the operator key opens orders alone. */
 export function committee(): Committee | null {
   const raw = process.env["COMMITTEE"]?.trim();
   return raw ? (JSON.parse(raw) as Committee) : null;

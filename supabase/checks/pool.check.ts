@@ -18,10 +18,10 @@ const q = async (sql: string, params: unknown[] = []) => (await db.query<Record<
 const val = async (sql: string, params: unknown[] = []) => Object.values((await q(sql, params))[0] ?? {})[0] as any;
 
 const TSLA = "0xc9f9c86933092bbbfff3ccb4b105a4a94bf3bd4e";
-const TQ = "0x00000000000000000000000000000000000007e7";
+const USDG = "0x00000000000000000000000000000000000007e7";
 await q(`select lum_assets_put($1::jsonb)`, [JSON.stringify([
   { symbol: "TSLA", address: TSLA.toUpperCase().replace("0X", "0x"), feed: "0x01", decimals: 18, kind: "stock" },
-  { symbol: "TQ", address: TQ, feed: TQ, decimals: 6, kind: "quote" },
+  { symbol: "USDG", address: USDG, feed: USDG, decimals: 6, kind: "quote" },
 ])]);
 await q(`select lum_init_cursor('pool_events', 99)`);
 
@@ -31,7 +31,7 @@ await q(`select lum_auctions_plan($1::jsonb)`, [JSON.stringify([{ key: `TSLA:CLO
 const ev = (tx: string, logIndex: number, block: number, name: string, args: Record<string, unknown>) => ({ tx_hash: tx, log_index: logIndex, block, name, args });
 const record = (events: unknown[], to: number) => val(`select lum_pool_record($1::jsonb, $2)`, [JSON.stringify(events), to]);
 const batch = [
-  ev("0xT1", 0, 100, "AuctionScheduled", { id: "0", asset: TSLA, quote: TQ, kind: "1", callTime: String(call), capBps: "500" }),
+  ev("0xT1", 0, 100, "AuctionScheduled", { id: "0", asset: TSLA, quote: USDG, kind: "1", callTime: String(call), capBps: "500" }),
   ev("0xT2", 1, 101, "Committed", { index: "1", commitment: "0xc1" }),
   ev("0xT2", 0, 101, "Committed", { index: "0", commitment: "0xc0" }),
   ev("0xT3", 0, 102, "OrderResting", { id: "0", slot: "0", commitment: "0xo0", sealedOrder: "0xs0" }),
@@ -74,7 +74,7 @@ assert.equal(prints[0].pStar, "245000000");
 assert.equal(prints[0].kind, "CLOSE");
 
 // an RFQ auction the desk opened has no plan row: one is created from the event
-await record([ev("0xT8", 0, 140, "AuctionScheduled", { id: "1", asset: TSLA, quote: TQ, kind: "4", callTime: String(call + 300), capBps: "500" })], 140);
+await record([ev("0xT8", 0, 140, "AuctionScheduled", { id: "1", asset: TSLA, quote: USDG, kind: "4", callTime: String(call + 300), capBps: "500" })], 140);
 assert.equal(await val(`select status from lum_auctions where chain_id = 1`), "collecting");
 
 // the calendar drops a planned auction that never reached the chain

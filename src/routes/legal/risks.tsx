@@ -8,10 +8,10 @@ export const Route = createFileRoute("/legal/risks")({
       {
         name: "description",
         content:
-          "Risk and eligibility notes for Luminary. No real funds or settlement.",
+          "Risk and eligibility notes for Luminary on Robinhood Chain.",
       },
       { property: "og:title", content: "Risk & eligibility — Luminary" },
-      { property: "og:description", content: "No real funds or settlement." },
+      { property: "og:description", content: "Risk and eligibility notes for Luminary on Robinhood Chain." },
     ],
   }),
   component: () => <LegalPage kind="risks" />,

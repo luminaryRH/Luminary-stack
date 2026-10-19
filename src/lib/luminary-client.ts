@@ -5,7 +5,7 @@ import type { Eth } from "@/shielded/client";
 export interface LiveAuction {
   key: string;
   symbol: string;
-  kind: "OPEN" | "CLOSE" | "MIDNIGHT" | "NAV" | "RFQ";
+  kind: "OPEN" | "CLOSE" | "MIDNIGHT" | "RFQ";
   callTime: string; // ISO
   id: number | null; // AuctionPool id once on chain
   status: "scheduled" | "collecting" | "pinned" | "cleared" | "void";
@@ -29,8 +29,6 @@ export interface LivePrint {
 
 export interface Marks {
   prices: Record<string, { usd: string; at: string; source: string }>;
-  nav: { nav: string; at: string } | null; // micro-USDG per TQ share
-  navHistory: { at: string; nav: string }[];
 }
 
 export interface Live {

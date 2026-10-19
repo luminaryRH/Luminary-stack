@@ -3,8 +3,6 @@ pragma solidity 0.8.28;
 
 import {Test} from "forge-std/Test.sol";
 import {AuctionPool} from "../src/AuctionPool.sol";
-import {FeeVault} from "../src/FeeVault.sol";
-import {LUMI} from "../src/LUMI.sol";
 import {IPrintRegistry, IProofVerifier} from "../src/Interfaces.sol";
 
 /// Symbolic checks of the contracts' own math, for Halmos 0.3.3. Forge skips `check_` functions. Run from contracts/:
@@ -52,8 +50,8 @@ contract HalmosChecks is Test {
         pool = new AuctionPool(address(this), AuctionPool.Verifiers(v, v, v, v, v, v), IPrintRegistry(address(0xBEEF)), 0, 10);
         assetFeed = new SymFeed();
         quoteFeed = new SymFeed();
-        pool.setMarket(ASSET, address(assetFeed), 1e12, true, 500);
-        pool.setMarket(QUOTE, address(quoteFeed), 1, false, 0);
+        pool.setMarket(ASSET, address(assetFeed), 1e12, true, 500, 1 hours);
+        pool.setMarket(QUOTE, address(quoteFeed), 1, false, 0, 25 hours);
         pool.setScheduler(address(this), true);
         // 10 ETH in the pool and a known root to spend from. (A root the pool's constructor marks known does not read
         // back under Halmos, so the checks use one made the way the tree worker makes them.)
@@ -135,8 +133,8 @@ contract HalmosChecks is Test {
         if (!x.voided) {
             assert(a >= 100 && uint256(a) / 100 <= type(uint64).max && x.refUsd == uint256(a) / 100);
             assert(q >= 100 && uint256(q) / 100 <= type(uint64).max && x.quoteUsd == uint256(q) / 100);
-            assert(au <= block.timestamp && block.timestamp - au <= pool.MAX_STALENESS());
-            assert(qu <= block.timestamp && block.timestamp - qu <= pool.MAX_STALENESS());
+            assert(au <= block.timestamp && block.timestamp - au <= 1 hours); // the asset market's maxAge
+            assert(qu <= block.timestamp && block.timestamp - qu <= 25 hours); // the quote market's maxAge
         } else {
             assert(x.refUsd == 0 && x.quoteUsd == 0);
         }
@@ -154,10 +152,10 @@ contract HalmosChecks is Test {
 
     /// A market's unit is fixed once set: open orders and notes are denominated in it.
     function check_market_unit_never_changes(uint88 unit, uint16 capBps) public {
-        try pool.setMarket(ASSET, address(assetFeed), unit, true, capBps) {
+        try pool.setMarket(ASSET, address(assetFeed), unit, true, capBps, 1 hours) {
             assert(unit == 1e12 && capBps <= pool.MAX_CAP_BPS());
         } catch {}
-        (, uint88 now_,,) = pool.markets(ASSET);
+        (, uint88 now_,,,) = pool.markets(ASSET);
         assert(now_ == 1e12);
     }
 
@@ -172,54 +170,5 @@ contract HalmosChecks is Test {
             assert(false);
         } catch {}
         assert(!pool.depositsPaused());
-    }
-
-    // --- FeeVault ----------------------------------------------------------------------------------------------------
-
-    /// distribute pays out the whole balance, split exactly by shareBps (at most MAX_SHARE_BPS), nothing lost or made.
-    function check_vault_distribute_conserves(uint256 balance, uint16 bps) public {
-        address treasury = address(0x7EA);
-        address recipient = address(0x5A5E);
-        FeeVault vault = new FeeVault(address(this), treasury);
-        try vault.setShare(recipient, bps) {} catch {
-            assert(bps > vault.MAX_SHARE_BPS());
-            return;
-        }
-        assert(bps <= vault.MAX_SHARE_BPS() && vault.shareBps() == bps);
-        vm.assume(balance <= type(uint128).max); // more ETH than exists overflows balance * bps
-        vm.deal(address(vault), balance);
-        (uint256 toShare, uint256 toTreasury) = vault.distribute(address(0));
-        assert(toShare + toTreasury == balance);
-        assert(toShare == balance * bps / 10_000);
-        assert(recipient.balance == toShare && treasury.balance == toTreasury);
-        assert(address(vault).balance == 0);
-    }
-
-    // --- LUMI --------------------------------------------------------------------------------------------------------
-
-    function check_lumi_transfer_conserves_supply(uint256 supply, address to, uint256 amount) public {
-        vm.assume(to != address(this));
-        LUMI lumi = new LUMI("Luminary", "LUMI", address(this), supply);
-        try lumi.transfer(to, amount) {
-            assert(to != address(0) && amount <= supply);
-            assert(lumi.balanceOf(address(this)) == supply - amount && lumi.balanceOf(to) == amount);
-        } catch {
-            assert(to == address(0) || amount > supply);
-        }
-        assert(lumi.balanceOf(address(this)) + lumi.balanceOf(to) == supply && lumi.totalSupply() == supply);
-    }
-
-    /// transferFrom never moves more than the allowance and spends it exactly (an infinite allowance stays infinite).
-    function check_lumi_allowance_is_spent_exactly(uint256 allowed, uint256 amount) public {
-        LUMI lumi = new LUMI("Luminary", "LUMI", address(this), type(uint128).max);
-        lumi.approve(ALICE, allowed);
-        vm.prank(ALICE);
-        try lumi.transferFrom(address(this), RELAYER, amount) {
-            assert(amount <= allowed);
-            assert(lumi.allowance(address(this), ALICE) == (allowed == type(uint256).max ? allowed : allowed - amount));
-            assert(lumi.balanceOf(RELAYER) == amount);
-        } catch {
-            assert(lumi.allowance(address(this), ALICE) == allowed && lumi.balanceOf(RELAYER) == 0);
-        }
     }
 }

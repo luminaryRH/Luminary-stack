@@ -2,29 +2,44 @@
 pragma solidity 0.8.28;
 
 import {Script, console2} from "forge-std/Script.sol";
+import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {AuctionPool} from "../src/AuctionPool.sol";
-import {FeeVault} from "../src/FeeVault.sol";
+import {IPriceFeed} from "../src/Interfaces.sol";
 import {PrintRegistry} from "../src/PrintRegistry.sol";
 import {RfqDesk} from "../src/RfqDesk.sol";
 import {ScreeningGate} from "../src/ScreeningGate.sol";
 
+interface ISafe {
+    function getOwners() external view returns (address[] memory);
+    function getThreshold() external view returns (uint256);
+}
+
+interface IDecimals {
+    function decimals() external view returns (uint8);
+}
+
 /// @title PostDeployCheck
 /// @notice Read-only check that a live deployment is this build, owned and wired as intended. It never broadcasts.
-///   forge build && forge script script/PostDeployCheck.s.sol --rpc-url robinhood_testnet
+///   forge build && forge script script/PostDeployCheck.s.sol --rpc-url robinhood
 /// Reads deployments/<chainId>.json (written by Deploy.s.sol). Every failed check is logged; any failure reverts.
-///   1. bytecode: every contract and verifier matches this build (immutable values masked)
-///   2. ownership: the pool, gate and vault are owned by `owner` (the operator until the multisig handoff), with no
-///      pending transfer
-///   3. wiring: desk (set once), print writer, gate, verifiers, scheduler, RfqDesk → pool
-///   4. markets: five listed stocks (unit 1e12, ±5% band, feed from the manifest, a minimum lock) and the quote tokens
-///   5. state: deposits not paused, fee and deposit fee inside their bounds
+///   1. bytecode: every contract, verifier and the timelock match this build (immutable values masked)
+///   2. ownership: the pool and the gate are owned by the timelock, with no pending transfer; the timelock waits
+///      48 hours, the Safe is its only proposer, canceller and executor, the deployer holds no role; the Safe is the
+///      official SafeL2 with the manifest's signers and a threshold of 2
+///   3. wiring: desk (set once), print writer, gate (association required), verifiers, scheduler and poster (the
+///      operator; never the deployer), the Safe as guardian, RfqDesk → pool
+///   4. markets: four listed stocks (unit 1e12, ±5% band, 25-hour staleness for the feeds' 24-hour heartbeat, the
+///      manifest's feed, a minimum lock) and USDG as quote (25-hour staleness); tokens and feeds answer with their expected decimals
+///   5. state: deposits open, fee and deposit fee inside their bounds
 contract PostDeployCheck is Script {
     struct ImmutableRef {
         uint256 length;
         uint256 start;
     }
 
-    string[5] internal STOCKS = ["TSLA", "AMZN", "AMD", "PLTR", "NFLX"];
+    string[4] internal STOCKS = ["TSLA", "AMZN", "AMD", "PLTR"];
+    address internal constant SAFE_L2_SINGLETON = 0x29fcB43b46531BcA003ddC8FCB67FFE91900C762;
+    uint256 internal constant TIMELOCK_DELAY = 48 hours;
     uint256 internal failures;
 
     function run() external {
@@ -38,18 +53,17 @@ contract PostDeployCheck is Script {
         RfqDesk desk = RfqDesk(vm.parseJsonAddress(json, ".RfqDesk"));
         ScreeningGate gate = ScreeningGate(vm.parseJsonAddress(json, ".ScreeningGate"));
         PrintRegistry prints = PrintRegistry(vm.parseJsonAddress(json, ".PrintRegistry"));
-        FeeVault vault = FeeVault(payable(vm.parseJsonAddress(json, ".FeeVault")));
+        TimelockController timelock = TimelockController(payable(vm.parseJsonAddress(json, ".owner")));
         address operator = vm.parseJsonAddress(json, ".operator");
-        address owner = vm.keyExistsJson(json, ".owner") ? vm.parseJsonAddress(json, ".owner") : operator;
+        address deployer = vm.parseJsonAddress(json, ".deployer");
 
         // 1. bytecode
         _same(address(pool), "AuctionPool.sol", "AuctionPool");
         _same(address(desk), "RfqDesk.sol", "RfqDesk");
         _same(address(gate), "ScreeningGate.sol", "ScreeningGate");
         _same(address(prints), "PrintRegistry.sol", "PrintRegistry");
-        _same(address(vault), "FeeVault.sol", "FeeVault");
-        _same(vm.parseJsonAddress(json, ".LUMI"), "LUMI.sol", "LUMI");
         _same(vm.parseJsonAddress(json, ".DisclosureRegistry"), "DisclosureRegistry.sol", "DisclosureRegistry");
+        _same(address(timelock), "TimelockController.sol", "TimelockController");
         _same(address(pool.depositVerifier()), "DepositVerifier.sol", "HonkVerifier");
         _same(address(pool.treeVerifier()), "TreeUpdateVerifier.sol", "HonkVerifier");
         _same(address(pool.transactVerifier()), "TransactVerifier.sol", "HonkVerifier");
@@ -59,30 +73,19 @@ contract PostDeployCheck is Script {
         _same(address(desk.rfqVerifier()), "RfqCrossVerifier.sol", "HonkVerifier");
 
         // 2. ownership
-        _check(pool.owner() == owner && pool.pendingOwner() == address(0), "AuctionPool owner", address(pool));
-        _check(gate.owner() == owner && gate.pendingOwner() == address(0), "ScreeningGate owner", address(gate));
-        _check(vault.owner() == owner && vault.pendingOwner() == address(0), "FeeVault owner", address(vault));
+        _checkOwnership(json, pool, gate, timelock);
 
         // 3. wiring
         _check(pool.desk() == address(desk), "pool.desk is the RfqDesk", address(pool));
         _check(address(desk.pool()) == address(pool), "RfqDesk.pool is the pool", address(desk));
         _check(address(pool.prints()) == address(prints) && prints.writer() == address(pool), "PrintRegistry wiring", address(prints));
-        _check(address(pool.gate()) == address(gate), "pool.gate is the ScreeningGate", address(pool));
-        _check(pool.scheduler(operator), "operator schedules auctions", address(pool));
+        _check(address(pool.gate()) == address(gate) && gate.associationRequired(), "gate set, association required", address(pool));
+        _check(pool.scheduler(operator) && !pool.scheduler(deployer), "operator (not the deployer) schedules auctions", address(pool));
+        _check(pool.guardian() == vm.parseJsonAddress(json, ".safe"), "the Safe is the guardian", address(pool));
         _check(gate.poster() == operator, "operator posts association roots", address(gate));
 
         // 4. markets
-        for (uint256 i; i < STOCKS.length; i++) {
-            address token = vm.parseJsonAddress(json, string.concat(".tokens.", STOCKS[i]));
-            address feed = vm.parseJsonAddress(json, string.concat(".feeds.", STOCKS[i]));
-            (address f, uint88 unit, bool listed, uint16 capBps) = pool.markets(token);
-            _check(f == feed && unit == 1e12 && listed && capBps == 500, string.concat(STOCKS[i], " market"), token);
-            _check(pool.minLock(token) > 0, string.concat(STOCKS[i], " minimum lock"), token);
-        }
-        address usdg = vm.parseJsonAddress(json, ".tokens.USDG");
-        (address usdgFeed, uint88 usdgUnit, bool usdgListed,) = pool.markets(usdg);
-        _check(usdgFeed == vm.parseJsonAddress(json, ".feeds.USDG") && usdgUnit == 1 && !usdgListed, "USDG quote market", usdg);
-        _check(pool.minLock(usdg) > 0, "USDG minimum lock", usdg);
+        _checkMarkets(json, pool);
 
         // 5. state
         _check(!pool.depositsPaused(), "deposits open", address(pool));
@@ -90,6 +93,85 @@ contract PostDeployCheck is Script {
 
         if (failures > 0) revert(string.concat("post-deploy check FAILED: ", vm.toString(failures), " problem(s)"));
         console2.log("post-deploy check PASSED on chain", block.chainid);
+    }
+
+    function _checkOwnership(string memory json, AuctionPool pool, ScreeningGate gate, TimelockController timelock) internal {
+        address safe = vm.parseJsonAddress(json, ".safe");
+        address operator = vm.parseJsonAddress(json, ".operator");
+        address deployer = vm.parseJsonAddress(json, ".deployer");
+        _check(pool.owner() == address(timelock) && pool.pendingOwner() == address(0), "AuctionPool owned by the timelock", address(pool));
+        _check(gate.owner() == address(timelock) && gate.pendingOwner() == address(0), "ScreeningGate owned by the timelock", address(gate));
+        _check(timelock.getMinDelay() == TIMELOCK_DELAY, "timelock delay is 48 hours", address(timelock));
+        bytes32[4] memory roles = [timelock.PROPOSER_ROLE(), timelock.CANCELLER_ROLE(), timelock.EXECUTOR_ROLE(), timelock.DEFAULT_ADMIN_ROLE()];
+        for (uint256 i; i < 3; i++) {
+            _check(timelock.hasRole(roles[i], safe), "the Safe holds every timelock role", address(timelock));
+            _check(!timelock.hasRole(roles[i], operator), "the operator holds no timelock role", address(timelock));
+            _check(!timelock.hasRole(roles[i], address(0)), "no open timelock role", address(timelock));
+        }
+        for (uint256 i; i < 4; i++) {
+            _check(!timelock.hasRole(roles[i], deployer), "the deployer holds no timelock role", address(timelock));
+        }
+        _check(
+            timelock.hasRole(roles[3], address(timelock)) && !timelock.hasRole(roles[3], safe),
+            "the timelock is its own admin (role changes wait 48 hours)",
+            address(timelock)
+        );
+        _checkSafe(json, safe);
+    }
+
+    function _checkMarkets(string memory json, AuctionPool pool) internal {
+        for (uint256 i; i < STOCKS.length; i++) {
+            address token = vm.parseJsonAddress(json, string.concat(".tokens.", STOCKS[i]));
+            address feed = vm.parseJsonAddress(json, string.concat(".feeds.", STOCKS[i]));
+            (address f, uint88 unit, bool listed, uint16 capBps, uint32 maxAge) = pool.markets(token);
+            _check(f == feed && unit == 1e12 && listed && capBps == 500 && maxAge == 25 hours, string.concat(STOCKS[i], " market"), token);
+            _check(pool.minLock(token) > 0, string.concat(STOCKS[i], " minimum lock"), token);
+            _check(_decimals(token) == 18 && _decimals(feed) == 8 && _answers(feed), string.concat(STOCKS[i], " token and feed"), token);
+        }
+        address usdg = vm.parseJsonAddress(json, ".tokens.USDG");
+        address usdgFeed = vm.parseJsonAddress(json, ".feeds.USDG");
+        (address uf, uint88 usdgUnit, bool usdgListed,, uint32 usdgAge) = pool.markets(usdg);
+        _check(uf == usdgFeed && usdgUnit == 1 && !usdgListed && usdgAge == 25 hours, "USDG quote market", usdg);
+        _check(pool.minLock(usdg) > 0, "USDG minimum lock", usdg);
+        _check(_decimals(usdg) == 6 && _decimals(usdgFeed) == 8 && _answers(usdgFeed), "USDG token and feed", usdg);
+    }
+
+    /// The Safe is a proxy of the official SafeL2 singleton (slot 0), with the manifest's signers and threshold 2.
+    function _checkSafe(string memory json, address safe) internal {
+        if (safe.code.length == 0) return _fail("Safe: no code", safe);
+        if (block.chainid == 4663) {
+            _check(address(uint160(uint256(vm.load(safe, 0)))) == SAFE_L2_SINGLETON, "Safe runs the official SafeL2 v1.4.1", safe);
+        }
+        address[] memory want = vm.parseJsonAddressArray(json, ".safeSigners");
+        try ISafe(safe).getOwners() returns (address[] memory owners) {
+            bool same = owners.length == want.length;
+            for (uint256 i; same && i < want.length; i++) {
+                bool found;
+                for (uint256 j; j < owners.length; j++) found = found || owners[j] == want[i];
+                same = found;
+            }
+            _check(same, "Safe signers are the manifest's", safe);
+            _check(ISafe(safe).getThreshold() == 2, "Safe threshold is 2", safe);
+        } catch {
+            _fail("Safe: getOwners failed", safe);
+        }
+    }
+
+    function _decimals(address a) internal view returns (uint256) {
+        try IDecimals(a).decimals() returns (uint8 d) {
+            return d;
+        } catch {
+            return type(uint256).max;
+        }
+    }
+
+    /// The feed answers a positive price (its freshness is the pool's business at each pin).
+    function _answers(address feed) internal view returns (bool) {
+        try IPriceFeed(feed).latestRoundData() returns (uint80, int256 answer, uint256, uint256, uint80) {
+            return answer > 0;
+        } catch {
+            return false;
+        }
     }
 
     /// The live runtime code equals this build's, with the immutable values (constructor arguments) masked out.

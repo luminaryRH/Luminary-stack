@@ -8,8 +8,8 @@ import { settleRfq, type OrderOpening, type PinnedAuction } from "./settle";
 
 const U = 1_000_000n;
 const TSLA = 0xc9f9c86933092bbbfff3ccb4b105a4a94bf3bd4en;
-const TQ = 0xf96e4e97e2bbecec392733b49fa42490ec5f3420n;
-const a: PinnedAuction = { asset: TSLA, unit: 10n ** 12n, quote: TQ, quoteUnit: 1n, refUsd: 250n * U, capBps: 500n, quoteUsd: U, feeBps: 5n, feeOwner: 424242n };
+const USDG = 0xf96e4e97e2bbecec392733b49fa42490ec5f3420n;
+const a: PinnedAuction = { asset: TSLA, unit: 10n ** 12n, quote: USDG, quoteUnit: 1n, refUsd: 250n * U, capBps: 500n, quoteUsd: U, feeBps: 5n, feeOwner: 424242n };
 const viewPub = "0x02" + "11".repeat(32);
 const block = (buy: boolean, rfq: bigint): OrderOpening => ({
   owner: buy ? 11n : 12n, salt: buy ? 1n : 2n, buy, qty: 10n * U, hasLimit: buy, limitUsd: buy ? 260n * U : 0n, roll: false, rollsLeft: 0,

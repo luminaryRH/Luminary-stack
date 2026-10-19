@@ -255,10 +255,6 @@
     "构建于 ROBINHOOD CHAIN",
     "ROBINHOOD CHAIN 上に構築"
   ],
-  "No real funds": [
-    "本网站 · 无真实资金",
-    " · 実際の資金は使用しません"
-  ],
   "Animated Realistic Lowpoly Chinese Dragon by Cassana XR": [
     "Cassana XR 创作的动态低多边形中国龙",
     "Cassana XR 制作のアニメーション付きローポリ中国龍"
@@ -279,9 +275,9 @@
     "清晰的流程。\n可验证的结果。",
     "明確な手順。\n検証できる結果。"
   ],
-  "From a pinned call block to a public print, Luminary’s backend specification connects private collection, deterministic clearing and treasury settlement.": [
-    "从固定竞价区块到公开成交记录，Luminary 的后端规范连接了私密收集、确定性清算与国债结算。",
-    "確定された実行ブロックから公開取引記録まで、Luminary のバックエンド仕様は非公開の注文収集、決定論的な清算、国債決済をつなぎます。"
+  "From a pinned call block to a public print, Luminary’s backend specification connects private collection, deterministic clearing and USDG settlement.": [
+    "从固定竞价区块到公开成交记录，Luminary 的后端规范连接了私密收集、确定性清算与USDG 结算。",
+    "確定された実行ブロックから公開取引記録まで、Luminary のバックエンド仕様は非公開の注文収集、決定論的な清算、USDG 決済をつなぎます。"
   ],
   "From schedule to settlement.": [
     "从日程到结算。",
@@ -331,25 +327,25 @@
     "范围明确的证明",
     "対象を明確にした証明"
   ],
-  "AuctionClearProof is intended to verify reference bounds, order limits, asset conservation and the clearing volume property. A signed clearing digest may precede a full proof upgrade; this site does not generate either production assurance.": [
-    "AuctionClearProof 旨在验证参考区间、订单限价、资产守恒与清算成交量属性。全面升级证明前可能先使用签名清算摘要；本本网站不提供这两类生产级保证。",
-    "AuctionClearProof は参照価格の範囲、指値、資産保存、清算数量の性質を検証する想定です。本格的な証明の前に署名付き清算ダイジェストを用いる可能性がありますが、このはいずれの本番保証も生成しません。"
+  "AuctionClearProof is intended to verify reference bounds, order limits, asset conservation and the clearing volume property. Each settlement transaction verifies the proof on chain.": [
+    "AuctionClearProof 旨在验证参考区间、订单限价、资产守恒与清算成交量属性。每笔结算交易都会在链上验证该证明。",
+    "AuctionClearProof は参照価格の範囲、指値、資産保存、清算数量の性質を検証する想定です。各決済トランザクションがオンチェーンでこの証明を検証します。"
   ],
   "A coordinated worker layer": [
     "协调运作的任务层",
     "連携するワーカー層"
   ],
-  "The backend separates auction scheduling, clearing, proof orchestration, print publishing, NAV watching and calendar events. Each worker has a defined role in moving a call from collection to a public result.": [
-    "后端将竞价调度、清算、证明编排、成交记录发布、净值监控与日历事件分别处理。每个任务组件均有明确职责，推动竞价从收集走向公开结果。",
-    "バックエンドは日程管理、清算、証明の調整、記録公開、NAV 監視、カレンダーイベントを分離します。各ワーカーが明確な役割を持ち、注文収集から結果公開までを進めます。"
+  "The backend separates auction scheduling, clearing, proof orchestration, print publishing, reference marks and calendar events. Each worker has a defined role in moving a call from collection to a public result.": [
+    "后端将竞价调度、清算、证明编排、成交记录发布、参考价格标记与日历事件分别处理。每个任务组件均有明确职责，推动竞价从收集走向公开结果。",
+    "バックエンドは日程管理、清算、証明の調整、記録公開、参照価格の取得、カレンダーイベントを分離します。各ワーカーが明確な役割を持ち、注文収集から結果公開までを進めます。"
   ],
-  "Treasury settlement and RFQ": [
-    "国债结算与询价",
-    "国債決済と RFQ"
+  "USDG settlement and RFQ": [
+    "USDG 结算与询价",
+    "USDG 決済と RFQ"
   ],
-  "Tokenized treasury collateral supports the auction settlement path. RfqDesk provides a separate reference-anchored lane for private two-party blocks between calls.": [
-    "代币化国债抵押品支持竞价结算路径。RfqDesk 为场次之间的私密双边大宗交易提供独立的参考价格锚定通道。",
-    "トークン化国債の担保がオークション決済を支えます。RfqDesk は各回の合間に、参照価格を基準にした非公開の相対ブロック取引用経路を提供します。"
+  "Buys lock USDG, a dollar stablecoin, and the auction settles in it. RfqDesk provides a separate reference-anchored lane for private two-party blocks between calls.": [
+    "买单锁定美元稳定币 USDG，竞价也以其结算。RfqDesk 为场次之间的私密双边大宗交易提供独立的参考价格锚定通道。",
+    "買い注文はドル建てステーブルコインの USDG をロックし、オークションも USDG で決済します。RfqDesk は各回の合間に、参照価格を基準にした非公開の相対ブロック取引用経路を提供します。"
   ],
   "Calendar-aware operations": [
     "感知日历的运营",
@@ -359,13 +355,13 @@
     "规范考虑夏令时变化、市场假期、公司行动及除权除息日暂停。取消订单从不受限制。",
     "仕様は夏時間、市場の休場日、コーポレートアクション、権利落ち日の停止を考慮します。注文の取り消しが制限されることはありません。"
   ],
-  "The intended stack": [
-    "计划采用的技术栈",
-    "想定する技術スタック"
+  "The stack": [
+    "技术栈",
+    "技術スタック"
   ],
-  "The technical plan uses Noir for circuits, Foundry for contracts and Bun with TypeScript for workers, targeting Robinhood Chain. These are specification choices, not a claim that this site is a deployed production protocol.": [
-    "技术计划采用 Noir 构建电路、Foundry 开发合约、Bun 与 TypeScript 运行任务组件，面向 Robinhood Chain。这些是规范中的选择，并不表示本本网站已部署生产协议。",
-    "技術計画では回路に Noir、コントラクトに Foundry、ワーカーに Bun と TypeScript を使用し、Robinhood Chain を対象とします。これは仕様上の選択であり、が本番プロトコルとして稼働しているという意味ではありません。"
+  "Luminary uses Noir for circuits, Foundry for contracts and Bun with TypeScript for workers, deployed on Robinhood Chain mainnet.": [
+    "Luminary 采用 Noir 构建电路、Foundry 开发合约、Bun 与 TypeScript 运行任务组件，部署于 Robinhood Chain 主网。",
+    "Luminary は回路に Noir、コントラクトに Foundry、ワーカーに Bun と TypeScript を使用し、Robinhood Chain メインネットにデプロイされています。"
   ],
   "Understand the architecture. Experience the flow.": [
     "理解架构。\n体验流程。",
@@ -383,9 +379,9 @@
     "订单保持私密。\n结果成为公开记录。",
     "注文は非公開に。\n結果は公開される。"
   ],
-  "A scheduled, sealed call auction for tokenized stocks. One reference-bounded clearing price, settled in tokenized treasuries.": [
-    "面向代币化股票的定时密封集合竞价。在参考区间内形成统一清算价，以代币化国债结算。",
-    "トークン化株式のための、定時の封印型板寄せオークション。参照価格帯内の単一清算価格で、トークン化国債によって決済します。"
+  "A scheduled, sealed call auction for tokenized stocks. One reference-bounded clearing price, settled in USDG.": [
+    "面向代币化股票的定时密封集合竞价。在参考区间内形成统一清算价，以 USDG 结算。",
+    "トークン化株式のための、定時の封印型板寄せオークション。参照価格帯内の単一清算価格で、USDG によって決済します。"
   ],
   "A deliberate sequence.": [
     "有序而从容的流程。",
@@ -399,9 +395,9 @@
     "密封您的意向。",
     "意図を封じる。"
   ],
-  "Choose a limit order or an order at the auction price. Orders collect privately ahead of the scheduled call. Resting treasury collateral follows the NAV accrual of its underlying fund.": [
-    "选择限价订单或竞价价格订单。订单在预定场次前私密收集。闲置国债抵押品随其底层基金的净值累积变化。",
-    "指値注文またはオークション価格での注文を選びます。注文は予定された回の前に非公開で収集されます。待機中の国債担保は、裏付けファンドの NAV の増減に連動します。"
+  "Choose a limit order or an order at the auction price. Orders collect privately ahead of the scheduled call.": [
+    "选择限价订单或竞价价格订单。订单在预定场次前私密收集。",
+    "指値注文またはオークション価格での注文を選びます。注文は予定された回の前に非公開で収集されます。"
   ],
   "Meet at one price.": [
     "以同一价格相遇。",
@@ -427,9 +423,9 @@
     "以参考价格为锚",
     "参照値を基準にした価格"
   ],
-  "Stocks use a Chainlink reference multiplied by the asset’s conversion factor, bounded by a configured cap. Fund auctions anchor to NAV. The reference band constrains the clearing price; it does not guarantee execution.": [
-    "股票使用 Chainlink 参考价格乘以资产转换系数，并受配置的上限约束。基金竞价锚定净值。参考区间约束清算价格，但不保证成交。",
-    "株式では Chainlink の参照価格に資産の換算係数を掛け、設定された上限で制約します。ファンドのオークションは NAV を基準とします。参照価格帯は清算価格を制約しますが、約定を保証しません。"
+  "Stocks use a Chainlink reference multiplied by the asset’s conversion factor, bounded by a configured cap. The reference band constrains the clearing price; it does not guarantee execution.": [
+    "股票使用 Chainlink 参考价格乘以资产转换系数，并受配置的上限约束。参考区间约束清算价格，但不保证成交。",
+    "株式では Chainlink の参照価格に資産の換算係数を掛け、設定された上限で制約します。参照価格帯は清算価格を制約しますが、約定を保証しません。"
   ],
   "One auction, one settlement": [
     "一场竞价，一次结算",
@@ -451,9 +447,9 @@
     "有边界的验证",
     "保証の範囲を明確に"
   ],
-  "Solvency proofs and view keys support verification. The specification includes a signed-clearing-digest path before a full proof upgrade. This site creates illustrative records, not cryptographic attestations.": [
-    "偿付能力证明与查看密钥支持验证。规范包含在全面证明升级前使用签名清算摘要的路径。本本网站生成示例记录，而非密码学证明。",
-    "支払能力証明と閲覧鍵が検証を支えます。仕様には本格的な証明への移行前に署名付き清算ダイジェストを使う経路があります。このが作成するのは例示記録であり、暗号学的な証明ではありません。"
+  "Solvency proofs and view keys support verification. Each settlement transaction verifies the auction’s clearing proof on chain. Today the operator alone holds the clearing key, so it can read orders before the call.": [
+    "偿付能力证明与查看密钥支持验证。每笔结算交易都会在链上验证该竞价的清算证明。目前清算密钥仅由运营方持有，因此运营方可在竞价前读取订单。",
+    "支払能力証明と閲覧鍵が検証を支えます。各決済トランザクションがオンチェーンでオークションの清算証明を検証します。現在は清算鍵を運営者だけが持つため、運営者はコール前に注文を読むことができます。"
   ],
   "Understand the flow. Then make your move.": [
     "理解流程。\n然后迈出下一步。",
@@ -531,17 +527,13 @@
     "将日历纳入设计",
     "カレンダーを考慮した設計"
   ],
-  "The backend schedule accounts for underlying equity calendars, daylight saving changes, holidays and corporate actions, including pauses across ex-dates. The calendar here includes DST and weekends only.": [
-    "后端日程考虑标的股票日历、夏令时、假期与公司行动，包括除权除息日期间暂停。本网站日历仅考虑夏令时与周末。",
-    "バックエンドの日程は原市場の株式カレンダー、夏時間、休場日、権利落ち日の停止を含むコーポレートアクションを考慮します。カレンダーが扱うのは夏時間と週末のみです。"
+  "The backend schedule accounts for underlying equity calendars, daylight saving changes, holidays and corporate actions, including pauses across ex-dates.": [
+    "后端日程考虑标的股票日历、夏令时、假期与公司行动，包括除权除息日期间暂停。",
+    "バックエンドの日程は原市場の株式カレンダー、夏時間、休場日、権利落ち日の停止を含むコーポレートアクションを考慮します。"
   ],
-  "NAV and RFQ": [
-    "净值与询价",
-    "NAV と RFQ"
-  ],
-  "Issuers and funds can request NAV-anchored auctions. Between the calls, the RFQ desk supports privately negotiated two-party blocks. These complement the regular open, close and midnight sessions.": [
-    "发行方与基金可申请净值锚定竞价。在场次之间，询价台支持私下协商的双边大宗交易，与常规开盘、收盘及午夜场次互补。",
-    "発行者やファンドは NAV 基準のオークションを依頼できます。各回の間は RFQ デスクが非公開の相対ブロック交渉を支え、寄り付き、大引け、午前零時の回を補完します。"
+  "Between the calls, the RFQ desk supports privately negotiated two-party blocks. These complement the regular open, close and midnight sessions.": [
+    "在场次之间，询价台支持私下协商的双边大宗交易，与常规开盘、收盘及午夜场次互补。",
+    "各回の間は RFQ デスクが非公開の相対ブロック交渉を支え、寄り付き、大引け、午前零時の回を補完します。"
   ],
   "Find your moment. Make your intent count.": [
     "找到您的时刻。\n让意向发挥作用。",
@@ -575,9 +567,9 @@
     "建立每日竞价。",
     "日々のオークションを確立する。"
   ],
-  "The first roadmap stage focuses on daily auctions for leading tokenized stocks, treasury settlement and solvency. The following stage adds RFQ blocks and NAV auctions for funds and ETFs.": [
-    "路线图第一阶段聚焦主流代币化股票的每日竞价、国债结算与偿付能力。下一阶段增加大宗询价以及基金和 ETF 的净值竞价。",
-    "最初の段階は主要なトークン化株式の日次オークション、国債決済、支払能力に重点を置きます。続く段階で RFQ ブロック取引とファンド・ETF の NAV オークションを追加する計画です。"
+  "The first roadmap stage focuses on daily auctions for leading tokenized stocks, USDG settlement and solvency. The following stage adds RFQ blocks and NAV auctions for funds and ETFs.": [
+    "路线图第一阶段聚焦主流代币化股票的每日竞价、USDG 结算与偿付能力。下一阶段增加大宗询价以及基金和 ETF 的净值竞价。",
+    "最初の段階は主要なトークン化株式の日次オークション、USDG 決済、支払能力に重点を置きます。続く段階で RFQ ブロック取引とファンド・ETF の NAV オークションを追加する計画です。"
   ],
   "Make the calendar useful.": [
     "让日历发挥价值。",
@@ -675,9 +667,9 @@
     "深入了解",
     "詳しく見る"
   ],
-  "Assets and prices shown here are illustrative. See": [
-    "本网站为产品本网站。请参阅",
-    "このサイトは製品のです。"
+  "Reference prices come from Chainlink feeds on Robinhood Chain. See": [
+    "参考价格来自 Robinhood Chain 上的 Chainlink 喂价。请参阅",
+    "参照価格は Robinhood Chain 上の Chainlink フィードから取得します。"
   ],
   "for the current boundaries.": [
     "了解当前适用范围。",
@@ -751,13 +743,13 @@
     "场次之间",
     "オークションの合間に"
   ],
-  "RFQ supports privately negotiated two-party blocks. Issuer-requested auctions can use NAV as the reference.": [
-    "RFQ 支持私下协商的双边大宗交易。发行方申请的竞价可使用净值作为参考。",
-    "RFQ は非公開で交渉する相対ブロック取引を支えます。発行者が依頼するオークションでは NAV を参照値にできます。"
+  "RFQ supports privately negotiated two-party blocks.": [
+    "RFQ 支持私下协商的双边大宗交易。",
+    "RFQ は非公開で交渉する相対ブロック取引を支えます。"
   ],
-  "The live protocol is intended for eligible non-US participants, subject to jurisdiction and asset restrictions. Assets shown here are illustrative and no real settlement occurs.": [
-    "正式协议面向符合条件的非美国参与者，受司法辖区与资产限制。本网站为本网站，使用资产，不发生真实结算。",
-    "正式なプロトコルは適格な米国外の参加者を対象とし、法域と資産の制限を受けます。このサイトは資産を使用するで、実際の決済はありません。"
+  "The live protocol is intended for eligible non-US participants, subject to jurisdiction and asset restrictions. Today the operator alone holds the clearing key, so it can read orders before the call.": [
+    "正式协议面向符合条件的非美国参与者，受司法辖区与资产限制。目前清算密钥仅由运营方持有，因此运营方可在竞价前读取订单。",
+    "正式なプロトコルは適格な米国外の参加者を対象とし、法域と資産の制限を受けます。現在は清算鍵を運営者だけが持つため、運営者はコール前に注文を読むことができます。"
   ],
   "PRIVATE COLLECTION": [
     "私密收集",
@@ -1055,9 +1047,9 @@
     "循着日历。\n相遇于时刻。",
     "カレンダーに沿って。\nその瞬間に集う。"
   ],
-  "Auctions follow the underlying market’s opening and closing bells, plus a global call at 00:00 UTC. Issuers can request NAV-anchored calls.": [
-    "竞价跟随标的市场开盘与收盘时间，并于 UTC 00:00 增加全球场次。发行方可申请净值锚定竞价。",
-    "原市場の開始・終了時刻に加え、UTC 00:00 に世界共通の回を設けます。発行者は NAV 基準のオークションを依頼できます。"
+  "Auctions follow the underlying market’s opening and closing bells, plus a global call at 00:00 UTC.": [
+    "竞价跟随标的市场开盘与收盘时间，并于 UTC 00:00 增加全球场次。",
+    "原市場の開始・終了時刻に加え、UTC 00:00 に世界共通の回を設けます。"
   ],
   "THE NEXT CHAPTER": [
     "下一个篇章",
@@ -1351,9 +1343,9 @@
     "连接钱包",
     "ウォレットを接続"
   ],
-  "Only you can see your order before the call.": [
-    "竞价前，只有您能看到自己的订单。",
-    "実行前に注文を閲覧できるのは、あなただけです。"
+  "Only you and the operator can see your order before the call.": [
+    "竞价前，只有您和运营方能看到您的订单。",
+    "実行前に注文を閲覧できるのは、あなたと運営者だけです。"
   ],
   "": [
     "本网站",
@@ -1410,10 +1402,6 @@
   "reserved": [
     "已预留",
     "確保済み"
-  ],
-  "Your orders, visible only to you": [
-    "您的订单，仅您可见",
-    "注文を閲覧できるのはあなただけ"
   ],
   "Next auction": [
     "下一场竞价",
@@ -1851,33 +1839,17 @@
     "Luminary 本网站的范围与边界。",
     "Luminary 対象範囲と制限。"
   ],
-  "About this draft": [
-    "关于本草案",
-    "この草案について"
+  "Robinhood Chain mainnet": [
+    "Robinhood Chain 主网",
+    "Robinhood Chain メインネット"
   ],
-  "This draft reflects the Luminary Overview, Backend and Expansion documents and the current website. It is not the final set of terms for an operating trading venue. The legal operator, registered address, contact channel, governing law and dispute terms have not been supplied and must be completed before a public live launch.": [
-    "本草案依据 Luminary 概述、后端、拓展文档及当前本网站网站编写，并非运营中交易场所的最终条款。法律运营主体、注册地址、联系渠道、适用法律与争议条款尚未提供，须在公开正式上线前补全。",
-    "この草案は Luminary の概要・バックエンド・拡張文書と現在のサイトに基づきます。稼働する取引施設の最終規約ではありません。法的運営主体、登録住所、連絡先、準拠法、紛争条項は未提示であり、一般向けの本稼働前に補完が必要です。"
+  "The auction terminal runs on Robinhood Chain mainnet. Shielding, orders, cancellations and withdrawals are real blockchain transactions with real assets, and buys lock USDG, a dollar stablecoin. Connecting a wallet does not create a securities account.": [
+    "竞价终端运行于 Robinhood Chain 主网。存入隐私池、下单、取消与提取均为使用真实资产的真实区块链交易，买单锁定美元稳定币 USDG。连接钱包不会开立证券账户。",
+    "オークション端末は Robinhood Chain メインネットで稼働します。シールド、注文、取り消し、出金は実際の資産を用いる実際のブロックチェーン取引であり、買い注文はドル建てステーブルコインの USDG をロックします。ウォレットの接続は証券口座の開設ではありません。"
   ],
-  "Not yet a live trading service": [
-    "产品本网站，而非真实交易服务",
-    "実取引サービスではなく"
-  ],
-  "This site explains the proposed Luminary protocol and lets you explore the auction, RFQ and treasury workflows. Balances and assets shown here have no monetary value. Connecting a wallet in the interface does not connect an external wallet, deposit money or create a securities account.": [
-    "本网站介绍拟议的 Luminary 协议，并提供竞价、询价与国债资金流程。余额及资产没有货币价值。连接钱包不会连接外部钱包、存入资金或开立证券账户。",
-    "このサイトは提案段階の Luminary プロトコルを説明し、オークション、RFQ、国債資金の流れを体験できます。残高や資産に金銭的価値はありません。ウォレットの接続は外部ウォレットへの接続、入金、証券口座の開設ではありません。"
-  ],
-  "Order submission, cancellation, settlement and print records on this site do not execute a blockchain transaction or trade a real security. The clearing flow uses fixed sample reference prices and is not the production volume-maximizing clearing engine.": [
-    "本网站中的订单提交、取消、结算与成交记录不会执行区块链交易或交易真实证券。本网站清算使用固定示例参考价格，并非生产环境中最大化成交量的清算引擎。",
-    "注文送信、取り消し、決済、取引記録は、ブロックチェーン取引や実際の証券取引を実行しません。固定のサンプル参照価格を用い、本番の約定数量最大化エンジンではありません。"
-  ],
-  "Information and planned functionality": [
-    "信息与规划功能",
-    "情報と計画中の機能"
-  ],
-  "Product descriptions summarize the supplied documents. The intended protocol uses scheduled sealed auctions, reference-bounded uniform clearing, tokenized treasury settlement and public price-and-volume prints. These descriptions are design objectives rather than a representation that a live service, security audit, regulatory approval or production proof system exists.": [
-    "产品说明总结所提供的文档。拟议协议采用定时密封竞价、参考区间约束下的统一清算、代币化国债结算及公开价格与成交量记录。这些是设计目标，并不表示已有正式服务、安全审计、监管批准或生产证明系统。",
-    "製品説明は提供文書の要約です。想定するプロトコルは定時の封印型オークション、参照価格帯に制約された単一価格清算、トークン化国債決済、価格と数量の公開記録を用います。これらは設計目標であり、実サービス、安全性監査、規制当局の承認、本番証明システムの存在を表すものではありません。"
+  "Each call clears at one uniform price inside a band around the Chainlink reference price on Robinhood Chain. Today the operator alone holds the clearing key, so it can read orders before the call.": [
+    "每次竞价在 Robinhood Chain 上 Chainlink 参考价格附近的区间内以统一价格清算。目前清算密钥仅由运营方持有，因此运营方可在竞价前读取订单。",
+    "各回は Robinhood Chain 上の Chainlink 参照価格を中心とする帯域内で、単一の価格により清算されます。現在は清算鍵を運営者だけが持つため、運営者はコール前に注文を読むことができます。"
   ],
   "Roadmap and expansion pages describe planned work. The sequence, scope and timing may change. No launch date, token distribution, fee entitlement or return is promised by this site.": [
     "路线图与拓展页面描述规划中的工作。顺序、范围与时间可能改变。本网站不承诺上线日期、代币分配、费用收益权或回报。",
@@ -1887,25 +1859,13 @@
     "资格与资产范围",
     "参加資格と資産の範囲"
   ],
-  "The product documents describe securities-form real-world assets, intended for eligible non-US participants in permitted jurisdictions. Any live service would require jurisdiction, participant and asset eligibility controls. This site does not perform those checks or establish that a visitor is eligible for a future service.": [
-    "产品文档描述证券形式的现实世界资产，面向获准司法辖区内符合条件的非美国参与者。正式服务须实施司法辖区、参与者及资产资格控制。本本网站不执行这些检查，也不确认访问者是否符合未来服务资格。",
-    "製品文書は証券形態の実物資産を説明し、許可された法域の適格な米国外参加者を対象とします。実サービスには法域、参加者、資産の適格性管理が必要です。はその確認を行わず、将来のサービスへの参加資格を証明しません。"
-  ],
-  "Do not rely on access to this website as permission to purchase, sell, hold or transfer an asset in any jurisdiction. Separate live-service terms and issuer restrictions would apply if those services launch.": [
-    "请勿将访问本网站视为在任何司法辖区购买、出售、持有或转移资产的许可。若正式服务上线，将另行适用服务条款与发行方限制。",
-    "サイトへのアクセスを、いずれかの法域で資産を購入、売却、保有、移転する許可とみなさないでください。正式に提供される場合は、別のサービス規約と発行者の制限が適用されます。"
-  ],
   "Use of this website": [
     "本网站的使用",
     "利用"
   ],
-  "Use the site for evaluating and understanding the product. Do not submit real private keys, seed phrases, identity documents or confidential account information. The interface does not request them.": [
-    "请将本网站用于评估和理解产品。不要提交真实私钥、助记词、身份证件或机密账户信息。界面不会索取这些信息。",
-    "製品の評価と理解のためにご利用ください。実際の秘密鍵、シードフレーズ、本人確認書類、機密の口座情報を送信しないでください。画面からこれらを求めることはありません。"
-  ],
-  "Do not attempt to access another visitor’s local portfolio, compromise the site, interfere with availability or misrepresent illustrative records as real transactions or cryptographic proofs. Records here can be reset and should not be relied on as a permanent financial record.": [
-    "请勿尝试访问其他访客的投资组合、侵害网站安全、干扰可用性，或将记录谎称为真实交易或密码学证明。记录可重置，不应被视为永久财务记录。",
-    "他の訪問者の資産へのアクセス、サイトへの侵害、可用性の妨害、記録を実際の取引や暗号学的証明と偽る行為をしないでください。記録はリセット可能で、恒久的な財務記録として依拠できません。"
+  "Do not attempt to compromise the site or interfere with its availability.": [
+    "请勿尝试侵害网站安全或干扰其可用性。",
+    "サイトへの侵害や可用性の妨害をしないでください。"
   ],
   "Financial information and outcomes": [
     "金融信息与结果",
@@ -1915,9 +1875,9 @@
     "本网站仅供信息参考，不提供个性化投资、法律或税务建议；不构成证券购买要约或招揽，也不保证成交、价格质量、流动性或任何回报率。",
     "このサイトは情報提供を目的とし、個別の投資、法律、税務助言を提供しません。証券購入の申込みや勧誘ではなく、約定、価格の質、流動性、いかなる収益率も保証しません。"
   ],
-  "Where the product documents discuss treasury collateral, they refer to the published NAV accrual of the underlying fund, which varies. No investment return accrues on this site. Read the Risk & Eligibility page alongside these terms.": [
-    "产品文档提及国债抵押品时，指的是底层基金公布净值的累积变化，且会变化。本网站不累积投资回报。请同时阅读风险与资格页面。",
-    "製品文書が国債担保に触れる場合、裏付けファンドの公表 NAV の増減を指し、変動します。本サイトでは投資収益は発生しません。この規約とあわせて「リスクと参加資格」をお読みください。"
+  "No investment return accrues on balances held through this site. Read the Risk & Eligibility page alongside these terms.": [
+    "通过本网站持有的余额不产生投资回报。请同时阅读风险与资格页面。",
+    "本サイトを通じて保有する残高に投資収益は発生しません。この規約とあわせて「リスクと参加資格」をお読みください。"
   ],
   "Artwork and third-party services": [
     "画作与第三方服务",
@@ -1931,33 +1891,9 @@
     "嵌入服务或外部链接可能无法使用，也可能适用各自的条款与隐私政策。提及 Robinhood Chain 或其他技术仅用于说明拟议集成，并不自动构成认可或关联关系。",
     "埋め込みサービスや外部リンクは利用できない場合があり、独自の規約とプライバシーポリシーに従うことがあります。Robinhood Chain 等の名称は想定する連携の説明であり、支持や提携をそれ自体で示すものではありません。"
   ],
-  "Before live launch": [
-    "正式上线前",
-    "本稼働の前に"
-  ],
-  "These draft terms require review and completion by the responsible operator and qualified counsel. In addition to entity and jurisdiction details, live-service disclosures must address actual custody, fees, execution rules, complaints, suspension, liability and any applicable regulated-service obligations. This draft does not invent those details or represent that they have been approved.": [
-    "本条款草案须由负责的运营方与合格法律顾问审阅、补全。除主体及司法辖区信息外，正式服务披露还须涵盖实际托管、费用、执行规则、投诉、暂停、责任及适用的受监管服务义务。本草案不虚构这些细节，也不表示其已获批准。",
-    "この草案は責任を持つ運営者と適格な法律専門家による確認と補完が必要です。主体や法域に加え、実際の保管、手数料、執行ルール、苦情、停止、責任、適用される規制上の義務について開示が必要です。草案はこれらの詳細を創作せず、承認済みとも表明しません。"
-  ],
-  "What this website stores and how its visible features use data.": [
-    "本本网站存储哪些信息，以及可见功能如何使用数据。",
-    "が保存する情報と、各機能でのデータ利用。"
-  ],
-  "This notice describes the current website implementation. The supplied Luminary documents describe intended protocol privacy but do not identify the final legal controller, privacy contact or complete live-service data practices. Those details and any required jurisdiction-specific disclosures remain to be finalized before public launch.": [
-    "本声明描述当前网站实现。Luminary 文档说明拟议协议的隐私设计，但未确定最终法律数据控制者、隐私联系方或完整正式服务数据处理方式。这些信息及所需的法域专项披露须在公开上线前完成。",
-    "この通知は現在の実装を説明します。Luminary 文書は想定するプライバシー設計を示しますが、最終的な法的管理者、連絡先、実サービスの完全な取扱いは未確定です。必要な法域別の開示とともに、一般公開前に確定する必要があります。"
-  ],
-  "Portfolio information": [
-    "投资组合信息",
-    "ポートフォリオ情報"
-  ],
   "When you open the dashboard, the site creates a random browser identifier and stores a demonstration portfolio on its server. Stored records include your simulated balances and holdings, orders, RFQ quote, auction results and recent demo activity.": [
     "打开仪表板时，网站创建随机浏览器标识符，并在服务器保存投资组合。记录包含余额、持仓、订单、询价报价、竞价结果与近期活动。",
     "ダッシュボードを開くと、ランダムなブラウザー識別子を作成し、サーバーに資産を保存します。残高、保有資産、注文、RFQ 見積もり、オークション結果、最近の操作が含まれます。"
-  ],
-  "The site does not ask for a name, email address, wallet address, government identification or payment details. “Connect wallet” changes the interface state; it does not access a real wallet. The hosting platform may separately handle sign-in and access to a privately published site.": [
-    "本网站不索取姓名、电子邮件、钱包地址、政府身份证明或付款信息。“连接钱包”仅改变本网站状态，不访问真实钱包。托管平台可能单独处理登录及私密发布网站的访问。",
-    "は氏名、メールアドレス、ウォレットアドレス、公的身分証、支払情報を求めません。「ウォレットを接続」は状態を変えるだけで、実際のウォレットへアクセスしません。非公開サイトの認証とアクセスは、ホスティング基盤が別途処理する場合があります。"
   ],
   "Browser storage": [
     "浏览器存储",
@@ -1971,34 +1907,6 @@
     "仪表板可在 sidebar_state Cookie 中记住导航面板偏好，最长七天。阻止 Cookie 可能影响投资组合连续性或导航偏好。第一方本地存储项 luminary_language 记住本设备的语言选择，可在任意页面导航中修改。字体与提供的图片资源由网站自身提供。",
     "ダッシュボードは sidebar_state Cookie にナビゲーションの設定を最長 7 日保存できます。Cookie の拒否は資産データの継続性や設定に影響する場合があります。本端末の言語選択はローカルストレージの luminary_language に保存し、各ページのナビゲーションから変更できます。フォントと画像はサイトから配信します。"
   ],
-  "Why this information is stored": [
-    "为何存储这些信息",
-    "保存する目的"
-  ],
-  "The saved portfolio lets order, cancellation, RFQ and treasury actions work across page reloads. Checks use it to prevent overspending of collateral, duplicate quote acceptance and conflicting portfolio updates.": [
-    "已保存的投资组合使订单、取消、询价与国债资金操作在页面重载后继续可用。服务器利用它防止抵押品超支、重复接受报价及冲突更新。",
-    "保存したデータにより、再読み込み後も注文、取り消し、RFQ、国債資金の操作を継続できます。サーバーは担保の過剰使用、見積もりの二重承諾、更新の衝突を防ぐために使用します。"
-  ],
-  "This implementation does not add its own advertising pixels or marketing analytics. Hosting and third-party services may process technical connection information under their own policies. A private product order is not the same as anonymous website use.": [
-    "当前实现未自行添加广告像素或营销分析。托管方与第三方服务可能依据各自政策处理技术连接信息。订单私密并不等同于匿名使用网站。",
-    "この実装は独自の広告ピクセルやマーケティング分析を追加していません。ホスティングや外部サービスは各自の方針に基づき接続情報を処理する場合があります。注文が非公開であることと、サイトを匿名で使うことは同義ではありません。"
-  ],
-  "The animated Sketchfab model": [
-    "Sketchfab 动态模型",
-    "Sketchfab のアニメーションモデル"
-  ],
-  "The hero loads a Sketchfab viewer and its JavaScript to display the animated Chinese dragon. Connecting to that service can expose technical information, such as an IP address, browser details and request metadata, to the provider. The embed requests Sketchfab’s do-not-track option; that setting is not a promise that no provider data processing occurs.": [
-    "首页加载 Sketchfab 查看器及其 JavaScript 以显示动态中国龙。连接该服务可能向提供方暴露 IP 地址、浏览器详情与请求元数据等技术信息。嵌入请求了 Sketchfab 的“请勿追踪”选项，但这不代表提供方完全不处理数据。",
-    "ヒーローでは Sketchfab ビューアーと JavaScript を読み込み、動く中国龍を表示します。接続時に IP アドレス、ブラウザー情報、リクエスト情報などが提供元へ伝わる可能性があります。追跡拒否オプションを要求しますが、一切の処理が行われないという保証ではありません。"
-  ],
-  "Sketchfab operates under its own privacy policy. The external privacy link opens Sketchfab’s site. You can block third-party content using your browser, although the animated scene may then be unavailable.": [
-    "Sketchfab 适用自己的隐私政策。外部隐私链接会打开 Sketchfab 网站。您可通过浏览器阻止第三方内容，但动态场景可能无法使用。",
-    "Sketchfab は独自のプライバシーポリシーに従います。外部リンクは Sketchfab のサイトを開きます。ブラウザーで外部コンテンツを遮断できますが、アニメーションを表示できなくなる場合があります。"
-  ],
-  "Retention and your controls": [
-    "保留期限与您的控制",
-    "保存期間と操作手段"
-  ],
   "The current demo does not have an automatic server-record deletion schedule. Cookie expiry does not itself delete the stored portfolio. The responsible operator must define retention and a request channel before launch.": [
     "当前本网站没有自动删除服务器记录的计划。Cookie 到期本身不会删除投资组合。负责的运营方须在上线前制定保留期限与请求渠道。",
     "現在のにはサーバー記録の自動削除予定がありません。Cookie の期限切れ自体では保存データは削除されません。運営者は本稼働前に保存期間と申請窓口を定める必要があります。"
@@ -2007,25 +1915,9 @@
     "国债资金页的“重置投资组合”会清除当前投资组合、订单、报价与成交记录，并恢复初始值。它不会清除托管日志或第三方记录。断开钱包会保留订单；删除浏览器 Cookie 会移除该浏览器对现有本网站记录的访问。",
     "国債資金ページのリセットは、現在の資産、注文、見積もり、記録を消去し初期値に戻します。ホスティングのログや外部提供元の記録は削除しません。接続解除後も注文は保存され、Cookie を削除すると既存の記録へそのブラウザーからアクセスできなくなります。"
   ],
-  "Protocol privacy and its limits": [
-    "协议隐私及其限制",
-    "プロトコルのプライバシーと限界"
-  ],
-  "The Luminary specifications distinguish sealed individual orders and identities from public auction clearing prices and crossed volumes. They also refer to solvency proofs and view keys. These are intended protocol properties, not a statement that this prototype implements cryptographic privacy.": [
-    "Luminary 规范区分密封的单笔订单与身份，以及公开竞价清算价格与撮合成交量，也提及偿付能力证明与查看密钥。这些是拟议协议属性，不表示本原型已实现密码学隐私。",
-    "Luminary の仕様は、封印された個別注文と身元を、公開清算価格と約定数量から分離します。支払能力証明と閲覧鍵にも言及しています。これらは想定する性質であり、この試作が暗号技術によるプライバシーを実装済みという意味ではありません。"
-  ],
   "This demonstration stores its simulated records in a server-side database associated with your browser identifier. No online system can promise absolute secrecy or uninterrupted security. Do not provide sensitive financial or personal information to the demo.": [
     "本本网站将记录存于与浏览器标识符关联的服务器数据库。任何在线系统都无法承诺绝对保密或持续无间断的安全。请勿向本网站提供敏感财务或个人信息。",
     "記録はブラウザー識別子に関連付けたサーバーのデータベースに保存します。絶対的な秘密保持や途切れることのない安全性を約束できるオンラインシステムはありません。機微な金融情報や個人情報は提供しないでください。"
-  ],
-  "Operator details and requests": [
-    "运营方信息与请求",
-    "運営者情報と申請"
-  ],
-  "A verified legal operator name, postal address, privacy contact, retention schedule and applicable rights-request process are not provided in the source documents. They must be supplied and reviewed before this draft becomes a live-service privacy notice. No contact address or jurisdiction has been invented here.": [
-    "源文档未提供经核实的法律运营主体名称、邮寄地址、隐私联系人、保留计划或适用的权利请求流程。本草案成为正式服务隐私声明前，须补充并审阅这些信息。本页面未虚构联系地址或司法辖区。",
-    "原資料には確認済みの運営主体名、住所、プライバシー連絡先、保存計画、権利行使の手順がありません。実サービスの通知とする前に提示と確認が必要です。連絡先や法域を創作したものではありません。"
   ],
   "Private orders do not remove the risks of markets, assets or software.": [
     "私密订单并不消除市场、资产或软件的风险。",
@@ -2035,21 +1927,13 @@
     "当前体验",
     "現在の体験"
   ],
-  "Prices, assets, collateral, fills and proof records on this site are illustrative. There is no real custody, asset transfer, investment return or blockchain settlement. The following points describe boundaries and risks relevant to the proposed product, not an assertion that the live service is available.": [
-    "当前网站为本网站。价格、资产、抵押品、成交与证明记录均为。不存在真实托管、资产转移、投资回报或区块链结算。以下内容说明拟议产品的范围与风险，并非声称正式服务可用。",
-    "現在のサイトはです。価格、資産、担保、約定、証明記録はで、実際の保管、移転、投資収益、ブロックチェーン決済はありません。以下は提案製品の範囲とリスクであり、実サービスの提供を表すものではありません。"
+  "Luminary runs on Robinhood Chain mainnet with real assets. Buys lock USDG, and fills, cancellations and withdrawals settle on chain. The following points describe boundaries and risks of using it.": [
+    "Luminary 运行于 Robinhood Chain 主网，使用真实资产。买单锁定 USDG，成交、取消与提取均在链上结算。以下内容说明使用时的范围与风险。",
+    "Luminary は実際の資産を用いて Robinhood Chain メインネットで稼働します。買い注文は USDG をロックし、約定、取り消し、出金はオンチェーンで決済されます。以下は利用時の範囲とリスクです。"
   ],
   "Securities and jurisdiction": [
     "证券与司法辖区",
     "証券と法域"
-  ],
-  "The product overview expressly describes securities-form real-world assets and a non-US, jurisdiction-gated participant base. Availability would depend on participant eligibility, issuer terms, supported assets and applicable restrictions.": [
-    "产品概述明确描述证券形式的现实世界资产，以及非美国、受司法辖区限制的参与群体。可用性取决于参与资格、发行方条款、受支持资产及适用限制。",
-    "製品概要は証券形態の実物資産と、法域で制限される米国外の参加者を明示しています。提供可否は参加資格、発行者の条件、対象資産、適用される制限によります。"
-  ],
-  "The website does not determine legal eligibility. Access to this site is not authorization to transact, and references to tokenized stocks do not establish the exact ownership or shareholder rights of a future instrument. Those would need to be explained in the relevant issuer documents.": [
-    "网站不判定法律资格。访问本网站不代表获准交易；提及代币化股票也不确定未来工具的具体所有权或股东权利，这些须在相关发行方文件中说明。",
-    "サイトは法的な参加資格を判断しません。へのアクセスは取引の許可ではなく、トークン化株式への言及も将来の商品の具体的な所有権や株主権を確定しません。これらは発行者の資料で説明する必要があります。"
   ],
   "Price, liquidity and execution": [
     "价格、流动性与执行",
@@ -2059,69 +1943,57 @@
     "竞价旨在以统一清算价格汇集符合条件的买卖双方，但不保证充足对手需求、完全成交或经济上有利的结果。限价订单可能未成交；竞价价格订单在配置区间内接受最终清算价格。",
     "オークションは適格な売り手と買い手を単一価格で結びつけることを目指しますが、十分な反対注文、全量約定、有利な結果を保証しません。指値は未約定となる場合があり、オークション価格注文は設定された帯域内の最終価格を受け入れます。"
   ],
-  "The intended reference band constrains the auction price relative to an external stock reference or fund NAV. It cannot ensure that a reference is timely, error-free or continuously available. Market dislocations and underlying asset events can affect token prices and liquidity.": [
-    "拟议参考区间约束竞价价格相对于外部股票参考值或基金净值的范围，但不能确保参考值及时、无误或持续可用。市场失序及标的资产事件可能影响代币价格与流动性。",
-    "参照価格帯は外部株価やファンド NAV に対する価格範囲を制約しますが、参照値の適時性、正確性、継続提供を保証できません。市場の混乱や原資産の事象は価格と流動性に影響します。"
+  "The intended reference band constrains the auction price relative to the Chainlink reference price on Robinhood Chain. It cannot ensure that a reference is timely, error-free or continuously available. Market dislocations and underlying asset events can affect token prices and liquidity.": [
+    "拟议参考区间约束竞价价格相对于 Robinhood Chain 上 Chainlink 参考价格的范围，但不能确保参考值及时、无误或持续可用。市场失序及标的资产事件可能影响代币价格与流动性。",
+    "参照価格帯は Robinhood Chain 上の Chainlink 参照価格に対する価格範囲を制約しますが、参照値の適時性、正確性、継続提供を保証できません。市場の混乱や原資産の事象は価格と流動性に影響します。"
   ],
-  "Treasury collateral and NAV accrual": [
-    "国债抵押品与净值累积",
-    "国債担保と NAV の増減"
+  "Dollar collateral": [
+    "美元抵押品",
+    "ドル建て担保"
   ],
-  "The design uses tokenized treasuries as settlement collateral. Such instruments can carry issuer, custody, redemption, liquidity, valuation and market risks. A tokenized treasury should not be assumed to be equivalent to a cash deposit or protected bank account.": [
-    "设计以代币化国债作为结算抵押品。此类工具可能承受发行方、托管、赎回、流动性、估值及市场风险。不应假定代币化国债等同于现金存款或受保护的银行账户。",
-    "設計ではトークン化国債を決済担保に用います。発行者、保管、償還、流動性、評価、市場のリスクを伴う場合があります。現金預金や保護対象の銀行口座と同等とは限りません。"
+  "Buys lock USDG, a dollar stablecoin. A stablecoin can carry issuer, custody, redemption, liquidity and price risks, and should not be assumed to be equivalent to a cash deposit or protected bank account.": [
+    "买单锁定美元稳定币 USDG。稳定币可能承受发行方、托管、赎回、流动性及价格风险，不应假定其等同于现金存款或受保护的银行账户。",
+    "買い注文はドル建てステーブルコインの USDG をロックします。ステーブルコインには発行者、保管、償還、流動性、価格のリスクが伴う場合があり、現金預金や保護対象の銀行口座と同等とは限りません。"
   ],
-  "Published NAV accrual can vary, and the documents set no fixed rate or return. This site displays balances without any real accrual. Fees, redemption terms and issuer documentation for any live collateral asset would require separate disclosure.": [
-    "公布净值的累积变化可能波动，文档不设定任何固定利率或回报。本网站仅显示余额，不产生真实累积。正式抵押品资产的费用、赎回条款与发行方文件须另行披露。",
-    "公表 NAV の増減は変動し、文書は固定の利率や収益を定めていません。本サイトは残高を表示するだけで、実際の増加は発生しません。実際の担保資産の手数料、償還条件、発行者資料には別途開示が必要です。"
+  "USDG held or locked through this site accrues no return. Its fees and redemption terms are set by its issuer.": [
+    "通过本网站持有或锁定的 USDG 不产生回报。其费用与赎回条款由发行方规定。",
+    "本サイトを通じて保有またはロックされた USDG に収益は発生しません。手数料と償還条件は発行者が定めます。"
   ],
   "Timing and corporate actions": [
     "时间与公司行动",
     "時刻とコーポレートアクション"
   ],
-  "The intended schedule follows underlying-market open and close, plus 00:00 UTC. The backend specification includes daylight saving and holiday handling, NAV calls and ex-date pauses. A calendar does not eliminate outages, delayed calls or corporate-action complexity.": [
-    "拟议日程跟随标的市场开盘、收盘及 UTC 00:00。后端规范包含夏令时、假期、净值竞价与除权除息日暂停。日历不能消除停机、延迟竞价或公司行动的复杂性。",
-    "予定は原市場の開始・終了と UTC 00:00 に沿います。仕様は夏時間、休場日、NAV オークション、権利落ち日の停止を扱いますが、停止障害、実行遅延、コーポレートアクションの複雑さは解消できません。"
+  "The intended schedule follows underlying-market open and close, plus 00:00 UTC. The backend specification includes daylight saving and holiday handling and ex-date pauses. A calendar does not eliminate outages, delayed calls or corporate-action complexity.": [
+    "拟议日程跟随标的市场开盘、收盘及 UTC 00:00。后端规范包含夏令时、假期与除权除息日暂停。日历不能消除停机、延迟竞价或公司行动的复杂性。",
+    "予定は原市場の開始・終了と UTC 00:00 に沿います。仕様は夏時間、休場日、権利落ち日の停止を扱いますが、停止障害、実行遅延、コーポレートアクションの複雑さは解消できません。"
   ],
-  "The displayed schedule accounts for New York daylight saving and weekends but not exchange holidays, ex-dates, issuer-specific events or production chain availability. Do not use it as a live trading schedule.": [
-    "本网站日程考虑纽约夏令时与周末，但不包含交易所假期、除权除息日、发行方特定事件或生产链可用性。请勿将其作为真实交易日程使用。",
-    "はニューヨークの夏時間と週末を考慮しますが、取引所の休日、権利落ち日、発行者固有の事象、本番チェーンの稼働状況は含みません。実取引の日程として使用しないでください。"
+  "The displayed schedule skips NYSE holidays and early closes and pauses an asset on its Ex-Date. It does not account for issuer-specific events or chain outages.": [
+    "显示的日程会跳过纽约证券交易所假期与提前收盘日，并在资产除权除息日暂停该资产。它不考虑发行方特定事件或链故障。",
+    "表示される日程は NYSE の休場日と短縮取引日を除外し、権利落ち日には該当資産を停止します。発行者固有の事象やチェーンの障害は考慮しません。"
   ],
   "Technology, proofs and privacy": [
     "技术、证明与隐私",
     "技術・証明・プライバシー"
   ],
-  "Smart contracts, reference feeds, clearing logic, schedulers, proof systems and chain infrastructure may fail or behave unexpectedly. The supplied specification is not a completed security audit or an assurance of production readiness.": [
-    "智能合约、参考数据源、清算逻辑、调度器、证明系统与链基础设施可能故障或出现意外行为。所提供规范并非已完成的安全审计，也不保证生产就绪。",
-    "スマートコントラクト、参照データ、清算ロジック、スケジューラー、証明系、チェーン基盤は故障や想定外の動作を起こす可能性があります。仕様は完了済みの安全性監査や本番対応の保証ではありません。"
+  "Each settled call verifies its clearing proof on chain, in the same transaction that publishes its print.": [
+    "每次已结算的竞价都会在链上验证其清算证明，并在同一笔交易中发布成交记录。",
+    "決済された各回は、取引記録を公開するのと同じトランザクションで、清算証明をオンチェーンで検証します。"
   ],
-  "The documents describe a possible signed clearing digest before a full proof upgrade. A signature and a cryptographic auction proof provide different assurances. The proof records shown here are illustrative only.": [
-    "文档描述了全面证明升级前可能使用签名清算摘要。签名与密码学竞价证明提供不同程度的保证。本网站证明记录仅用于说明。",
-    "文書は本格的な証明への移行前に署名付き清算ダイジェストを使う可能性を示しています。署名と暗号学的なオークション証明の保証は異なります。記録は例示に限られます。"
+  "The contracts are owned by a 48-hour timelock controlled by a multisig (Safe).": [
+    "合约由一个 48 小时时间锁拥有，该时间锁由多签钱包（Safe）控制。",
+    "コントラクトは 48 時間のタイムロックが所有し、そのタイムロックはマルチシグ（Safe）が管理します。"
   ],
-  "Private orders and public prints are distinct design goals. Privacy can still be affected by implementation flaws, metadata, compromised devices or authorized view-key access. Do not assume anonymity from a sealed-order label.": [
-    "私密订单与公开成交记录是不同的设计目标。实现缺陷、元数据、设备受损或授权查看密钥访问仍可能影响隐私。请勿因“密封订单”标签而假定匿名性。",
-    "非公開の注文と公開取引記録は別の設計目標です。実装の欠陥、メタデータ、端末の侵害、許可された閲覧鍵でのアクセスがプライバシーに影響し得ます。「封印注文」という表示だけで匿名性を想定しないでください。"
+  "Private orders and public prints are distinct design goals. Privacy can still be affected by implementation flaws, metadata, compromised devices or authorized view-key access. Today the operator alone holds the clearing key, so it can read orders before the call. Do not assume anonymity from a sealed-order label.": [
+    "私密订单与公开成交记录是不同的设计目标。实现缺陷、元数据、设备受损或授权查看密钥访问仍可能影响隐私。目前清算密钥仅由运营方持有，因此运营方可在竞价前读取订单。请勿因“密封订单”标签而假定匿名性。",
+    "非公開の注文と公開取引記録は別の設計目標です。実装の欠陥、メタデータ、端末の侵害、許可された閲覧鍵でのアクセスがプライバシーに影響し得ます。現在は清算鍵を運営者だけが持つため、運営者はコール前に注文を読むことができます。「封印注文」という表示だけで匿名性を想定しないでください。"
   ],
   "RFQ and expansion": [
     "询价与拓展",
     "RFQ と拡張"
   ],
-  "RFQ blocks depend on counterparties, valid quotes and execution conditions. This site uses a fixed spread and a quote expiry, not live counterparties or market-making liquidity.": [
-    "大宗询价依赖交易对手、有效报价与执行条件。本网站使用固定价差与报价期限，而非真实交易对手或做市流动性。",
-    "RFQ ブロック取引には相手方、有効な見積もり、執行条件が必要です。は固定のスプレッドと有効期限を用い、実際の相手方やマーケットメイクの流動性はありません。"
-  ],
   "Issuer launches, index rebalances, Arc and FX auctions, calendar data products, agent mandates and derivative settlement references are planned directions. They may change, be deferred or not launch. Nothing on the roadmap guarantees adoption or economic returns.": [
     "发行方首发、指数再平衡、Arc 与外汇竞价、日历数据产品、代理授权及衍生品结算参考均为规划方向，可能变更、推迟或不推出。路线图不保证采用程度或经济回报。",
     "発行者のローンチ、指数リバランス、Arc・FX オークション、日程データ、エージェント委任、デリバティブ決済参照は計画段階です。変更、延期、未提供となる場合があり、採用や収益を保証しません。"
-  ],
-  "Review before any live use": [
-    "正式使用前的审阅",
-    "実際に利用する前の確認"
-  ],
-  "A live service would need finalized legal and issuer disclosures, eligibility procedures, security information, fees, execution rules and support channels. This draft should be reviewed by the responsible operator and qualified legal counsel before launch. It does not certify compliance or replace those materials.": [
-    "正式服务需要最终法律与发行方披露、资格程序、安全信息、费用、执行规则及支持渠道。本草案须在上线前由负责运营方与合格法律顾问审阅，不认证合规性，也不替代这些资料。",
-    "実サービスには確定した法務・発行者の開示、適格性手続き、安全性情報、手数料、執行ルール、サポート窓口が必要です。草案は運営者と適格な法律専門家が公開前に確認すべきもので、適法性の認証や資料の代替ではありません。"
   ],
   "LUMINARY / LEGAL": [
     "LUMINARY / 法律",
@@ -2791,37 +2663,13 @@
     "正在打开",
     "開いています"
   ],
-  "This site stores balances, holdings, orders, RFQ quotes, auction results and recent activity in this browser and device. Portfolio records are not sent to a server.": [
-    "此便携本网站将余额、持仓、订单、RFQ 报价、竞价结果和近期活动保存在当前浏览器与设备中，不会将投资组合记录发送至服务器。",
-    "このポータブルは、残高、保有資産、注文、RFQ見積もり、オークション結果、最近の履歴を、このブラウザと端末に保存します。ポートフォリオ記録をサーバーへ送信しません。"
-  ],
-  "The sidebar_state cookie remembers navigation preferences for up to seven days. The luminary_language local storage preference remembers your language on this device. Blocking browser storage may prevent portfolio persistence. Fonts and artwork are served with the website.": [
-    "sidebar_state Cookie 保存导航偏好，最长七天。luminary_language 本地存储记住此设备的语言设置。阻止浏览器存储可能导致投资组合无法持久保存。字体和插图由网站提供。",
-    "sidebar_state Cookie はナビゲーション設定を最長7日間保存します。luminary_language はこの端末の言語設定をローカルストレージに保存します。ブラウザの保存機能をブロックすると、ポートフォリオを保持できない場合があります。フォントと画像はサイトから配信されます。"
-  ],
-  "Local portfolio records remain until you reset the portfolio or clear site data in your browser. This edition has no server portfolio records or automatic retention schedule.": [
-    "本地投资组合记录会保留至您重置本网站或清除浏览器中的站点数据。便携版本没有服务器端投资组合记录，也没有自动保留期限。",
-    "ローカルのポートフォリオ記録は、リセットまたはブラウザのサイトデータ消去まで残ります。ポータブル版にはサーバー上のポートフォリオ記録や自動保存期限はありません。"
-  ],
-  "Resetting clears active orders, quotes and prints and restores the starting portfolio. Disconnecting the wallet preserves local orders. Clearing site data deletes the local portfolio. These actions do not erase hosting logs or third-party records.": [
-    "重置本网站会清除当前订单、报价和成交记录，并恢复初始投资组合。断开钱包会保留本地订单。清除站点数据会删除本地投资组合。这些操作不会删除托管日志或第三方记录。",
-    "リセットは、注文、見積もり、約定記録を消去し、初期ポートフォリオに戻します。ウォレットを切断してもローカル注文は残ります。サイトデータを消去するとローカルのポートフォリオが削除されます。ホスティングログや第三者の記録は消去されません。"
-  ],
-  "This edition stores its records in browser IndexedDB. Anyone with access to this browser profile may access those records. Do not provide sensitive financial or personal information here.": [
-    "此便携本网站将记录保存在浏览器 IndexedDB 中。能够访问此浏览器配置文件的人可能访问这些记录。请勿向本网站提供敏感财务或个人信息。",
-    "このポータブルは記録をブラウザのIndexedDBに保存します。このブラウザプロファイルにアクセスできる人は、その記録を閲覧できる場合があります。機密性の高い金融情報や個人情報をに入力しないでください。"
-  ],
-  "The site uses the IndexedDB database luminary-portfolio. Records remain on this site and device until reset or until you clear site data. They do not synchronize across devices.": [
-    "本网站使用 IndexedDB 数据库 luminary-portfolio。记录保留在当前站点与设备上，直到重置或清除站点数据；不同设备之间不会同步。",
-    "はIndexedDBデータベース luminary-portfolio を使用します。リセットまたはサイトデータの消去まで、このサイトと端末に記録が残ります。端末間では同期されません。"
-  ],
   "None available": [
     "暂无可选",
     "選択肢なし"
   ],
-  "TESTNET": [
-    "测试网",
-    "テストネット"
+  "MAINNET": [
+    "主网",
+    "メインネット"
   ],
   "Working…": [
     "处理中…",
@@ -2835,9 +2683,9 @@
     "请在钱包中签署密钥消息。免费，且不会发送任何交易。",
     "ウォレットで鍵メッセージに署名してください。無料で、トランザクションは送信されません。"
   ],
-  "Switch your wallet to Robinhood Chain testnet (46630) before sending transactions.": [
-    "发送交易前，请将钱包切换到 Robinhood Chain 测试网（46630）。",
-    "トランザクションを送る前に、ウォレットを Robinhood Chain テストネット（46630）に切り替えてください。"
+  "Switch your wallet to Robinhood Chain (4663) before sending transactions.": [
+    "发送交易前，请将钱包切换到 Robinhood Chain（4663）。",
+    "トランザクションを送る前に、ウォレットを Robinhood Chain（4663）に切り替えてください。"
   ],
   "Wallet connected. Your shielded account is loaded.": [
     "钱包已连接，隐私账户已加载。",
@@ -2871,21 +2719,13 @@
     "由中继提交，您的钱包不会与订单关联。",
     "リレイヤーが送信するため、ウォレットと注文は結び付きません。"
   ],
-  "Locked for this buy (TQ)": [
-    "本次买入锁定（TQ）",
-    "この買いでロック（TQ）"
-  ],
   "No auction of this asset is taking orders right now. The next ones go on chain up to 36 hours ahead.": [
     "该资产当前没有接受订单的竞价。后续竞价最多提前 36 小时上链。",
     "この資産で注文受付中のオークションは現在ありません。次回分は最大 36 時間前にオンチェーン化されます。"
   ],
-  "Robinhood Chain testnet. Test tokens only, with no real value. Reference prices are mirrored from mainnet.": [
-    "Robinhood Chain 测试网。仅限测试代币，无真实价值。参考价格镜像自主网。",
-    "Robinhood Chain テストネット。テストトークンのみで実際の価値はありません。参照価格はメインネットから反映しています。"
-  ],
-  "Testnet faucet": [
-    "测试网水龙头",
-    "テストネット・フォーセット"
+  "Robinhood Chain mainnet. Buys lock USDG, and reference prices come from Chainlink feeds on Robinhood Chain.": [
+    "Robinhood Chain 主网。买单锁定 USDG，参考价格来自 Robinhood Chain 上的 Chainlink 喂价。",
+    "Robinhood Chain メインネット。買い注文は USDG をロックし、参照価格は Robinhood Chain 上の Chainlink フィードから取得します。"
   ],
   "Refresh": [
     "刷新",
@@ -2894,10 +2734,6 @@
   "Shielded collateral": [
     "隐私抵押品",
     "シールド担保"
-  ],
-  "Treasury quote (TQ) · NAV": [
-    "国债报价（TQ）· 净值",
-    "トレジャリー・クオート（TQ）· NAV"
   ],
   "assets": [
     "个资产",
@@ -2983,17 +2819,9 @@
     "隐私国债抵押品",
     "シールド国債担保"
   ],
-  "TREASURY QUOTE (TQ) · NAV": [
-    "国债报价（TQ）· 净值",
-    "トレジャリー・クオート（TQ）· NAV"
-  ],
   "Spendable": [
     "可用",
     "利用可能"
-  ],
-  "Buys lock TreasuryQuote shares. Their NAV accrues while your order waits for its call, so resting collateral earns.": [
-    "买单锁定 TreasuryQuote 份额。订单等待竞价期间净值持续累积，闲置抵押品也能产生收益。",
-    "買い注文は TreasuryQuote の持分をロックします。コールを待つ間も NAV が積み上がるため、待機中の担保も収益を生みます。"
   ],
   "Balances": [
     "余额",
@@ -3043,17 +2871,13 @@
     "每笔订单中继费",
     "注文ごとのリレー手数料"
   ],
-  "Test tokens only. Get ETH and stock tokens from the Robinhood testnet faucet; mint USDG here.": [
-    "仅限测试代币。ETH 和股票代币请从 Robinhood 测试网水龙头领取；USDG 可在此铸造。",
-    "テストトークンのみ。ETH と株式トークンは Robinhood テストネットのフォーセットから、USDG はここでミントできます。"
+  "Bring ETH for gas, USDG for buys and stock tokens for sells to your wallet on Robinhood Chain.": [
+    "请在 Robinhood Chain 钱包中准备 ETH 用于支付 Gas，USDG 用于买入，股票代币用于卖出。",
+    "Robinhood Chain のウォレットに、ガス代用の ETH、買い用の USDG、売り用の株式トークンを用意してください。"
   ],
-  "Robinhood testnet faucet": [
-    "Robinhood 测试网水龙头",
-    "Robinhood テストネット・フォーセット"
-  ],
-  "Your browser proves the order and seals it to the clearing key. On testnet the operator alone holds that key, so it can read orders; nobody else can before the call.": [
-    "您的浏览器为订单生成证明，并将其密封给清算密钥。测试网上该密钥仅由运营方持有，因此运营方可以读取订单；竞价前其他任何人都无法读取。",
-    "ブラウザが注文を証明し、清算鍵に向けて封印します。テストネットではこの鍵を運営者だけが持つため運営者は注文を読めますが、コールまで他の誰も読めません。"
+  "Your browser proves the order and seals it to the clearing key. The operator alone holds that key today, so it can read orders; nobody else can before the call.": [
+    "您的浏览器为订单生成证明，并将其密封给清算密钥。目前该密钥仅由运营方持有，因此运营方可以读取订单；竞价前其他任何人都无法读取。",
+    "ブラウザが注文を証明し、清算鍵に向けて封印します。現在はこの鍵を運営者だけが持つため運営者は注文を読めますが、コールまで他の誰も読めません。"
   ],
   "Submitted by": [
     "提交方",
@@ -3087,10 +2911,6 @@
     "转移资金。",
     "資金を移動。"
   ],
-  "Mint test USDG, turn it into treasury quote (TQ), and shield it into the pool as buy collateral. Stock tokens and ETH come from the testnet faucet.": [
-    "铸造测试 USDG，兑换为国债报价（TQ），再存入隐私池作为买入抵押品。股票代币和 ETH 请从测试网水龙头领取。",
-    "テスト用 USDG をミントしてトレジャリー・クオート（TQ）に換え、買い担保としてプールにシールドします。株式トークンと ETH はテストネットのフォーセットから。"
-  ],
   "Amount": [
     "金额",
     "金額"
@@ -3118,10 +2938,6 @@
   "Read account": [
     "读取账户",
     "アカウントを読む"
-  ],
-  "Read the connected Luminary testnet account: shielded balances and sealed orders. Read only.": [
-    "读取已连接的 Luminary 测试网账户：隐私余额和密封订单。只读。",
-    "接続中の Luminary テストネットアカウント（シールド残高と封印注文）を読み取ります。読み取り専用。"
   ],
   "Fill the visible order ticket and open review. Does not submit anything.": [
     "填写可见的订单票据并打开确认。不会提交任何内容。",
@@ -3154,14 +2970,6 @@
   "Requests sealed to your RFQ key appear here.": [
     "发送给您 RFQ 密钥的密封请求会显示在这里。",
     "あなたの RFQ キー宛てに封印されたリクエストがここに表示されます。"
-  ],
-  "Mint test USDG (faucet)": [
-    "铸造测试 USDG（水龙头）",
-    "テスト用 USDG をミント（フォーセット）"
-  ],
-  "USDG → TQ (treasury quote)": [
-    "USDG → TQ（国债报价）",
-    "USDG → TQ（トレジャリー・クオート）"
   ],
   "Shield into the pool": [
     "存入隐私池",
@@ -3203,14 +3011,6 @@
     "取回",
     "回収"
   ],
-  "Chainlink (mainnet)": [
-    "Chainlink（主网）",
-    "Chainlink（メインネット）"
-  ],
-  "Robinhood quote": [
-    "Robinhood 报价",
-    "Robinhood 気配値"
-  ],
   "Send sealed request": [
     "发送密封请求",
     "封印リクエストを送信"
@@ -3227,9 +3027,9 @@
     "已发送",
     "送信済み"
   ],
-  "Mock USDG": [
-    "模拟 USDG",
-    "モック USDG"
+  "Dollar stablecoin": [
+    "美元稳定币",
+    "ドル建てステーブルコイン"
   ],
   "Ether": [
     "以太币",
@@ -3239,9 +3039,9 @@
     "您的隐私账户由一次签名派生，可在任何设备上根据公开链上数据重建。",
     "シールドアカウントは 1 回の署名から導出され、どのデバイスでも公開チェーンデータから再構築できます。"
   ],
-  "Connect a wallet on Robinhood Chain testnet. You sign one message to derive your private keys; no transaction is sent.": [
-    "连接 Robinhood Chain 测试网钱包。只需签署一条消息来派生私钥，不会发送交易。",
-    "Robinhood Chain テストネットのウォレットを接続します。メッセージに 1 回署名して秘密鍵を導出し、トランザクションは送信しません。"
+  "Connect a wallet on Robinhood Chain. You sign one message to derive your private keys; no transaction is sent.": [
+    "连接 Robinhood Chain 钱包。只需签署一条消息来派生私钥，不会发送交易。",
+    "Robinhood Chain のウォレットを接続します。メッセージに 1 回署名して秘密鍵を導出し、トランザクションは送信しません。"
   ],
   "Refund after call": [
     "竞价后退款",
@@ -3259,17 +3059,9 @@
     "中继（私密）",
     "リレイヤー（非公開）"
   ],
-  "Treasury NAV call": [
-    "国债净值竞价",
-    "国債 NAV コール"
-  ],
   "RFQ block": [
     "RFQ 大宗",
     "RFQ ブロック"
-  ],
-  "Shielded collateral (TQ)": [
-    "隐私抵押品（TQ）",
-    "シールド担保（TQ）"
   ],
   "planned": [
     "已规划",
@@ -3311,36 +3103,160 @@
     "买单锁定美元稳定币 USDG，直至竞价。未成交的部分会以可再次使用的票据返还。",
     "買い注文はコールまでドル建てステーブルコインの USDG をロックします。約定しなかった分は、再び使えるノートとして戻ります。"
   ],
-  "Testnet: mint free test USDG with Add funds. Treasury collateral that follows a fund NAV is planned for later.": [
-    "测试网：通过“添加资金”免费铸造测试 USDG。跟随基金净值的国债抵押品计划稍后推出。",
-    "テストネット：「資金を追加」から無料のテスト用 USDG をミントできます。ファンドの NAV に連動する国債担保は今後提供予定です。"
+  "Add funds shields USDG from your wallet into the pool as buy collateral.": [
+    "“添加资金”会将钱包中的 USDG 存入隐私池，作为买入抵押品。",
+    "「資金を追加」で、ウォレットの USDG を買い担保としてプールにシールドします。"
   ],
   "Understand settlement ": [
     "了解结算",
     "決済について知る"
   ],
-  "Mint test USDG and shield it into the pool as buy collateral. Stock tokens and ETH come from the testnet faucet.": [
-    "铸造测试 USDG，再存入隐私池作为买入抵押品。股票代币和 ETH 请从测试网水龙头领取。",
-    "テスト用 USDG をミントし、買い担保としてプールにシールドします。株式トークンと ETH はテストネットのフォーセットから。"
+  "Shield USDG into the pool as buy collateral, or stock tokens to sell, and withdraw them back to your wallet.": [
+    "将 USDG 存入隐私池作为买入抵押品，或存入股票代币用于卖出，也可将其提取回钱包。",
+    "USDG を買い担保として、または株式トークンを売却用としてプールにシールドし、ウォレットへ引き出すこともできます。"
   ],
   "Dollar settlement": [
     "美元结算",
     "ドル建て決済"
   ],
-  "Buys lock USDG, a dollar stablecoin, and the auction settles in it. Treasury collateral that follows a fund NAV is planned for later.": [
-    "买单锁定美元稳定币 USDG，竞价也以其结算。跟随基金净值的国债抵押品计划稍后推出。",
-    "買い注文はドル建てステーブルコインの USDG をロックし、オークションも USDG で決済します。ファンドの NAV に連動する国債担保は今後提供予定です。"
+  "Buys lock USDG, a dollar stablecoin, and the auction settles in it.": [
+    "买单锁定美元稳定币 USDG，竞价也以其结算。",
+    "買い注文はドル建てステーブルコインの USDG をロックし、オークションも USDG で決済します。"
   ],
   "What do auctions settle in?": [
     "竞价以什么结算？",
     "オークションは何で決済されますか？"
   ],
-  "Auctions settle in USDG, a dollar stablecoin: buys lock it until the call, and whatever is not filled comes back. Tokenized treasury collateral, where resting cash would follow a fund NAV at no fixed rate, is planned for later.": [
-    "竞价以美元稳定币 USDG 结算：买单在竞价前锁定 USDG，未成交的部分会返还。让闲置资金跟随基金净值、且无固定利率的代币化国债抵押品计划稍后推出。",
-    "オークションはドル建てステーブルコインの USDG で決済されます。買い注文はコールまで USDG をロックし、約定しなかった分は戻ります。待機中の資金がファンドの NAV に連動する（固定利率なし）トークン化国債担保は今後提供予定です。"
+  "Auctions settle in USDG, a dollar stablecoin: buys lock it until the call, and whatever is not filled comes back.": [
+    "竞价以美元稳定币 USDG 结算：买单在竞价前锁定 USDG，未成交的部分会返还。",
+    "オークションはドル建てステーブルコインの USDG で決済されます。買い注文はコールまで USDG をロックし、約定しなかった分は戻ります。"
   ],
   "share": [
     "股",
     "株"
+  ],
+  "Draft status": [
+    "草案状态",
+    "草案の位置づけ"
+  ],
+  "These terms are a draft. The legal operator, registered address, contact channel, governing law and dispute terms are not yet published, and the terms have not been reviewed by counsel. Nothing here represents that they have been approved.": [
+    "本条款为草案。法律运营主体、注册地址、联系渠道、适用法律及争议解决条款尚未公布，本条款也未经法律顾问审阅。此处任何内容均不表示条款已获批准。",
+    "本規約は草案です。法的な運営主体、登記上の住所、連絡窓口、準拠法、紛争解決条項はまだ公表されておらず、本規約は弁護士の審査を受けていません。ここに記載された内容は、承認済みであることを表すものではありません。"
+  ],
+  "The service and planned work": [
+    "服务与计划中的工作",
+    "サービスと今後の計画"
+  ],
+  "Luminary runs scheduled sealed auctions with uniform clearing inside a band around the Chainlink reference price, USDG settlement and public price-and-volume prints on Robinhood Chain mainnet. There is no regulatory approval and no completed external security audit.": [
+    "Luminary 在 Robinhood Chain 主网上运行定时密封竞价：在 Chainlink 参考价格附近的区间内统一清算，以 USDG 结算，并公开价格与成交量记录。目前没有监管批准，也没有已完成的外部安全审计。",
+    "Luminary は Robinhood Chain メインネット上で定時の封印型オークションを運営し、Chainlink 参照価格を中心とする帯域内での単一価格清算、USDG による決済、価格と数量の公開記録を行います。規制当局の承認はなく、完了した外部の安全性監査もありません。"
+  ],
+  "The service is intended for eligible non-US participants in permitted jurisdictions. The site does not verify your eligibility; it only screens deposits against a sanctions list. You are responsible for using it only where you are permitted to.": [
+    "本服务面向许可司法辖区内符合条件的非美国参与者。本网站不核实您的资格，仅根据制裁名单筛查存款。您有责任仅在获准的地区使用本服务。",
+    "本サービスは、許可された法域に所在する適格な米国外の参加者を対象としています。本サイトは参加資格を確認せず、入金を制裁リストと照合するのみです。利用が認められている場合に限って利用する責任は利用者にあります。"
+  ],
+  "Do not rely on access to this website as permission to purchase, sell, hold or transfer an asset in any jurisdiction. Issuer restrictions on the stock tokens and on USDG apply.": [
+    "请勿将访问本网站视为在任何司法辖区购买、出售、持有或转让资产的许可。股票代币及 USDG 的发行方限制同样适用。",
+    "本サイトへのアクセスを、いずれかの法域で資産を購入、売却、保有、移転する許可とみなさないでください。株式トークンおよび USDG には発行者による制限が適用されます。"
+  ],
+  "Never share a private key or seed phrase. The interface never asks for them: it asks your wallet for one signature, from which your shielded keys are derived in your browser.": [
+    "切勿分享私钥或助记词。界面从不索取这些信息：它只请求您的钱包签署一次，您的隐私密钥由该签名在浏览器中派生。",
+    "秘密鍵やシードフレーズは決して共有しないでください。インターフェースがそれらを求めることはありません。ウォレットに 1 回の署名を求め、その署名からブラウザ内でシールド用の鍵を導出します。"
+  ],
+  "Not yet reviewed": [
+    "尚未审阅",
+    "未審査"
+  ],
+  "Disclosures on custody, fees, execution rules, complaints, suspension, liability and any regulated-service obligations still need review by the responsible operator and qualified counsel. This draft does not invent those details.": [
+    "有关托管、费用、执行规则、投诉、暂停、责任及任何受监管服务义务的披露，仍需由负责的运营方和合格法律顾问审阅。本草案不会自行编造这些细节。",
+    "保管、手数料、執行ルール、苦情、停止、責任、規制対象サービスに関する義務についての開示は、責任ある運営者と資格のある弁護士による審査がまだ必要です。本草案はそれらの詳細を創作しません。"
+  ],
+  "What this website and its operator see, store and share.": [
+    "本网站及其运营方可见、存储与共享的信息。",
+    "本サイトとその運営者が閲覧、保存、共有する情報。"
+  ],
+  "This notice describes what the site and its operator actually process today. The legal controller, privacy contact and a rights-request process are not yet published.": [
+    "本声明说明本网站及其运营方目前实际处理的信息。法律上的数据控制者、隐私联系人及权利请求流程尚未公布。",
+    "本通知は、本サイトとその運営者が現在実際に処理している情報を説明します。法的な管理者、プライバシー窓口、権利請求の手続きはまだ公表されていません。"
+  ],
+  "Your wallet and keys": [
+    "您的钱包与密钥",
+    "ウォレットと鍵"
+  ],
+  "The site asks your wallet for its address and one signature. Your shielded keys are derived from that signature in your browser and kept in memory only; they are never sent to the operator or stored on a server. The site never asks for a private key or seed phrase.": [
+    "本网站会向您的钱包请求地址和一次签名。您的隐私密钥由该签名在浏览器中派生，仅保存在内存中，绝不会发送给运营方或存储在服务器上。本网站从不索取私钥或助记词。",
+    "本サイトはウォレットにアドレスと 1 回の署名を求めます。シールド用の鍵はその署名からブラウザ内で導出され、メモリ上にのみ保持されます。運営者に送信されることも、サーバーに保存されることもありません。本サイトが秘密鍵やシードフレーズを求めることはありません。"
+  ],
+  "Your wallet address is public on chain whenever it sends a transaction, such as a deposit, a token withdrawal, a reclaim or a ragequit.": [
+    "每当您的钱包发送交易（如存入、代币提取、取回锁定资金或 ragequit 退出）时，其地址都会在链上公开。",
+    "ウォレットが入金、トークンの出金、ロックの回収、ragequit などのトランザクションを送信するたびに、そのアドレスはオンチェーンで公開されます。"
+  ],
+  "What the operator sees": [
+    "运营方可见的信息",
+    "運営者に見える情報"
+  ],
+  "Orders are sealed to the operator’s clearing key, so the operator can read each order’s side, size and limit before the call. Balances and fills are sealed to your own viewing key; the operator does not learn them from the chain.": [
+    "订单被密封给运营方的清算密钥，因此运营方可在竞价前读取每笔订单的方向、数量与限价。余额与成交被密封给您自己的查看密钥，运营方无法从链上得知。",
+    "注文は運営者の清算鍵に向けて封印されるため、運営者はコール前に各注文の売買区分、数量、指値を読むことができます。残高と約定はあなた自身の閲覧鍵に向けて封印され、運営者がチェーンからそれらを知ることはありません。"
+  ],
+  "When the relayer submits a transaction or order for you, it receives the proof and the transaction data, which become public on chain, and keeps a record of the transaction hash. RFQ messages pass through the operator’s mailbox sealed to the counterparty’s session key; the operator stores the ciphertext until it expires.": [
+    "当中继器代您提交交易或订单时，它会收到证明和交易数据（这些数据会在链上公开），并保留交易哈希记录。RFQ 消息经由运营方的信箱传递，并被密封给对手方的会话密钥；运营方会存储密文直至其过期。",
+    "リレイヤーがあなたに代わってトランザクションや注文を送信する場合、証明とトランザクションデータ（オンチェーンで公開されます）を受け取り、トランザクションハッシュの記録を保持します。RFQ メッセージは相手方のセッション鍵に向けて封印された状態で運営者のメールボックスを経由し、運営者は期限切れになるまで暗号文を保存します。"
+  ],
+  "Sanctions screening": [
+    "制裁筛查",
+    "制裁スクリーニング"
+  ],
+  "Depositor wallet addresses, which are public on chain, are checked against Chainalysis’s sanctions screening service. The operator keeps each result and re-checks it daily. A deposit that is not cleared is left out of the association set; its depositor can still take it back with a ragequit.": [
+    "存款人的钱包地址在链上公开，会通过 Chainalysis 的制裁筛查服务进行核查。运营方会保留每次结果并每日重新核查。未通过筛查的存款不会纳入关联集合；其存款人仍可通过 ragequit 取回。",
+    "オンチェーンで公開されている入金者のウォレットアドレスは、Chainalysis の制裁スクリーニングサービスで照合されます。運営者は各結果を保持し、毎日再確認します。承認されなかった入金はアソシエーションセットから除外されますが、入金者は ragequit で取り戻すことができます。"
+  ],
+  "The site caches public pool data (the note tree and pool events) in IndexedDB so later visits load faster. It holds nothing secret. The luminary_language local storage preference remembers your language, and the sidebar_state cookie remembers navigation preferences for up to seven days. Clearing site data removes all of it.": [
+    "本网站会在 IndexedDB 中缓存公开的隐私池数据（票据树与隐私池事件），以便之后访问时加载更快。其中不含任何机密信息。luminary_language 本地存储偏好会记住您的语言，sidebar_state Cookie 会记住导航偏好，最长七天。清除网站数据即可将其全部删除。",
+    "本サイトは、次回以降の読み込みを速くするため、公開されたプールのデータ（ノートツリーとプールのイベント）を IndexedDB にキャッシュします。秘密の情報は含みません。ローカルストレージの luminary_language は言語設定を、Cookie の sidebar_state はナビゲーションの設定を最長 7 日間記憶します。サイトデータを消去すると、これらはすべて削除されます。"
+  ],
+  "Hosting and third parties": [
+    "托管与第三方",
+    "ホスティングと第三者"
+  ],
+  "The site and its API are hosted on Vercel and its database on Supabase; they process technical connection information, such as IP addresses and request metadata, under their own policies. The site adds no advertising pixels or marketing analytics.": [
+    "本网站及其 API 托管于 Vercel，数据库托管于 Supabase；它们会依据各自的政策处理技术连接信息，例如 IP 地址和请求元数据。本网站不添加任何广告像素或营销分析工具。",
+    "本サイトとその API は Vercel で、データベースは Supabase でホストされています。これらは各自のポリシーに基づき、IP アドレスやリクエストのメタデータなどの技術的な接続情報を処理します。本サイトは広告ピクセルやマーケティング分析を追加しません。"
+  ],
+  "The hero loads a Sketchfab viewer and its JavaScript to display the animated Chinese dragon, which can expose technical information to Sketchfab. The embed requests Sketchfab’s do-not-track option; that setting is not a promise that no provider data processing occurs. You can block third-party content in your browser, although the scene may then be unavailable.": [
+    "首页会加载 Sketchfab 查看器及其 JavaScript 以展示动画中国龙，这可能会向 Sketchfab 暴露技术信息。嵌入内容会请求 Sketchfab 的“请勿追踪”选项；该设置并不保证服务提供方不会处理任何数据。您可以在浏览器中屏蔽第三方内容，但届时该场景可能无法显示。",
+    "ヒーローセクションでは、アニメーションの中国の龍を表示するため Sketchfab のビューアーとその JavaScript を読み込みます。これにより技術的な情報が Sketchfab に伝わる場合があります。埋め込みは Sketchfab のトラッキング拒否オプションを要求しますが、この設定は提供者によるデータ処理が一切行われないことを約束するものではありません。ブラウザでサードパーティのコンテンツをブロックできますが、その場合はシーンが表示されないことがあります。"
+  ],
+  "Disclosure to an auditor": [
+    "向审计方披露",
+    "監査人への開示"
+  ],
+  "If you choose to disclose your account, your viewing material (never your spending secret) is sealed to the auditor’s key and published on chain. The auditor can then read every note, order and result of your account; this cannot be undone.": [
+    "如果您选择披露账户，您的查看材料（绝不包括您的支出密钥）会被密封给审计方的密钥并在链上发布。此后审计方可以读取您账户的每一张票据、每一笔订单和每一个结果；此操作无法撤销。",
+    "アカウントの開示を選んだ場合、閲覧用の情報（支出用の秘密は含みません）が監査人の鍵に向けて封印され、オンチェーンで公開されます。以降、監査人はあなたのアカウントのすべてのノート、注文、結果を読むことができます。この操作は取り消せません。"
+  ],
+  "The service lists Robinhood stock tokens for a non-US, jurisdiction-gated participant base. Participant eligibility, issuer terms and applicable restrictions apply.": [
+    "本服务为非美国、受司法辖区限制的参与者群体上架 Robinhood 股票代币。参与者资格、发行方条款及适用限制均适用。",
+    "本サービスは、法域で制限された米国外の参加者層を対象に Robinhood の株式トークンを取り扱います。参加資格、発行者の条件、適用される制限が適用されます。"
+  ],
+  "The website does not determine legal eligibility. Access to this site is not authorization to transact, and references to tokenized stocks do not establish any ownership or shareholder rights. Those are set out in the issuer’s documents.": [
+    "网站不判定法律资格。访问本网站不代表获准交易；提及代币化股票也不确立任何所有权或股东权利，这些权利以发行方文件为准。",
+    "サイトは法的な参加資格を判断しません。本サイトへのアクセスは取引の許可ではなく、トークン化株式への言及も所有権や株主権を確定しません。これらは発行者の資料に定められています。"
+  ],
+  "Smart contracts, reference feeds, clearing logic, schedulers, proof systems and chain infrastructure may fail or behave unexpectedly. There is no completed external security audit.": [
+    "智能合约、参考数据源、清算逻辑、调度器、证明系统与链基础设施可能故障或出现意外行为。目前没有已完成的外部安全审计。",
+    "スマートコントラクト、参照データ、清算ロジック、スケジューラー、証明系、チェーン基盤は故障や想定外の動作を起こす可能性があります。完了した外部の安全性監査はありません。"
+  ],
+  "RFQ blocks are negotiated between two parties through sealed messages and cross whole at the auction’s reference price, or both sides are refunded. There is no market maker.": [
+    "RFQ 大宗交易由双方通过密封消息协商，并以该竞价的参考价格整笔成交，否则双方均获退款。没有做市商。",
+    "RFQ ブロック取引は封印されたメッセージを通じて二者間で交渉され、オークションの参照価格で全量が約定するか、双方に返金されます。マーケットメイカーは存在しません。"
+  ],
+  "These disclosures are a draft and have not been reviewed by counsel. They do not certify compliance.": [
+    "这些披露为草案，未经法律顾问审阅，不构成合规证明。",
+    "これらの開示は草案であり、弁護士の審査を受けていません。法令遵守を証明するものではありません。"
+  ],
+  "Your orders, visible to you and the operator": [
+    "您的订单，仅您和运营方可见",
+    "注文を閲覧できるのはあなたと運営者だけ"
   ]
 }

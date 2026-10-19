@@ -8,10 +8,10 @@ export const Route = createFileRoute("/dashboard")({
       {
         name: "description",
         content:
-          "The Luminary auction terminal: orders, clearing, treasury, RFQ and public prints. No real funds.",
+          "The Luminary auction terminal: orders, clearing, treasury, RFQ and public prints on Robinhood Chain.",
       },
       { property: "og:title", content: "Auction terminal — Luminary" },
-      { property: "og:description", content: "A sealed auction terminal. No real funds." },
+      { property: "og:description", content: "A sealed auction terminal on Robinhood Chain." },
     ],
   }),
   component: Dashboard,

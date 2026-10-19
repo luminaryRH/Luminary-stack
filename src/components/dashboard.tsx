@@ -16,7 +16,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CONFIG, CHAIN_ID, DEPLOYMENT, STOCKS, addressUrl, txUrl } from "@/lib/luminary-config";
+import { CHAIN_ID, DEPLOYMENT, STOCKS, addressUrl, txUrl } from "@/lib/luminary-config";
 import { injectedWallet, loadLive, micro, type Live, type LiveAuction, type LivePrint } from "@/lib/luminary-client";
 import { ShieldedAccount, newSession, preloadProver, readIntents, sendIntent, type RfqIntent, type RfqSession } from "@/shielded/client";
 
@@ -28,13 +28,13 @@ const views = [
   { id: "rfq", label: "RFQ desk", icon: Handshake },
   { id: "treasury", label: "Treasury", icon: Wallet },
 ];
-const NAMES: Record<string, string> = { TSLA: "Tesla", AMZN: "Amazon", AMD: "AMD", PLTR: "Palantir", NFLX: "Netflix" };
-const COLORS: Record<string, string> = { TSLA: "#ff704b", AMZN: "#c2cdd3", AMD: "#a7c7dd", PLTR: "#8cb5d1", NFLX: "#ff9b7d" };
-const KIND_LABEL: Record<string, string> = { OPEN: "Opening call", CLOSE: "Closing call", MIDNIGHT: "Midnight call", NAV: "Treasury NAV call", RFQ: "RFQ block" };
-const ASSETS = ["ETH", "TQ", "USDG", ...STOCKS];
+const NAMES: Record<string, string> = { TSLA: "Tesla", AMZN: "Amazon", AMD: "AMD", PLTR: "Palantir" };
+const COLORS: Record<string, string> = { TSLA: "#ff704b", AMZN: "#c2cdd3", AMD: "#a7c7dd", PLTR: "#8cb5d1" };
+const KIND_LABEL: Record<string, string> = { OPEN: "Opening call", CLOSE: "Closing call", MIDNIGHT: "Midnight call", RFQ: "RFQ block" };
+const ASSETS = ["ETH", "USDG", ...STOCKS];
 type Modal = "wallet" | "funds" | "review" | "feenote" | "proof" | null;
 type Snapshot = ReturnType<ShieldedAccount["view"]>;
-type FundAction = "mint" | "redeem" | "shield" | "unshield" | "feenote";
+type FundAction = "shield" | "unshield" | "feenote";
 const errText = (e: unknown) => {
   const x = e as { shortMessage?: string; message?: string; code?: number | string } | null;
   if (x?.code === 4001 || x?.code === "ACTION_REJECTED") return "You rejected the request in your wallet.";
@@ -93,7 +93,7 @@ function Navigation({ view, onNavigate, onProtocol }: { view: string; onNavigate
       <SidebarFooter>
         <button className="sidebar-help" onClick={onProtocol}><BookOpen size={16} />{t(" Inside the protocol ")}<ArrowUpRight size={14} /></button>
         <Socials />
-        <div className="chain-status"><i />{t(" ROBINHOOD CHAIN ")}<span>{t("TESTNET")} {CHAIN_ID}</span></div>
+        <div className="chain-status"><i />{t(" ROBINHOOD CHAIN ")}<span>{t("MAINNET")} {CHAIN_ID}</span></div>
       </SidebarFooter>
     </Sidebar>
   );
@@ -146,7 +146,7 @@ export default function Dashboard() {
   const [calendarFilter, setCalendarFilter] = useState("all");
   const [proof, setProof] = useState<LivePrint | null>(null);
   // treasury
-  const [fundAction, setFundAction] = useState<FundAction>("mint");
+  const [fundAction, setFundAction] = useState<FundAction>("shield");
   const [fundAsset, setFundAsset] = useState("USDG");
   const [amount, setAmount] = useState("1000");
   // rfq
@@ -231,7 +231,7 @@ export default function Dashboard() {
     const id = toast.loading(t("Sign the key message in your wallet. It is free and sends no transaction."));
     try {
       const acc = await ShieldedAccount.open(eth);
-      await acc.ensureChain().catch(() => toast.warning(t("Switch your wallet to Robinhood Chain testnet (46630) before sending transactions.")));
+      await acc.ensureChain().catch(() => toast.warning(t("Switch your wallet to Robinhood Chain (4663) before sending transactions.")));
       setAccount(acc);
       setSnap(acc.view());
       setWalletBal(await acc.walletBalances().catch(() => []));
@@ -258,7 +258,6 @@ export default function Dashboard() {
   const connected = !!account && !!snap;
   const auctions = useMemo(() => live?.auctions ?? [], [live]);
   const refOf = (s: string) => micro(live?.marks?.prices[s]?.usd);
-  const nav = micro(live?.marks?.nav?.nav) || 1;
   const balance = (s: string) => snap?.balances.find((b) => b.symbol === s);
   const shares = (n: number) => `${fmtQty(n, locale)}${t(n === 1 ? " share" : " shares")}`;
   const upcoming = auctions.filter((a) => (a.status === "scheduled" || a.status === "collecting") && Date.parse(a.callTime) > now);
@@ -270,31 +269,27 @@ export default function Dashboard() {
   const openFor = (s: string) =>
     auctions.filter((a) => a.symbol === s && a.id !== null && a.status === "collecting" && a.kind !== "RFQ" && Date.parse(a.callTime) > now + 60_000);
   const ticketAuctions = openFor(symbol);
-  // until the auctions scheduled before the switch to USDG have called, default to one that takes USDG
   const quoteOf = (id: number | null) => snap?.auctions.find((a) => a.id === id)?.quote;
-  const chosen = ticketAuctions.find((a) => String(a.id) === auctionId) ?? ticketAuctions.find((a) => quoteOf(a.id) === "USDG") ?? ticketAuctions[0];
+  const chosen = ticketAuctions.find((a) => String(a.id) === auctionId) ?? ticketAuctions[0];
   const ref = refOf(symbol);
   const qtyNum = Number(qty);
   const validQty = Number.isFinite(qtyNum) && qtyNum >= 0.001 && /^\d+(\.\d{1,6})?$/.test(qty.trim());
   const limitNum = Number(limit || ref.toFixed(2));
   const pricing = kind === "limit" ? limitNum : ref;
   const estimate = validQty ? qtyNum * pricing : 0;
-  // a buy locks the auction's quote token, USDG (TQ, at its NAV, in auctions scheduled before the switch): the limit
-  // (or 5% over the reference at auction) plus the fee
+  // a buy locks the auction's quote token, USDG: the limit (or 5% over the reference at auction) plus the fee
   const quoteSym = quoteOf(chosen?.id ?? null) ?? "USDG";
-  const lockQuote = side === "buy" ? (qtyNum * (kind === "limit" ? limitNum : ref * 1.05) * 1.001) / (quoteSym === "TQ" ? nav : 1) : 0;
+  const lockQuote = side === "buy" ? qtyNum * (kind === "limit" ? limitNum : ref * 1.05) * 1.001 : 0;
   const validTicket = validQty && !!chosen && (kind === "auction" || limitNum > 0);
   const orders = snap?.orders ?? [];
   const openOrders = orders.filter((o) => o.status === "open" || o.status === "pinned");
-  // dollar cash for buys: USDG, plus any TQ left from before the switch at its NAV
-  const cash = (k: "spendable" | "inOrders") => Number(balance("USDG")?.[k] ?? 0) + Number(balance("TQ")?.[k] ?? 0) * nav;
-  const hasTq = Number(balance("TQ")?.spendable ?? 0) + Number(balance("TQ")?.inOrders ?? 0) + Number(walletBal.find((w) => w.symbol === "TQ")?.amount ?? 0) > 0;
+  // dollar cash for buys: USDG
+  const cash = (k: "spendable" | "inOrders") => Number(balance("USDG")?.[k] ?? 0);
   const filteredOrders = orders.filter((o) => {
     const group = o.status === "open" || o.status === "pinned" ? "sealed" : o.status === "settled" ? "filled" : "cancelled";
     return (filter === "all" || group === filter) && o.symbol.toLowerCase().includes(search.toLowerCase());
   });
-  const prints = (live?.prints ?? []).filter((p) => p.symbol !== "TQ"); // TQ's NAV auctions ended with the switch to USDG
-  const filteredPrints = prints.filter((p) => (filter === "all" || p.symbol === filter) && (p.symbol ?? "").toLowerCase().includes(search.toLowerCase()));
+  const filteredPrints = (live?.prints ?? []).filter((p) => (filter === "all" || p.symbol === filter) && (p.symbol ?? "").toLowerCase().includes(search.toLowerCase()));
   const calls = useMemo(() => {
     const groups = new Map<string, { kind: string; callTime: string; rows: LiveAuction[] }>();
     for (const a of upcoming) {
@@ -316,7 +311,7 @@ export default function Dashboard() {
       {
         name: "read_luminary_account",
         title: "Read account",
-        description: "Read the connected Luminary testnet account: shielded balances and sealed orders. Read only.",
+        description: "Read the connected Luminary account: shielded balances and sealed orders. Read only.",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         annotations: { readOnlyHint: true },
         execute: async () => (snap ? { wallet: snap.wallet, balances: snap.balances, orders: snap.orders } : { connected: false }),
@@ -395,8 +390,6 @@ export default function Dashboard() {
   async function fund() {
     if (!account) return;
     const ok = await run(async (progress) => {
-      if (fundAction === "mint") return account.mintUsdg(amount, progress);
-      if (fundAction === "redeem") return account.fromTreasury(amount, progress);
       if (fundAction === "shield") return account.deposit(fundAsset, amount, progress);
       if (fundAction === "unshield") return account.withdraw(fundAsset, amount, account.wallet, fundAsset !== "ETH", progress);
       return account.prepareFeeNote(progress);
@@ -423,7 +416,7 @@ export default function Dashboard() {
   function calendarFile() {
     if (!nextEvent) return;
     const start = nextEvent.callTime.replace(/[-:]/g, "").replace(/\.\d+/, "").replace(/\+00:?00$/, "Z");
-    const body = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Luminary//Calendar//EN\r\nBEGIN:VEVENT\r\nUID:${nextEvent.key}@luminary\r\nDTSTAMP:${start}\r\nDTSTART:${start}\r\nSUMMARY:Luminary ${KIND_LABEL[nextEvent.kind]}\r\nDESCRIPTION:Robinhood Chain testnet call auction\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+    const body = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Luminary//Calendar//EN\r\nBEGIN:VEVENT\r\nUID:${nextEvent.key}@luminary\r\nDTSTAMP:${start}\r\nDTSTART:${start}\r\nSUMMARY:Luminary ${KIND_LABEL[nextEvent.kind]}\r\nDESCRIPTION:Robinhood Chain call auction\r\nEND:VEVENT\r\nEND:VCALENDAR`;
     const url = URL.createObjectURL(new Blob([body], { type: "text/calendar" }));
     const a = document.createElement("a");
     a.href = url;
@@ -638,7 +631,7 @@ export default function Dashboard() {
           {connected ? <><LockKeyhole size={16} />{t(" Review sealed order")}</> : <>{t("Connect wallet ")}<ArrowUpRight size={16} /></>}
         </Button>
         {!chosen && <p className="ticket-note"><Info size={13} />{t(" No auction of this asset is taking orders right now. The next ones go on chain up to 36 hours ahead.")}</p>}
-        <p className="ticket-note"><ShieldCheck size={13} />{t(" Only you can see your order before the call.")}</p>
+        <p className="ticket-note"><ShieldCheck size={13} />{t(" Only you and the operator can see your order before the call.")}</p>
       </div>
     </section>
   );
@@ -661,8 +654,8 @@ export default function Dashboard() {
         <main className="dashboard-content">
           <div className="demo-notice">
             <Info size={14} />
-            <span>{t("Robinhood Chain testnet. Test tokens only, with no real value. Reference prices are mirrored from mainnet.")}</span>
-            <a href={CONFIG.faucet} target="_blank" rel="noreferrer">{t("Testnet faucet ")}<ArrowUpRight size={12} /></a>
+            <span>{t("Robinhood Chain mainnet. Buys lock USDG, and reference prices come from Chainlink feeds on Robinhood Chain.")}</span>
+            <a href="/legal/risks">{t("Risk & eligibility ")}<ArrowUpRight size={12} /></a>
           </div>
           {error && <div role="alert" className="error-notice">{t(error)}<Button variant="outline" size="sm" onClick={() => void load()}>{t("Retry")}</Button></div>}
 
@@ -674,7 +667,7 @@ export default function Dashboard() {
               </section>
               <div className="dashboard-stats">
                 <div><span>{t("Shielded collateral ")}<Wallet size={14} /></span><strong>{connected ? formatMoney(cash("spendable")) : "—"}</strong><small>{t("USDG · cash for buys")}</small></div>
-                <div><span>{t("Sealed orders ")}<LockKeyhole size={14} /></span><strong>{connected ? String(openOrders.length).padStart(2, "0") : "00"}<em>{connected ? formatMoney(cash("inOrders")) : "$0.00"}{t(" reserved")}</em></strong><small>{t("Your orders, visible only to you")}</small></div>
+                <div><span>{t("Sealed orders ")}<LockKeyhole size={14} /></span><strong>{connected ? String(openOrders.length).padStart(2, "0") : "00"}<em>{connected ? formatMoney(cash("inOrders")) : "$0.00"}{t(" reserved")}</em></strong><small>{t("Your orders, visible to you and the operator")}</small></div>
                 <div><span>{t("Next auction ")}<Clock3 size={14} /></span><strong className="countdown">{countdown}</strong><small>{t(nextEvent ? KIND_LABEL[nextEvent.kind] : "Finding the next call")}{t(" · UTC")}</small></div>
               </div>
               <div className="terminal-grid">
@@ -695,7 +688,7 @@ export default function Dashboard() {
                             <TableRow key={s} data-selected={symbol === s}>
                               <TableCell><div className="asset-name"><span className="asset-letter" style={{ color: COLORS[s] }}>{s[0]}</span><div><strong>{s}</strong><small>{NAMES[s]}</small></div></div></TableCell>
                               <TableCell>{m ? formatMoney(micro(m.usd)) : "—"}</TableCell>
-                              <TableCell><small className="muted">{m ? t(m.source === "chainlink-4663" ? "Chainlink (mainnet)" : "Robinhood quote") : "—"}</small></TableCell>
+                              <TableCell><small className="muted">{m ? "Chainlink" : "—"}</small></TableCell>
                               <TableCell><small className="muted">{m ? new Date(m.at).toISOString().slice(11, 16) : "—"}</small></TableCell>
                               <TableCell><button className="market-action" aria-label={t(`Trade ${s}`)} onClick={() => { selectMarket(s); document.getElementById("order-ticket")?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }}><ArrowUpRight size={17} /></button></TableCell>
                             </TableRow>
@@ -815,7 +808,7 @@ export default function Dashboard() {
 
           {view === "treasury" && (
             <>
-              <PageHeading kicker="THE FOUNDATION" title="Your treasury" description="A balance with purpose. Collateral for your next moment." action={<Button disabled={busy} onClick={() => { setFundAction("mint"); setFundAsset("USDG"); setModal(connected ? "funds" : "wallet"); }}><Plus size={16} />{t(" Add funds")}</Button>} />
+              <PageHeading kicker="THE FOUNDATION" title="Your treasury" description="A balance with purpose. Collateral for your next moment." action={<Button disabled={busy} onClick={() => { setFundAction("shield"); setFundAsset("USDG"); setModal(connected ? "funds" : "wallet"); }}><Plus size={16} />{t(" Add funds")}</Button>} />
               <div className="treasury-grid">
                 <section className="treasury-balance">
                   <p className="eyebrow">{t("SHIELDED COLLATERAL")}</p>
@@ -831,7 +824,7 @@ export default function Dashboard() {
                   <Coins size={30} />
                   <h3>{t("One dollar token,")}<br />{t("from deposit to fill.")}</h3>
                   <p>{t("Buys lock USDG, a dollar stablecoin, until the call. Whatever is not filled comes back as a note you can spend again.")}</p>
-                  <small>{t("Testnet: mint free test USDG with Add funds. Treasury collateral that follows a fund NAV is planned for later.")}</small>
+                  <small>{t("Add funds shields USDG from your wallet into the pool as buy collateral.")}</small>
                   <button className="text-link" onClick={() => setProtocol(true)}>{t("Understand settlement ")}<ArrowUpRight size={15} /></button>
                 </section>
               </div>
@@ -840,11 +833,11 @@ export default function Dashboard() {
                 <Table>
                   <TableHeader><TableRow><TableHead>{t("Asset")}</TableHead><TableHead>{t("Wallet")}</TableHead><TableHead>{t("Shielded")}</TableHead><TableHead>{t("Joining the pool")}</TableHead><TableHead>{t("In orders")}</TableHead><TableHead /></TableRow></TableHeader>
                   <TableBody>
-                    {ASSETS.filter((s) => s !== "TQ" || hasTq).map((s) => {
+                    {ASSETS.map((s) => {
                       const b = balance(s);
                       return (
                         <TableRow key={s}>
-                          <TableCell><strong>{s}</strong><small>{NAMES[s] ?? (s === "TQ" ? "Treasury quote" : s === "USDG" ? "Mock USDG" : "Ether")}</small></TableCell>
+                          <TableCell><strong>{s}</strong><small>{NAMES[s] ?? t(s === "USDG" ? "Dollar stablecoin" : "Ether")}</small></TableCell>
                           <TableCell>{connected ? fmtQty(Number(walletBal.find((w) => w.symbol === s)?.amount ?? 0), locale) : "—"}</TableCell>
                           <TableCell>{connected ? fmtQty(Number(b?.spendable ?? 0), locale) : "—"}</TableCell>
                           <TableCell>{connected ? fmtQty(Number(b?.pending ?? 0), locale) : "—"}</TableCell>
@@ -883,7 +876,7 @@ export default function Dashboard() {
               <img className="modal-emblem" src="/art/emblem.webp" alt="" />
               <p className="eyebrow orange">{t("YOUR PRIVATE WORKSPACE")}</p>
               <DialogTitle>{t(connected ? "Your wallet" : "Enter the auction.")}</DialogTitle>
-              <DialogDescription>{t(connected ? "Your shielded account is derived from one signature and rebuilt from public chain data on any device." : "Connect a wallet on Robinhood Chain testnet. You sign one message to derive your private keys; no transaction is sent.")}</DialogDescription>
+              <DialogDescription>{t(connected ? "Your shielded account is derived from one signature and rebuilt from public chain data on any device." : "Connect a wallet on Robinhood Chain. You sign one message to derive your private keys; no transaction is sent.")}</DialogDescription>
               {connected ? (
                 <dl className="review-details">
                   <div><dt>{t("Wallet")}</dt><dd><a href={addressUrl(snap!.wallet)} target="_blank" rel="noreferrer">{snap!.wallet.slice(0, 10)}…{snap!.wallet.slice(-6)}</a></dd></div>
@@ -891,12 +884,11 @@ export default function Dashboard() {
                   <div><dt>{t("Relayer fee per order")}</dt><dd>{snap!.relayFees.orderEth} ETH</dd></div>
                 </dl>
               ) : (
-                <div className="modal-callout"><ShieldCheck size={19} /><p>{t("Test tokens only. Get ETH and stock tokens from the Robinhood testnet faucet; mint USDG here.")}</p></div>
+                <div className="modal-callout"><ShieldCheck size={19} /><p>{t("Bring ETH for gas, USDG for buys and stock tokens for sells to your wallet on Robinhood Chain.")}</p></div>
               )}
               <Button className="main-button" disabled={busy} onClick={() => (connected ? (setAccount(null), setSnap(null), setModal(null)) : void connect())}>
                 {busy ? <Loader2 className="animate-spin" /> : <Wallet size={16} />} {t(connected ? "Disconnect wallet" : "Connect wallet")}
               </Button>
-              <a className="text-link" href={CONFIG.faucet} target="_blank" rel="noreferrer">{t("Robinhood testnet faucet ")}<ArrowUpRight size={14} /></a>
             </>
           )}
 
@@ -904,7 +896,7 @@ export default function Dashboard() {
             <>
               <p className="eyebrow orange">{t("ONE LAST LOOK")}</p>
               <DialogTitle>{t("Seal your intent.")}</DialogTitle>
-              <DialogDescription>{t("Your browser proves the order and seals it to the clearing key. On testnet the operator alone holds that key, so it can read orders; nobody else can before the call.")}</DialogDescription>
+              <DialogDescription>{t("Your browser proves the order and seals it to the clearing key. The operator alone holds that key today, so it can read orders; nobody else can before the call.")}</DialogDescription>
               <div className="review-asset"><span className="asset-letter">{symbol[0]}</span><div><h3>{t(side === "buy" ? "Buy" : "Sell")} {qty} {symbol}</h3><p>{NAMES[symbol]}{t(" · Tokenized stock")}</p></div><LockKeyhole size={24} /></div>
               <dl className="review-details">
                 <div><dt>{t("Order type")}</dt><dd>{t(kind === "limit" ? "Limit order" : "At auction price")}</dd></div>
@@ -933,18 +925,16 @@ export default function Dashboard() {
             <>
               <p className="eyebrow orange">{t("TREASURY / FUNDS")}</p>
               <DialogTitle>{t("Move funds.")}</DialogTitle>
-              <DialogDescription>{t("Mint test USDG and shield it into the pool as buy collateral. Stock tokens and ETH come from the testnet faucet.")}</DialogDescription>
+              <DialogDescription>{t("Shield USDG into the pool as buy collateral, or stock tokens to sell, and withdraw them back to your wallet.")}</DialogDescription>
               <label className="modal-label">{t("Action")}
-                <Pick value={fundAction} onChange={(v) => { setFundAction(v as FundAction); if (v === "mint") setFundAsset("USDG"); if (v === "redeem") setFundAsset("TQ"); }} label="Action" options={[
-                  { value: "mint", label: "Mint test USDG (faucet)" },
-                  ...(hasTq ? [{ value: "redeem", label: "TQ → USDG" }] : []),
+                <Pick value={fundAction} onChange={(v) => setFundAction(v as FundAction)} label="Action" options={[
                   { value: "shield", label: "Shield into the pool" },
                   { value: "unshield", label: "Withdraw to my wallet" },
                   { value: "feenote", label: "Prepare a relayer fee note (ETH)" },
                 ]} />
               </label>
               {(fundAction === "shield" || fundAction === "unshield") && (
-                <label className="modal-label">{t("Asset")}<Pick value={fundAsset} onChange={setFundAsset} label="Asset" options={ASSETS.filter((s) => s !== "TQ" || hasTq).map((s) => ({ value: s, label: s }))} /></label>
+                <label className="modal-label">{t("Asset")}<Pick value={fundAsset} onChange={setFundAsset} label="Asset" options={ASSETS.map((s) => ({ value: s, label: s }))} /></label>
               )}
               {fundAction !== "feenote" && (
                 <label className="modal-label">{t("Amount")}<Input type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} aria-label={t("Amount")} /></label>

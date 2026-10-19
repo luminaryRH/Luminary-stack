@@ -10,7 +10,7 @@
 import { getAddress, toUtf8String } from "ethers";
 import { open } from "./crypto";
 import { commitmentOf, openingFromJson, type OrderOpening, type SettledOrder } from "./orders";
-import { ETH, blind, note, nullifier } from "./protocol";
+import { ETH, blind, note, nullifier, treeOf } from "./protocol";
 
 export const DEPOSIT_DOMAIN = 1n << 32n; // k-th deposit from a wallet: blinding = blind(blindKey, DEPOSIT_DOMAIN + k)
 
@@ -243,7 +243,7 @@ export async function rebuild(keys: ViewKeys, wallet: string, leaves: bigint[], 
     const index = positions.get(commitment)?.find((i) => !used.has(i)) ?? -1;
     if (index < 0) return; // not indexed yet
     used.add(index);
-    const nul = secret === undefined ? null : nullifier(secret, commitment, BigInt(index));
+    const nul = secret === undefined ? null : nullifier(secret, commitment, BigInt(treeOf(index).position));
     notes.push({ asset, amount, blinding, label, commitment, index, nullifier: nul, spent: false, origin });
   };
   /** Marks a note spent: by nullifier with the secret, else by the commitment the owner's memo names. */
