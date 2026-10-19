@@ -107,6 +107,17 @@ function challenge(xj: Point, r: Point, d: Point, a: Point, b: Point): bigint {
   return mod(BigInt(keccak256(concat([bytesOf(G, true), bytesOf(xj, true), bytesOf(r, true), bytesOf(d, true), bytesOf(a, true), bytesOf(b, true)]))));
 }
 
+/** Whether members can produce a partial for `sealed`: its first 33 bytes must be a curve point. Nobody can open one that
+ * is not, so it is never worth waiting for. */
+export function partialable(sealed: string): boolean {
+  try {
+    pointOf(ephemeralOf(sealed));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Member j's partial decryption of `sealed`, with a proof that it used the key share behind its public share. */
 export function partialOf(member: number, keyShare: string, sealed: string): Partial {
   const x = mod(BigInt(keyShare));

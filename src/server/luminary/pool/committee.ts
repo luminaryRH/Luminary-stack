@@ -3,7 +3,7 @@
 // committee's group key instead and the operator can open a pinned auction's orders only from members' partial
 // decryptions, which members release once the auction is pinned on chain.
 import { keccak256 } from "ethers";
-import { openWithPartials, verifyPartial, type Committee, type Partial } from "@/shielded/committee";
+import { openWithPartials, partialable, verifyPartial, type Committee, type Partial } from "@/shielded/committee";
 import { open } from "@/shielded/crypto";
 import { operatorCiphertext } from "@/shielded/orders";
 import { rpc } from "../db";
@@ -39,14 +39,15 @@ export async function orderCiphertexts(a: OpenAuction) {
   return a.orders.map((o) => ({ ...o, ciphertext: o.sealed === "0x" ? (rolled[o.commitment.toLowerCase()] ?? null) : operatorCiphertext(o.sealed) }));
 }
 
-/** Every order ciphertext of pinned, unsettled auctions that the committee has not yet opened. */
+/** Every openable order ciphertext of pinned, unsettled auctions that the committee has not yet opened. */
 export async function pendingForCommittee() {
   const c = committee();
   if (!c) return [];
   const auctions = (await rpc<OpenAuction[]>("lum_pool_open_auctions", {})).filter((a) => a.pinned);
   const items = (await Promise.all(auctions.map(async (a) => (await orderCiphertexts(a)).map((o) => ({ id: a.id, commitment: o.commitment, sealed: o.ciphertext })))))
     .flat()
-    .filter((x): x is { id: number; commitment: string; sealed: string } => x.sealed !== null);
+    // a malformed ciphertext gets no partials from anyone: settlement leaves it out instead of waiting on it
+    .filter((x): x is { id: number; commitment: string; sealed: string } => x.sealed !== null && partialable(x.sealed));
   const partials = await rpc<Record<string, Partial[]>>("lum_pool_partials_for", { p_hashes: items.map((x) => hashOf(x.sealed)) });
   return items.filter((x) => (partials[hashOf(x.sealed)]?.length ?? 0) < c.threshold);
 }

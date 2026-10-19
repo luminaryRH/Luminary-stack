@@ -286,6 +286,15 @@ test("committee mode: orders open only from members' partials, posted after the 
     await B.placeOrder({ auctionId: a.id, side: "buy", sizeText: "0.3", limitText: (r * 1.02).toFixed(2), roll: false, selfSubmit: true });
     await S.placeOrder({ auctionId: a.id, side: "sell", sizeText: "0.3", limitText: (r * 0.98).toFixed(2), roll: false, selfSubmit: true });
     await until("orders seen", async () => (await B.sync(), await S.sync(), ordersIn(B, a.id).length === 1 && ordersIn(S, a.id).length === 1));
+    // a junk order whose envelope no member can decrypt (not a curve point) must not hold the auction up
+    const junk = new Wallet(account(3).privateKey, L.chain);
+    const placeOrder = new Contract(L.deployment.AuctionPool, app.contract.POOL_ABI, junk).getFunction("placeOrder");
+    const rand = () => "0x00" + hexlify(randomBytes(31)).slice(2); // below the field modulus
+    const root = await app.contract.pool().getFunction("root")();
+    const zero = "0x" + "00".repeat(32);
+    const envelope = hexlify(toUtf8Bytes(JSON.stringify({ o: "0x" + "ff".repeat(80), u: "0x" })));
+    await (await placeOrder(a.id, [root, rand(), zero, rand(), zero, rand(), "0x" + "00".repeat(20), 0, zero], "0x", envelope)).wait();
+    expect(app.committee.partialable("0x" + "ff".repeat(80))).toBe(false);
     await warpTo(a.callTime);
     // after the pin the operator waits for partials instead of settling without the orders
     const pending = await until("orders pending for the committee", async () => {
@@ -299,6 +308,7 @@ test("committee mode: orders open only from members' partials, posted after the 
     expect(await app.poolCommittee.acceptPartials([...posts, forged])).toEqual({ accepted: 4, rejected: 1 });
     const p = await until("committee auction printed", () => printOf(a.id));
     expect(p.crossedQty).toBe("300000");
+    expect(BigInt(await app.contract.pool().getFunction("excludedSlots")(a.id))).toBe(4n); // slot 2, the junk order
   } finally {
     delete process.env["COMMITTEE"];
   }
