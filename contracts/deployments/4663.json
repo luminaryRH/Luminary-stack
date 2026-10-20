@@ -7,6 +7,7 @@
   "chainId": 4663,
   "deployBlock": 92706058,
   "deployer": "0xC84663FC26b3fc6B5fE6a0aC5Ab92Fd71a761d09",
+  "feeOwner": "0x0105841814ba825ae4c8a9ccf0d4842a809065546a142782ddeb054a0bba4da6",
   "feeds": {
     "AMD": "0x943A29E7ae51A4798823ca9eEd2ed533B2A22C72",
     "AMZN": "0xD5a1508ceD74c084eBf3cBe853e2C968fB2a651C",

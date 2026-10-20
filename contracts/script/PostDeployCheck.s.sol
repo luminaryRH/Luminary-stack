@@ -30,8 +30,11 @@ interface IDecimals {
 ///   3. wiring: desk (set once), print writer, gate (association required), verifiers, scheduler and poster (the
 ///      operator; never the deployer), the Safe as guardian, RfqDesk → pool
 ///   4. markets: four listed stocks (unit 1e12, ±5% band, 25-hour staleness for the feeds' 24-hour heartbeat, the
-///      manifest's feed, a minimum lock) and USDG as quote (25-hour staleness); tokens and feeds answer with their expected decimals
-///   5. state: deposits open, fee and deposit fee inside their bounds
+///      manifest's feed, a minimum lock at least Deploy.s.sol's) and USDG as quote (25-hour staleness, minimum lock at
+///      least Deploy.s.sol's); tokens and feeds answer with their expected decimals
+///   5. state: deposits open; the fee is Deploy.s.sol's and its notes go to the manifest's feeOwner; a deposit fee, if
+///      any, is in bounds and paid to the operator
+///   6. gate: no sanctions oracle, or one with code; the operator, the Safe and the pool are not blocked
 contract PostDeployCheck is Script {
     struct ImmutableRef {
         uint256 length;
@@ -41,6 +44,10 @@ contract PostDeployCheck is Script {
     string[4] internal STOCKS = ["TSLA", "AMZN", "AMD", "PLTR"];
     address internal constant SAFE_L2_SINGLETON = 0x29fcB43b46531BcA003ddC8FCB67FFE91900C762;
     uint256 internal constant TIMELOCK_DELAY = 48 hours;
+    // Deploy.s.sol's values: the fee, and the minimum locks (raising them is fine, lowering them is not)
+    uint16 internal constant FEE_BPS = 5;
+    uint256 internal constant STOCK_MIN_LOCK = 50_000;
+    uint256 internal constant QUOTE_MIN_LOCK = 25e6;
     uint256 internal failures;
 
     function run() external {
@@ -90,7 +97,23 @@ contract PostDeployCheck is Script {
 
         // 5. state
         _check(!pool.depositsPaused(), "deposits open", address(pool));
-        _check(pool.feeBps() <= pool.MAX_FEE_BPS() && pool.depositFee() <= pool.MAX_DEPOSIT_FEE(), "fees in bounds", address(pool));
+        _check(pool.feeBps() == FEE_BPS, "settlement fee is Deploy.s.sol's", address(pool));
+        _check(pool.feeOwner() == vm.parseJsonBytes32(json, ".feeOwner"), "fee notes go to the manifest's feeOwner", address(pool));
+        uint256 depositFee = pool.depositFee();
+        _check(
+            depositFee <= pool.MAX_DEPOSIT_FEE() && (depositFee == 0 || pool.feeRecipient() == operator),
+            "deposit fee in bounds and paid to the operator",
+            address(pool)
+        );
+
+        // 6. gate
+        address sanctions = address(gate.sanctions());
+        _check(sanctions == address(0) || sanctions.code.length > 0, "sanctions oracle unset or has code", address(gate));
+        _check(
+            !gate.blocked(operator) && !gate.blocked(vm.parseJsonAddress(json, ".safe")) && !gate.blocked(address(pool)),
+            "operator, Safe and pool not blocked",
+            address(gate)
+        );
 
         if (failures > 0) revert(string.concat("post-deploy check FAILED: ", vm.toString(failures), " problem(s)"));
         console2.log("post-deploy check PASSED on chain", block.chainid);
@@ -126,14 +149,14 @@ contract PostDeployCheck is Script {
             address feed = vm.parseJsonAddress(json, string.concat(".feeds.", STOCKS[i]));
             (address f, uint88 unit, bool listed, uint16 capBps, uint32 maxAge) = pool.markets(token);
             _check(f == feed && unit == 1e12 && listed && capBps == 500 && maxAge == 25 hours, string.concat(STOCKS[i], " market"), token);
-            _check(pool.minLock(token) > 0, string.concat(STOCKS[i], " minimum lock"), token);
+            _check(pool.minLock(token) >= STOCK_MIN_LOCK, string.concat(STOCKS[i], " minimum lock"), token);
             _check(_decimals(token) == 18 && _decimals(feed) == 8 && _answers(feed), string.concat(STOCKS[i], " token and feed"), token);
         }
         address usdg = vm.parseJsonAddress(json, ".tokens.USDG");
         address usdgFeed = vm.parseJsonAddress(json, ".feeds.USDG");
         (address uf, uint88 usdgUnit, bool usdgListed,, uint32 usdgAge) = pool.markets(usdg);
         _check(uf == usdgFeed && usdgUnit == 1 && !usdgListed && usdgAge == 25 hours, "USDG quote market", usdg);
-        _check(pool.minLock(usdg) > 0, "USDG minimum lock", usdg);
+        _check(pool.minLock(usdg) >= QUOTE_MIN_LOCK, "USDG minimum lock", usdg);
         _check(_decimals(usdg) == 6 && _decimals(usdgFeed) == 8 && _answers(usdgFeed), "USDG token and feed", usdg);
     }
 

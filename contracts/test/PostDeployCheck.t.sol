@@ -82,6 +82,7 @@ contract PostDeployCheckTest is Test {
         t = vm.serializeAddress("tokens", "USDG", USDG);
         vm.serializeAddress("d", "operator", operator);
         vm.serializeAddress("d", "deployer", address(deployer));
+        vm.serializeBytes32("d", "feeOwner", c.feeOwner);
         vm.serializeAddress("d", "owner", address(d.timelock));
         vm.serializeAddress("d", "safe", address(safe));
         vm.serializeAddress("d", "safeSigners", signers);
@@ -162,6 +163,19 @@ contract PostDeployCheckTest is Test {
         vm.prank(address(d.timelock));
         d.gate.setAssociationRequired(false);
         vm.expectRevert(bytes("post-deploy check FAILED: 1 problem(s)"));
+        checker.check(json);
+    }
+
+    function test_wrong_fee_settings_a_lowered_lock_or_a_blocked_operator_fail() public {
+        vm.startPrank(address(d.timelock));
+        d.pool.setFee(bytes32(uint256(2)), 5); // fee notes to another key
+        d.pool.setDepositFee(makeAddr("stranger"), 1); // paid to someone other than the operator
+        d.pool.setMinLock(tokens[0], 1); // below Deploy.s.sol's
+        address[] memory who = new address[](1);
+        who[0] = operator;
+        d.gate.setBlocked(who, true);
+        vm.stopPrank();
+        vm.expectRevert(bytes("post-deploy check FAILED: 4 problem(s)"));
         checker.check(json);
     }
 

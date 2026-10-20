@@ -147,8 +147,10 @@ that the live bytecode is this build and that ownership, roles, markets and scre
 | **Emergency stop** | The Safe, as guardian, can pause deposits or halt a market immediately. Only the timelock can resume either. Exits stay open. |
 | **Prices** | The pool reads Chainlink at the call and voids an auction whose round is older than its market's limit. Nobody pushes prices. |
 | **Screening** | Withdrawals and orders prove their deposit is in a screened association set (sanctions list and blocklist). A depositor left out can always ragequit. |
-| **Order privacy** | Today one operator key opens sealed orders at settlement, so the operator can read orders before the call. A threshold committee is built in: members verify every request on chain and decrypt only after an auction is pinned. |
+| **Order privacy** | Today one operator key opens sealed orders at settlement, so the operator can read orders before the call. A threshold committee is built in but **not switched on yet**; once on, members verify every request on chain and decrypt only after an auction is pinned. |
 | **Monitoring** | Alerts on every timelock, Safe and admin event, large outflows, voided auctions, operator gas and stalled workers. |
+
+Every privileged role, each accepted risk and the incident runbook are in [SECURITY.md](SECURITY.md).
 
 > [!IMPORTANT]
 > Luminary has no external security audit. Interact only with amounts you can afford to lose, and only where you are
@@ -199,7 +201,8 @@ cd circuits && nargo test --workspace
 
 | Check | Result |
 | --- | --- |
-| Contract tests (Foundry) | 80 tests, including a full deploy rehearsed on a mainnet fork |
+| Contract tests (Foundry) | 82 tests: 79 local, plus 3 fork tests that run against mainnet when `FORK_RPC_URL` is set |
+| Live deployment | [`contracts/deployments/4663-readback.txt`](contracts/deployments/4663-readback.txt): dated read-only check of the mainnet contracts (bytecode, owners, wiring, markets, fees) |
 | Stateful invariants | 4 invariants × 128,000 calls: conservation, single spend, slot consistency |
 | Contract line coverage | 99.4% (100% of functions) |
 | Mutation testing (Gambit) | 90.4% of 893 mutants killed |

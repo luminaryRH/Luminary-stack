@@ -211,6 +211,7 @@ contract Deploy is Script {
         vm.serializeUint("deployment", "deployBlock", deployBlock);
         vm.serializeAddress("deployment", "operator", c.operator);
         vm.serializeAddress("deployment", "deployer", c.deployer);
+        vm.serializeBytes32("deployment", "feeOwner", c.feeOwner);
         vm.serializeAddress("deployment", "owner", address(d.timelock));
         vm.serializeAddress("deployment", "safe", d.safe);
         vm.serializeAddress("deployment", "safeSigners", ISafeOwners(d.safe).getOwners());

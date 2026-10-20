@@ -1,0 +1,24 @@
+Live readback of the Robinhood Chain mainnet deployment (chain 4663), read-only.
+Date (UTC):   2026-10-20T20:41:40Z
+Block:        93734805
+Source:       the commit that adds this file (contracts/ at that commit, built with the toolchain below)
+Toolchain:    forge Version: 1.8.5
+RPC:          https://rpc.mainnet.chain.robinhood.com (public)
+Reproduce:    cd contracts && forge build && forge script script/PostDeployCheck.s.sol --rpc-url https://rpc.mainnet.chain.robinhood.com
+              FORK_RPC_URL=https://rpc.mainnet.chain.robinhood.com forge test --match-contract ForkTest
+
+== forge script script/PostDeployCheck.s.sol ==
+Script ran successfully.
+
+== Logs ==
+  post-deploy check PASSED on chain 4663
+
+== forge test --match-contract ForkTest ==
+
+Ran 3 tests for test/Fork.t.sol:ForkTest
+[PASS] test_an_auction_of_the_live_token_pins_at_the_chainlink_price() (gas: 1704494)
+[PASS] test_the_deploy_script_passes_the_post_deploy_check_on_mainnet() (gas: 193317101)
+[PASS] test_the_live_tokens_are_one_share_per_token_and_unpaused() (gas: 190495)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 11.83s (21.06s CPU time)
+
+Ran 1 test suite in 11.84s (11.83s CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)
